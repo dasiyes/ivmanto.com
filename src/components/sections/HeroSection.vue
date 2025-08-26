@@ -1,7 +1,3 @@
-<script setup lang="ts">
-// No script logic needed for this component
-</script>
-
 <template>
   <section class="py-20 md:py-32 bg-light-gray hero-bg-pattern">
     <div class="container mx-auto px-6 text-center relative z-10">
@@ -30,10 +26,3 @@
     </div>
   </section>
 </template>
-
-<style scoped>
-/* Background pattern for the hero section */
-.hero-bg-pattern {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 200 200'%3e%3crect fill='%23F8F9FA' width='200' height='200'/%3e%3cg fill='none' stroke='%23E5E7EB' stroke-width='1'%3e%3cpath d='M100 0L200 100 100 200 0 100z'/%3e%3cpath d='M100 50L150 100 100 150 50 100z'/%3e%3c/g%3e%3c/svg%3e");
-}
-</style>

@@ -1,7 +1,3 @@
-<script setup lang="ts">
-// No script logic needed for this component
-</script>
-
 <template>
   <section id="about" class="py-20 md:py-28 bg-light-gray">
     <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
