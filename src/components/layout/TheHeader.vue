@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import AppLogo from './AppLogo.vue'
 
 const isMobileMenuOpen = ref(false)
@@ -16,26 +17,34 @@ function closeMobileMenu() {
 <template>
   <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
     <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-      <a href="#" @click="closeMobileMenu">
+      <RouterLink to="/" @click="closeMobileMenu">
         <AppLogo />
-      </a>
+      </RouterLink>
 
       <div class="hidden md:flex items-center space-x-8">
-        <a href="#services" class="text-gray-600 hover:text-primary transition-colors">Services</a>
-        <a href="#about" class="text-gray-600 hover:text-primary transition-colors">About</a>
-        <a href="#articles" class="text-gray-600 hover:text-primary transition-colors">Articles</a>
-        <a href="#contact" class="text-gray-600 hover:text-primary transition-colors">Contact</a>
+        <RouterLink to="/#services" class="text-gray-600 hover:text-primary transition-colors"
+          >Services</RouterLink
+        >
+        <RouterLink to="/#about" class="text-gray-600 hover:text-primary transition-colors"
+          >About</RouterLink
+        >
+        <RouterLink to="/#articles" class="text-gray-600 hover:text-primary transition-colors"
+          >Articles</RouterLink
+        >
+        <RouterLink to="/#contact" class="text-gray-600 hover:text-primary transition-colors"
+          >Contact</RouterLink
+        >
       </div>
       <div class="hidden md:flex items-center space-x-4">
-        <a
-          href="#contact"
+        <RouterLink
+          to="/#contact"
           class="bg-primary text-white font-medium py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all"
-          >Get In Touch</a
+          >Get In Touch</RouterLink
         >
-        <a
-          href="#"
+        <RouterLink
+          to="/login"
           class="bg-light-gray text-primary font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-all"
-          >Client Login</a
+          >Client Login</RouterLink
         >
       </div>
 
@@ -58,41 +67,41 @@ function closeMobileMenu() {
     </nav>
 
     <div :class="{ hidden: !isMobileMenuOpen }" class="md:hidden px-6 pb-4 space-y-2">
-      <a
-        href="#services"
+      <RouterLink
+        to="/#services"
         @click="closeMobileMenu"
         class="block text-gray-600 hover:text-primary transition-colors"
-        >Services</a
+        >Services</RouterLink
       >
-      <a
-        href="#about"
+      <RouterLink
+        to="/#about"
         @click="closeMobileMenu"
         class="block text-gray-600 hover:text-primary transition-colors"
-        >About</a
+        >About</RouterLink
       >
-      <a
-        href="#articles"
+      <RouterLink
+        to="/#articles"
         @click="closeMobileMenu"
         class="block text-gray-600 hover:text-primary transition-colors"
-        >Articles</a
+        >Articles</RouterLink
       >
-      <a
-        href="#contact"
+      <RouterLink
+        to="/#contact"
         @click="closeMobileMenu"
         class="block text-gray-600 hover:text-primary transition-colors"
-        >Contact</a
+        >Contact</RouterLink
       >
-      <a
-        href="#contact"
+      <RouterLink
+        to="/#contact"
         @click="closeMobileMenu"
         class="block bg-primary text-white text-center font-medium mt-2 py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all"
-        >Get In Touch</a
+        >Get In Touch</RouterLink
       >
-      <a
-        href="#"
+      <RouterLink
+        to="/login"
         @click="closeMobileMenu"
         class="block bg-light-gray text-primary text-center font-medium mt-2 py-2 px-4 rounded-lg hover:bg-gray-200 transition-all"
-        >Client Login</a
+        >Client Login</RouterLink
       >
     </div>
   </header>
