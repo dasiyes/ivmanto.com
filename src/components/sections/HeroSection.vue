@@ -1,27 +1,19 @@
 <template>
-  <section class="py-20 md:py-32 bg-light-gray hero-bg-pattern">
-    <div class="container mx-auto px-6 text-center relative z-10">
-      <span class="text-primary font-semibold tracking-wider"
-        >GOOGLE CLOUD PLATFORM SPECIALIST</span
-      >
-      <h1 class="text-4xl md:text-6xl font-bold mt-4 text-dark-slate leading-tight">
-        Expert Cloud Data Architecture & AI Solutions
+  <section id="hero" class="bg-primary text-white">
+    <div class="container mx-auto px-6 py-24 text-center">
+      <h1 class="text-4xl md:text-6xl font-bold leading-tight">
+        Transforming Data into Actionable Insights
       </h1>
-      <p class="text-lg md:text-xl text-gray-600 mt-6 max-w-3xl mx-auto">
-        Transforming your data into actionable insights with robust, scalable, and intelligent cloud
-        platforms built on GCP.
+      <p class="mt-4 text-lg md:text-xl text-gray-300">
+        Expert Cloud Data Architecture & AI Solutions on Google Cloud Platform
       </p>
-      <div class="mt-10 flex justify-center gap-4">
+      <div class="mt-8">
         <a
-          href="#contact"
-          class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
-          >Book a Consultation</a
+          href="/#contact"
+          class="bg-white text-primary font-bold py-3 px-8 rounded-lg hover:bg-gray-200 transition-all text-lg"
         >
-        <a
-          href="#services"
-          class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
-          >Learn More</a
-        >
+          Let's Build Together
+        </a>
       </div>
     </div>
   </section>
