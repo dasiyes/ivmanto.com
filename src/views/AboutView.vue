@@ -61,9 +61,9 @@ import CertificatesSection from '@/components/about/CertificatesSection.vue'
       </div>
     </section>
 
-    <ExpertiseSection />
-
     <ApproachSection />
+
+    <ExpertiseSection />
 
     <CertificatesSection />
 
