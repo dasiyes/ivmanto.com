@@ -1,25 +1,23 @@
+<!-- <template>
+  <div class="mb-12 flex justify-center" aria-hidden="true">
+    <img src="@/assets/cloud-pic-2.png" alt="" class="w-[350px] drop-shadow-lg" />
+  </div>
+</template> -->
+
 <template>
   <div class="mb-12 flex justify-center" aria-hidden="true">
-    <svg width="300" height="120" viewBox="0 0 300 120" class="drop-shadow-lg">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" style="stop-color: rgb(2, 128, 144); stop-opacity: 1" />
-          <stop offset="100%" style="stop-color: rgb(0, 168, 150); stop-opacity: 1" />
-        </linearGradient>
-      </defs>
-      <rect width="300" height="120" rx="8" fill="url(#grad1)" />
-      <text
-        x="50%"
-        y="50%"
-        dominant-baseline="middle"
-        text-anchor="middle"
-        fill="white"
-        font-size="18"
-        font-family="sans-serif"
-        font-weight="bold"
-      >
-        Your Infographic Here
-      </text>
-    </svg>
+    <!-- Frame with soft-focus background -->
+    <div
+      class="relative flex items-center justify-center w-[440px] h-[440px] overflow-hidden rounded-3xl bg-white/10 shadow-lg"
+    >
+      <!-- Blurred background -->
+      <img
+        src="@/assets/cloud-pic-2.png"
+        alt=""
+        class="absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
+      />
+      <!-- Foreground image -->
+      <img src="@/assets/cloud-pic-2.png" alt="" class="relative w-[350px] drop-shadow-lg" />
+    </div>
   </div>
 </template>
