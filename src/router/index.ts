@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AboutView from '@/views/AboutView.vue'
+import ServiceView from '@/views/ServiceView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,6 +11,24 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+    {
+      path: '/services',
+      name: 'services',
+      component: () => import('../views/ServiceView.vue'),
+      children: [
+        {
+          path: '',
+          name: 'services-index',
+          component: () => import('../components/sections/ServicesIndex.vue'),
+        },
+        {
+          path: ':id',
+          name: 'service-detail',
+          component: () => import('../components/sections/ServicesSection.vue'),
+          props: true, // Pass route params as props to the component
+        },
+      ],
     },
     {
       path: '/about',

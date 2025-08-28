@@ -22,10 +22,10 @@ import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
             href="#contact"
             class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
             >Book a Consultation</a
-          ><a
-            href="#services"
+          ><router-link
+            :to="{ name: 'services' }"
             class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
-            >Learn More</a
+            >Learn More</router-link
           >
         </div>
       </div>

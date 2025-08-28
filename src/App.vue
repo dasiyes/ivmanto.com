@@ -8,7 +8,7 @@ import Footer from './components/layout/TheFooter.vue'
 const isMobileMenuOpen = ref(false)
 
 const navLinks = [
-  { text: 'Services', to: '/#services' },
+  { text: 'Services', to: '/services' },
   { text: 'About', to: '/about' },
   { text: 'Articles', to: '/#articles' },
   { text: 'Contact', to: '/#contact' },
