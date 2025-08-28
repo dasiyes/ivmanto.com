@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
+import { articles } from '@/data/articles'
+
+const featuredArticles = articles.slice(0, 3)
 </script>
 
 <template>
@@ -40,49 +43,30 @@ import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
           </p>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="border border-gray-200 rounded-xl overflow-hidden group">
+          <div
+            v-for="article in featuredArticles"
+            :key="article.slug"
+            class="border border-gray-200 rounded-xl overflow-hidden group"
+          >
             <div class="p-6">
-              <span class="text-sm text-gray-500">Data Architecture • 10 min read</span>
+              <span class="text-sm text-gray-500">{{
+                new Date(article.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              }}</span>
               <h3
                 class="text-xl font-bold text-dark-slate mt-2 group-hover:text-primary transition-colors"
               >
-                Common Architectural Patterns for Modern Data Platforms
+                {{ article.title }}
               </h3>
-              <p class="mt-3 text-gray-600">
-                A deep dive into the pros and cons of Data Lakes, Warehouses, and the modern
-                Lakehouse architecture on GCP.
-              </p>
-              <a href="#" class="text-primary font-semibold mt-4 inline-block">Read More →</a>
-            </div>
-          </div>
-          <div class="border border-gray-200 rounded-xl overflow-hidden group">
-            <div class="p-6">
-              <span class="text-sm text-gray-500">AI/ML • 8 min read</span>
-              <h3
-                class="text-xl font-bold text-dark-slate mt-2 group-hover:text-primary transition-colors"
+              <p class="mt-3 text-gray-600">{{ article.summary }}</p>
+              <router-link
+                :to="`/blog/${article.slug}`"
+                class="text-primary font-semibold mt-4 inline-block"
+                >Read More →</router-link
               >
-                From Notebook to Production with Vertex AI
-              </h3>
-              <p class="mt-3 text-gray-600">
-                A practical guide to operationalizing your machine learning models using Google
-                Cloud's unified AI platform.
-              </p>
-              <a href="#" class="text-primary font-semibold mt-4 inline-block">Read More →</a>
-            </div>
-          </div>
-          <div class="border border-gray-200 rounded-xl overflow-hidden group">
-            <div class="p-6">
-              <span class="text-sm text-gray-500">Data Governance • 12 min read</span>
-              <h3
-                class="text-xl font-bold text-dark-slate mt-2 group-hover:text-primary transition-colors"
-              >
-                Why DAMA Principles Matter for Your Business
-              </h3>
-              <p class="mt-3 text-gray-600">
-                Exploring how standardized data management practices can reduce risk and increase
-                the value of your data assets.
-              </p>
-              <a href="#" class="text-primary font-semibold mt-4 inline-block">Read More →</a>
             </div>
           </div>
         </div>
