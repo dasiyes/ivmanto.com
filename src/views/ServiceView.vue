@@ -1,41 +1,43 @@
 <template>
-  <div class="service-view">
-    <aside class="left-column">
-      <h2>Our Services</h2>
-      <nav>
-        <ul>
-          <li v-for="service in services" :key="service.id">
-            <router-link :to="{ name: 'service-detail', params: { id: service.id } }">
-              {{ service.name }}
-            </router-link>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+  <div class="service-view-wrapper">
+    <div class="service-view">
+      <aside class="left-column">
+        <h2>Our Services</h2>
+        <nav>
+          <ul>
+            <li v-for="service in services" :key="service.id">
+              <router-link :to="{ name: 'service-detail', params: { id: service.id } }">
+                {{ service.name }}
+              </router-link>
+            </li>
+          </ul>
+        </nav>
+      </aside>
 
-    <main class="main-content">
-      <!-- The content for the selected service will be rendered here via nested routes -->
-      <router-view :key="$route.path"></router-view>
-    </main>
+      <main class="main-content">
+        <!-- The content for the selected service will be rendered here via nested routes -->
+        <router-view :key="$route.path"></router-view>
+      </main>
 
-    <aside class="right-column">
-      <h3>Related Information</h3>
-      <div v-if="currentService" class="related-content">
-        <h4>About {{ currentService.name }}</h4>
-        <p>
-          Here you can find supplementary materials, links, or actions related to
-          {{ currentService.name.toLowerCase() }}.
-        </p>
-        <ul>
-          <li><a href="#">Case Studies</a></li>
-          <li><a href="#">Technical Docs</a></li>
-          <li><a href="#">Contact an Expert</a></li>
-        </ul>
-      </div>
-      <div v-else class="related-content-placeholder">
-        <p>Please select a service from the list to see more information.</p>
-      </div>
-    </aside>
+      <aside class="right-column">
+        <h3>Related Information</h3>
+        <div v-if="currentService" class="related-content">
+          <h4>About {{ currentService.name }}</h4>
+          <p>
+            Here you can find supplementary materials, links, or actions related to
+            {{ currentService.name.toLowerCase() }}.
+          </p>
+          <ul>
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Technical Docs</a></li>
+            <li><a href="#">Contact an Expert</a></li>
+          </ul>
+        </div>
+        <div v-else class="related-content-placeholder">
+          <p>Please select a service from the list to see more information.</p>
+        </div>
+      </aside>
+    </div>
   </div>
 </template>
 
@@ -60,10 +62,24 @@ const currentService = computed(() => {
 </script>
 
 <style scoped>
+.service-view-wrapper {
+  /* This wrapper provides vertical spacing and ensures there's padding on smaller screens */
+  padding: 2.5rem 1.5rem;
+}
+
 .service-view {
   display: flex;
-  height: calc(100vh - 80px); /* Example height, adjust based on your layout */
+  /* This creates the centered, max-width container for the columns */
+  max-width: 1280px; /* A common max-width, matching Tailwind's `container` on `xl` screens */
+  margin: 0 auto; /* Centers the container within the wrapper */
+
+  /* Visual appearance */
   background-color: #fff;
+  border-radius: 0.75rem; /* Matches `rounded-xl` from your other components */
+  overflow: hidden; /* Ensures children's corners are clipped by the border-radius */
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .left-column {
