@@ -11,7 +11,7 @@ const featuredArticles = computed(() =>
 </script>
 
 <template>
-  <main>
+  <div>
     <section class="py-20 md:py-28 bg-light-gray hero-bg-pattern relative">
       <HeroInfographic />
       <div class="container mx-auto px-6 text-center relative z-10">
@@ -138,7 +138,7 @@ const featuredArticles = computed(() =>
         </div>
       </div>
     </section>
-  </main>
+  </div>
 </template>
 
 <style>
