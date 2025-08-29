@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, defineComponent } from 'vue'
+import { ref } from 'vue'
 import AppLogo from './AppLogo.vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink } from 'vue-router'
 
 // --- Header Logic (inlined) ---
 const isMobileMenuOpen = ref(false)
@@ -27,22 +27,6 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
-
-const HamburgerIcon = defineComponent({
-  template: `
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-    </svg>
-  `,
-})
-
-const CloseIcon = defineComponent({
-  template: `
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-    </svg>
-  `,
-})
 </script>
 
 <template>
@@ -80,8 +64,36 @@ const CloseIcon = defineComponent({
 
       <!-- Mobile Menu Button -->
       <button @click="toggleMobileMenu" class="md:hidden">
-        <CloseIcon v-if="isMobileMenuOpen" />
-        <HamburgerIcon v-else />
+        <svg
+          v-if="isMobileMenuOpen"
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+        <svg
+          v-else
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16m-7 6h7"
+          ></path>
+        </svg>
       </button>
     </nav>
 
