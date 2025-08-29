@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AboutView from '@/views/AboutView.vue'
+import BlogView from '@/views/BlogView.vue'
+import ArticleListView from '@/views/ArticleListView.vue'
+import ArticleView from '@/views/ArticleView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,21 +33,20 @@ const router = createRouter({
       ],
     },
     {
+      // This is the parent route for the blog section
       path: '/blog',
-      name: 'blog',
-      // This is a wrapper component for the blog section
-      component: () => import('../views/BlogView.vue'),
+      component: BlogView,
       children: [
         {
-          path: '',
-          name: 'blog-index',
-          component: () => import('../views/BlogIndexView.vue'),
+          path: '', // Renders ArticleListView at /blog
+          name: 'blog',
+          component: ArticleListView,
         },
         {
-          path: ':slug',
-          name: 'blog-post',
-          component: () => import('../views/BlogPostView.vue'),
-          props: true, // Pass route params as props
+          path: ':slug', // Renders ArticleView at /blog/your-slug
+          name: 'article-detail',
+          component: ArticleView,
+          props: true, // This passes the ':slug' as a prop to ArticleView
         },
       ],
     },
