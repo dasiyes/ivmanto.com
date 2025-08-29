@@ -16,7 +16,8 @@ steps:
   # This step runs the `npm run build` script defined in your package.json.
   # It generates the static HTML, CSS, and JavaScript files in the /dist directory.
   - name: 'gcr.io/cloud-builders/npm'
-    args: ['npx', 'vite', 'build']
+    entrypoint: 'npx'
+    args: ['vite', 'build']
     id: 'npm-build'
     waitFor: ['npm-install'] # Ensure this step runs after dependencies are installed.
 
