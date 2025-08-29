@@ -1,0 +1,31 @@
+steps:
+  # Step 1: Install dependencies using the official npm cloud builder.
+  # This step runs `npm install` to download all the project dependencies.
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+    id: 'npm-install'
+
+  # Step 2: Build the production version of the Vue.js application.
+  # This step runs the `npm run build` script defined in your package.json.
+  # It generates the static HTML, CSS, and JavaScript files in the /dist directory.
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'build']
+    id: 'npm-build'
+    waitFor: ['npm-install'] # Ensure this step runs after dependencies are installed.
+
+  # Step 3: Deploy the static files to Google Cloud Storage.
+  # This step uses gsutil to synchronize the contents of the /dist directory
+  # with your Cloud Storage bucket. The -d flag deletes objects in the bucket
+  # that are not present in the source, ensuring a clean deployment.
+  # The -r flag makes the copy recursive.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gsutil'
+    args:
+      - '-m'
+      - 'rsync'
+      - '-d'
+      - '-r'
+      - 'dist'
+      - 'gs://${_BUCKET_NAME}' # This is a substitution variable you'll set in the trigger.
+    id: 'deploy-to-gcs'
+    waitFor: ['npm-build'] # Ensure this step runs after the build is complete.

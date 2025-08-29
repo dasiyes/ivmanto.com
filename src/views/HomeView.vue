@@ -27,7 +27,9 @@ const featuredArticles = computed(() =>
         </p>
         <div class="mt-10 flex justify-center gap-4">
           <a
-            href="#contact"
+            href="https://calendly.com/ivmanto"
+            target="_blank"
+            rel="noopener noreferrer"
             class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
             >Book a Consultation</a
           ><router-link
