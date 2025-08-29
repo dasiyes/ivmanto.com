@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import ExpertiseSection from '@/components/about/ExpertiseSection.vue'
 import ApproachSection from '@/components/about/ApproachSection.vue'
 import CertificatesSection from '@/components/about/CertificatesSection.vue'
