@@ -22,10 +22,14 @@
         <span>Industries:</span>
       </span>
       <div class="flex items-center gap-2">
-        <button class="filter-button-active">All</button>
-        <button class="filter-button">Finance</button>
-        <button class="filter-button">Healthcare</button>
-        <button class="filter-button">Retail</button>
+        <button
+          v-for="industry in industries"
+          :key="industry"
+          @click="setActiveIndustry(industry)"
+          :class="[activeIndustry === industry ? 'filter-button-active' : 'filter-button']"
+        >
+          {{ industry }}
+        </button>
       </div>
     </div>
 
@@ -37,7 +41,7 @@
           <h2 class="text-lg font-bold text-dark-slate mb-4">Services</h2>
           <nav class="space-y-1">
             <a
-              v-for="service in services"
+              v-for="service in filteredServices"
               :key="service.id"
               @click.prevent="selectService(service.id)"
               href="#"
@@ -55,29 +59,60 @@
       </div>
       <!-- Middle Column: Patterned Background -->
       <div class="flex-grow pattern-bg">
-        <ServiceDetail :service="selectedService" />
+        <ServiceDetail :service="selectedService" @update-right-column="updateRightColumn" />
       </div>
 
       <!-- Right Column: Empty -->
       <div class="flex-shrink-0 w-[20%] bg-white border-l border-gray-200 overflow-y-auto">
-        <!-- This column is now empty, but kept for layout structure -->
+        <RightColumnContent :content="rightColumnContent" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { services, getServiceById } from '@/data/services'
 import ServiceDetail from '@/components/services/ServiceDetail.vue'
+import RightColumnContent from '@/components/services/RightColumnContent.vue'
 
-const selectedServiceId = ref<string | undefined>(services[0]?.id) // Select the first service by default
+const industries = ['All', 'Finance', 'Healthcare', 'Retail']
+const activeIndustry = ref('All')
+
+const filteredServices = computed(() => {
+  if (activeIndustry.value === 'All') {
+    return services
+  }
+  return services.filter((service) => service.industries.includes(activeIndustry.value))
+})
+
+const rightColumnContent = ref<string | undefined>()
+const selectedServiceId = ref<string | undefined>(filteredServices.value[0]?.id)
 
 const selectedService = computed(() => getServiceById(selectedServiceId.value))
 
 function selectService(id: string) {
   selectedServiceId.value = id
 }
+
+function setActiveIndustry(industry: string) {
+  activeIndustry.value = industry
+}
+
+function updateRightColumn(content: string | undefined) {
+  rightColumnContent.value = content
+}
+
+// Watch for changes in the filtered list and update the selection
+watch(filteredServices, (newServices) => {
+  const isSelectedVisible = newServices.some((s) => s.id === selectedServiceId.value)
+
+  if (!isSelectedVisible) {
+    // If the current selection is no longer in the list, select the first available service
+    selectedServiceId.value = newServices[0]?.id
+    rightColumnContent.value = undefined // Clear right column when selection changes
+  }
+})
 </script>
 
 <style scoped>
