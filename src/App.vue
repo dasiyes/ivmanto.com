@@ -1,21 +1,16 @@
-<script setup>
-import TheHeader from './components/layout/TheHeader.vue'
-import TheFooter from './components/layout/TheFooter.vue'
-import HeroSection from './components/sections/HeroSection.vue'
-import ServicesSection from './components/sections/ServicesSection.vue'
-import AboutSection from './components/sections/AboutSection.vue'
-import ArticlesSection from './components/sections/ArticlesSection.vue'
-import ContactSection from './components/sections/ContactSection.vue'
+<script setup lang="ts">
+import { RouterLink, RouterView } from 'vue-router'
+import Footer from './components/layout/TheFooter.vue'
+import Header from './components/layout/TheHeader.vue'
 </script>
 
 <template>
-  <TheHeader />
-  <main>
-    <HeroSection />
-    <ServicesSection />
-    <AboutSection />
-    <ArticlesSection />
-    <ContactSection />
-  </main>
-  <TheFooter />
+  <div class="flex flex-col min-h-screen bg-gray-100">
+    <Header />
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col">
+      <RouterView />
+    </main>
+    <Footer />
+  </div>
 </template>
