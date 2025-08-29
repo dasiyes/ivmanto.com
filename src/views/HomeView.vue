@@ -32,10 +32,10 @@ const featuredArticles = computed(() =>
             rel="noopener noreferrer"
             class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
             >Book a Consultation</a
-          ><router-link
+          ><RouterLink
             :to="{ name: 'services' }"
             class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
-            >Learn More</router-link
+            >Learn More</RouterLink
           >
         </div>
       </div>
@@ -69,10 +69,10 @@ const featuredArticles = computed(() =>
                 {{ article.title }}
               </h3>
               <p class="mt-3 text-gray-600">{{ article.summary }}</p>
-              <router-link
+              <RouterLink
                 :to="`/blog/${article.slug}`"
                 class="text-primary font-semibold mt-4 inline-block"
-                >Read More →</router-link
+                >Read More →</RouterLink
               >
             </div>
           </div>

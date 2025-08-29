@@ -6,7 +6,13 @@ import { RouterLink } from 'vue-router'
 // --- Header Logic (inlined) ---
 const isMobileMenuOpen = ref(false)
 
-const navLinks = [
+type NavLink = {
+  text: string
+  to: string
+  primary?: boolean
+}
+
+const navLinks: NavLink[] = [
   { text: 'Ivmanto', to: '/' },
   { text: 'Services', to: '/services' },
   { text: 'About', to: '/about' },
@@ -15,7 +21,7 @@ const navLinks = [
   { text: 'Contact', to: '/#contact' },
 ]
 
-const actionLinks = [
+const actionLinks: NavLink[] = [
   { text: 'Get In Touch', to: '/#contact', primary: true },
   { text: 'Client Login', to: '/login', primary: false },
 ]
