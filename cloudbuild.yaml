@@ -26,8 +26,7 @@ steps:
   # with your Cloud Storage bucket. The -d flag deletes objects in the bucket
   # that are not present in the source, ensuring a clean deployment.
   # The -r flag makes the copy recursive.
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gsutil'
+  - name: 'gcr.io/cloud-builders/gsutil'
     args:
       - '-m'
       - 'rsync'
