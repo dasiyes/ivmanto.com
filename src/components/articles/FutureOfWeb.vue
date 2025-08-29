@@ -1,3 +1,16 @@
+<script lang="ts">
+// This <script> block is for module-level exports like metadata.
+export const metadata = {
+  title: 'The future of web development',
+  summary: 'How to develop useful web single-page',
+  date: '2024-07-20',
+}
+</script>
+
+<script setup lang="ts">
+// This <script setup> block is for the component's Composition API logic.
+</script>
+
 <template>
   <article class="prose lg:prose-xl max-w-none">
     <!-- 

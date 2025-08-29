@@ -1,3 +1,16 @@
+<script lang="ts">
+// This <script> block is for module-level exports like metadata.
+export const metadata = {
+  title: 'A Practicle guide to ... (series)',
+  summary: 'Learn how to on specific topic ...',
+  date: '2024-07-20',
+}
+</script>
+
+<script setup lang="ts">
+// This <script setup> block is for the component's Composition API logic.
+</script>
+
 <template>
   <article class="prose lg:prose-xl max-w-none">
     <h1>A Practical Guide to Tailwind CSS</h1>
