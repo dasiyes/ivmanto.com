@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex-grow bg-light-gray">
     <RouterView />
   </div>
 </template>

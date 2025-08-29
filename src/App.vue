@@ -8,7 +8,7 @@ import Header from './components/layout/TheHeader.vue'
   <div class="flex flex-col min-h-screen bg-gray-100">
     <Header />
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-grow flex flex-col">
       <RouterView />
     </main>
     <Footer />

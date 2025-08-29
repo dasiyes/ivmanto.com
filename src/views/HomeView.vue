@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
+import { RouterLink } from 'vue-router'
 import { articles } from '@/data/articles'
+import { computed } from 'vue'
 
-const featuredArticles = articles.slice(0, 3)
+// Sort articles by date to ensure the latest are featured, then take the top 3.
+const featuredArticles = computed(() =>
+  [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
+)
 </script>
 
 <template>
@@ -70,7 +75,14 @@ const featuredArticles = articles.slice(0, 3)
             </div>
           </div>
         </div>
-        <div class="mt-20 bg-light-gray p-8 md:p-12 rounded-xl text-center">
+        <div class="text-center mt-16">
+          <RouterLink
+            to="/blog"
+            class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
+            >View All Articles</RouterLink
+          >
+        </div>
+        <div class="mt-24 bg-light-gray p-8 md:p-12 rounded-xl text-center">
           <h3 class="text-2xl md:text-3xl font-bold text-dark-slate">Need Inspiration?</h3>
           <p class="text-lg text-gray-600 mt-3 max-w-xl mx-auto">
             Enter a topic below and our AI will generate some creative article ideas for you.

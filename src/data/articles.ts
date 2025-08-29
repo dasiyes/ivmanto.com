@@ -1,44 +1,43 @@
-import { defineAsyncComponent, type Component } from 'vue'
+import type { Component } from 'vue'
 
 export type Article = {
   slug: string
   title: string
   summary: string
   date: string
+  // The component is no longer async here because we are using an eager glob import.
+  // This is beneficial for accessing metadata synchronously.
   component: Component
 }
 
-export const articles: Article[] = [
-  {
-    slug: 'common-architectural-patterns',
-    title: 'Common Architectural Patterns for Modern Data Platforms',
-    summary:
-      'A deep dive into the pros and cons of Data Lakes, Warehouses, and the modern Lakehouse architecture on GCP.',
-    date: '2024-07-20',
-    // NOTE: You will need to create this component file.
-    component: defineAsyncComponent(
-      () => import('@/components/articles/CommonArchitecturalPatterns.vue'),
-    ),
-  },
-  {
-    slug: 'vertex-ai-production',
-    title: 'From Notebook to Production with Vertex AI',
-    summary:
-      "A practical guide to operationalizing your machine learning models using Google Cloud's unified AI platform.",
-    date: '2024-07-15',
-    // NOTE: You will need to create this component file.
-    component: defineAsyncComponent(() => import('@/components/articles/VertexAiProduction.vue')),
-  },
-  {
-    slug: 'dama-principles',
-    title: 'Why DAMA Principles Matter for Your Business',
-    summary:
-      'Exploring how standardized data management practices can reduce risk and increase the value of your data assets.',
-    date: '2024-07-10',
-    // NOTE: You will need to create this component file.
-    component: defineAsyncComponent(() => import('@/components/articles/DamaPrinciples.vue')),
-  },
-]
+// Use Vite's glob import to get all article modules.
+// `eager: true` imports the modules synchronously, which allows us to
+// access their metadata immediately for building the article list.
+const articleModules = import.meta.glob<// Type definition for the imported modules
+{
+  default: Component
+  metadata: { title: string; summary: string; date: string }
+}>('../components/articles/*.vue', { eager: true })
+
+export const articles: Article[] = Object.entries(articleModules)
+  .filter(([, module]) => {
+    // Add a defensive check to ensure metadata exists. This prevents errors
+    // if a .vue file is accidentally created in the folder without metadata.
+    return module.metadata && module.metadata.title
+  })
+  .map(([path, module]) => {
+    // Derive the slug from the file path, e.g., '../components/articles/dama-principles.vue' -> 'dama-principles'
+    const slug = path.split('/').pop()?.replace('.vue', '') ?? 'unknown-slug'
+
+    return {
+      slug: slug,
+      title: module.metadata.title,
+      summary: module.metadata.summary,
+      date: module.metadata.date,
+      // The component is the default export from the .vue file
+      component: module.default,
+    }
+  })
 
 export function getArticleBySlug(slug: string): Article | undefined {
   return articles.find((article) => article.slug === slug)
