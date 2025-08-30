@@ -10,12 +10,14 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
+    "start": "serve -s .",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "serve": "^14.2.3",
     "vue": "^3.4.31",
     "vue-router": "^4.4.0"
   },
