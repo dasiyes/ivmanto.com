@@ -1,11 +1,5 @@
-<!-- <template>
-  <div class="mb-12 flex justify-center" aria-hidden="true">
-    <img src="@/assets/cloud-pic-2.png" alt="" class="w-[350px] drop-shadow-lg" />
-  </div>
-</template> -->
-
 <template>
-  <div class="mb-12 flex justify-center" aria-hidden="true">
+  <div class="flex justify-center" aria-hidden="true">
     <!-- Frame with soft-focus background -->
     <div
       class="relative flex items-center justify-center w-[440px] h-[440px] overflow-hidden rounded-3xl bg-white/10 shadow-lg"

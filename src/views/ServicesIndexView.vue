@@ -1,17 +1,20 @@
 <template>
   <div
-    class="w-full md:w-4/5 max-w-7xl bg-white shadow-lg rounded-xl flex flex-col overflow-hidden"
+    class="w-full md:w-4/5 max-w-7xl bg-white shadow-lg rounded-xl flex flex-col overflow-hidden h-full"
   >
     <!-- Top Filter Bar -->
-    <div class="flex-shrink-0 p-3 border-b border-gray-200 flex items-center gap-4">
-      <span class="font-semibold text-gray-500 text-sm ml-2 flex items-center gap-2">
+    <div
+      class="flex-shrink-0 p-4 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center gap-x-4 gap-y-3"
+    >
+      <div class="w-full lg:w-[20%] shrink-0 flex items-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           stroke-width="1.5"
           stroke="currentColor"
-          class="w-5 h-5"
+          class="w-7 h-7"
+          aria-hidden="true"
         >
           <path
             stroke-linecap="round"
@@ -19,9 +22,9 @@
             d="M9.594 1.576c.338-.462.976-.462 1.314 0l1.435 1.958a1 1 0 00.81.466h2.176c.528 0 .955.46.852.984l-.34 1.702a1 1 0 00.294.869l1.54 1.54a1 1 0 010 1.414l-1.54 1.54a1 1 0 00-.294.869l.34 1.702c.103.524-.324.984-.852-.984h-2.176a1 1 0 00-.81.466l-1.435 1.958c-.338.462-.976.462-1.314 0l-1.435-1.958a1 1 0 00-.81-.466H4.03c-.528 0-.955-.46-.852-.984l.34-1.702a1 1 0 00-.294-.869l-1.54-1.54a1 1 0 010-1.414l1.54-1.54a1 1 0 00.294-.869l-.34-1.702c-.103-.524.324-.984.852-.984h2.176a1 1 0 00.81-.466l1.435-1.958zM12 8.25a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z"
           />
         </svg>
-        <span>Industries:</span>
-      </span>
-      <div class="flex items-center gap-2">
+        <span class="font-semibold text-gray-500 text-sm">Industries:</span>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
         <button
           v-for="industry in industries"
           :key="industry"
@@ -33,10 +36,40 @@
       </div>
     </div>
 
+    <!-- Mobile Menu Toggle -->
+    <div class="lg:hidden p-4 border-b border-gray-200">
+      <button
+        @click="isMobileNavOpen = !isMobileNavOpen"
+        class="w-full flex justify-between items-center p-2 bg-gray-50 rounded-md text-left"
+      >
+        <span class="font-semibold text-dark-slate">{{
+          selectedService?.title || 'Select a Service'
+        }}</span>
+        <svg
+          class="w-5 h-5 text-gray-600 transform transition-transform"
+          :class="{ 'rotate-180': isMobileNavOpen }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
     <!-- Main Content Area (3 columns) -->
-    <div class="flex flex-grow overflow-hidden min-h-0">
+    <div class="flex flex-col lg:flex-row flex-grow overflow-hidden min-h-0">
       <!-- Left Column: Service List -->
-      <div class="flex-shrink-0 w-[20%] bg-white border-r border-gray-200 overflow-y-auto">
+      <div
+        class="flex-shrink-0 w-full lg:w-[20%] bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300"
+        :class="isMobileNavOpen ? 'block' : 'hidden lg:block'"
+      >
         <div class="p-4">
           <h2 class="text-lg font-bold text-dark-slate mb-4">Services</h2>
           <nav class="space-y-1">
@@ -58,12 +91,14 @@
         </div>
       </div>
       <!-- Middle Column: Patterned Background -->
-      <div class="flex-grow pattern-bg">
+      <div class="flex-grow pattern-bg order-first lg:order-none">
         <ServiceDetail :service="selectedService" @update-right-column="updateRightColumn" />
       </div>
 
       <!-- Right Column: Empty -->
-      <div class="flex-shrink-0 w-[20%] bg-white border-l border-gray-200 overflow-y-auto">
+      <div
+        class="flex-shrink-0 w-full lg:w-[20%] bg-white border-l border-gray-200 overflow-y-auto"
+      >
         <RightColumnContent :content="rightColumnContent" />
       </div>
     </div>
@@ -76,6 +111,7 @@ import { services, getServiceById } from '@/data/services'
 import ServiceDetail from '@/components/services/ServiceDetail.vue'
 import RightColumnContent from '@/components/services/RightColumnContent.vue'
 
+const isMobileNavOpen = ref(false)
 const industries = ['All', 'Finance', 'Healthcare', 'Retail']
 const activeIndustry = ref('All')
 
@@ -93,6 +129,7 @@ const selectedService = computed(() => getServiceById(selectedServiceId.value))
 
 function selectService(id: string) {
   selectedServiceId.value = id
+  isMobileNavOpen.value = false // Close nav on selection
 }
 
 function setActiveIndustry(industry: string) {
