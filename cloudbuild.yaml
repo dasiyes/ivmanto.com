@@ -2,20 +2,9 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 1: Install dependencies
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['install']
-    id: 'npm-install'
-
-  # Step 2: Build the Nuxt SSR application.
-  # This runs `npm run build`, which creates the self-contained .output directory.
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['run', 'build']
-    id: 'npm-build'
-    waitFor: ['npm-install']
-
-  # Step 3: Build the Docker container image using the Dockerfile.
+  # Step 1: Build the Docker container image using the Dockerfile.
   # The image is tagged with the commit SHA for traceability.
+  # This single step handles dependency installation and application build inside the container.
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -23,9 +12,8 @@ steps:
       - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
       - '.'
     id: 'docker-build'
-    waitFor: ['npm-build']
 
-  # Step 4: Push the container image to Artifact Registry.
+  # Step 2: Push the container image to Artifact Registry.
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
@@ -33,7 +21,7 @@ steps:
     id: 'docker-push'
     waitFor: ['docker-build']
 
-  # Step 5: Deploy the new container image to Cloud Run.
+  # Step 3: Deploy the new container image to Cloud Run.
   - name: 'gcr.io/google-cloud-sdk/cloud-sdk'
     entrypoint: gcloud
     args:
