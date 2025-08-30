@@ -9,7 +9,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
       - '.'
     id: 'docker-build'
 
@@ -17,7 +17,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
     id: 'docker-push'
     waitFor: ['docker-build']
 
@@ -28,11 +28,11 @@ steps:
       - 'run'
       - 'deploy'
       - '${_SERVICE_NAME}' # Substitution variable for the Cloud Run service name
-      - '--image=us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
-      - '--region=us-central1' # Your preferred region
+      - '--image=europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '--region=europe-west3' # Your preferred region
       - '--platform=managed'
       - '--allow-unauthenticated' # Make the service publicly accessible
-      - '--project=${_PROJECT_ID}'
+      - '--project=${PROJECT_ID}'
     id: 'deploy-to-cloud-run'
     waitFor: ['docker-push']
 
@@ -43,4 +43,4 @@ substitutions:
 
 # The image created by this build.
 images:
-  - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+  - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
