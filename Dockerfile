@@ -27,10 +27,17 @@ FROM node:20-bookworm-slim
 # Apply the latest available security patches to the final image.
 RUN apt-get update && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install a production-ready static web server
+RUN npm install -g serve
+
 WORKDIR /app
 
 # Copy the standalone, built application from the 'build' stage
 COPY --from=build /app/dist .
 
-# Expose the port the app will run on and start the server
-CMD ["node", "server/index.mjs"]
+# Expose the port Cloud Run will listen on. 'serve' automatically uses the PORT env var.
+EXPOSE 8080
+
+# Start the server. The '-s' flag is crucial for Single-Page Applications.
+CMD ["serve", "-s", "."]

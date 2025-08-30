@@ -22,7 +22,7 @@ steps:
     waitFor: ['docker-build']
 
   # Step 3: Deploy the new container image to Cloud Run.
-  - name: 'gcr.io/google-cloud-sdk/cloud-sdk'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
