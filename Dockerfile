@@ -30,7 +30,7 @@ RUN apt-get update && apt-get upgrade -y && \
 WORKDIR /app
 
 # Copy the standalone, built application from the 'build' stage
-COPY --from=build /app/.output .
+COPY --from=build /app/dist .
 
 # Expose the port the app will run on and start the server
 CMD ["node", "server/index.mjs"]
