@@ -13,9 +13,15 @@ const featuredArticles = computed(() =>
 
 <template>
   <div>
-    <section class="py-20 md:py-28 bg-light-gray hero-bg-pattern relative">
-      <HeroInfographic />
-      <div class="container mx-auto px-6 text-center relative z-10">
+    <section class="py-16 md:py-24 bg-light-gray hero-bg-pattern overflow-hidden">
+      <!-- Infographic is now first, centered, and scaled down -->
+      <div
+        class="flex justify-center transform scale-50 origin-top transition-transform duration-300 md:scale-75 -mb-56 md:-mb-28"
+      >
+        <HeroInfographic />
+      </div>
+
+      <div class="container mx-auto px-6 text-center">
         <span class="text-primary font-semibold tracking-wider"
           >GOOGLE CLOUD PLATFORM SPECIALIST</span
         >
@@ -27,13 +33,12 @@ const featuredArticles = computed(() =>
           cloud platforms built on GCP.
         </p>
         <div class="mt-10 flex justify-center gap-4">
-          <a
-            href="/booking"
-            target="_blank"
-            rel="noopener noreferrer"
+          <RouterLink
+            :to="{ name: 'booking' }"
             class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
-            >Book a Consultation</a
-          ><RouterLink
+            >Book a Consultation</RouterLink
+          >
+          <RouterLink
             :to="{ name: 'services' }"
             class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
             >Learn More</RouterLink

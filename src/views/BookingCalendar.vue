@@ -64,7 +64,14 @@ async function fetchAvailability(date: Date) {
       // Provide a more specific error for easier debugging
       throw new Error(`Server responded with status ${response.status}`)
     }
-    availableSlots.value = await response.json()
+    const text = await response.text()
+    // An empty body is a valid response for a day with no slots, but fails JSON.parse.
+    // This check prevents that error.
+    if (text) {
+      availableSlots.value = JSON.parse(text)
+    } else {
+      availableSlots.value = []
+    }
   } catch (e: any) {
     console.error('Failed to fetch availability:', e)
     error.value = 'Could not load available time slots. Please try again later.'
@@ -153,10 +160,24 @@ onMounted(() => {
       <div class="flex items-center justify-between mb-6">
         <button
           @click="changeDay(-1)"
-          class="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="h-10 w-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-200 hover:text-primary hover:scale-110 disabled:cursor-not-allowed disabled:opacity-75 disabled:scale-100 disabled:text-gray-400"
           :disabled="isPreviousDayDisabled || isLoading"
+          aria-label="Previous day"
         >
-          &lt;
+          <svg
+            class="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
         </button>
         <div class="text-center">
           <h3 class="text-lg font-semibold text-gray-700">{{ formattedDate }}</h3>
@@ -164,10 +185,24 @@ onMounted(() => {
         </div>
         <button
           @click="changeDay(1)"
-          class="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="h-10 w-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-200 hover:text-primary hover:scale-110 disabled:cursor-not-allowed disabled:opacity-75 disabled:scale-100 disabled:text-gray-400"
           :disabled="isNextDayDisabled || isLoading"
+          aria-label="Next day"
         >
-          &gt;
+          <svg
+            class="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            ></path>
+          </svg>
         </button>
       </div>
 
@@ -202,8 +237,26 @@ onMounted(() => {
             {{ formatTime(slot.startTime) }}
           </button>
         </div>
-        <div v-else-if="!error" class="text-center text-gray-500 py-8">
-          <p>No available slots for this day. Please try another date.</p>
+        <div
+          v-else-if="!error"
+          class="flex items-center justify-center bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg"
+          role="status"
+        >
+          <svg
+            class="w-5 h-5 mr-3 text-blue-600"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+          <span class="block sm:inline"
+            >No available slots for this day. Please try another date.</span
+          >
         </div>
       </div>
 

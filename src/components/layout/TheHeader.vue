@@ -38,7 +38,7 @@ function closeMobileMenu() {
 <template>
   <!-- Header -->
   <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
-    <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+    <nav class="container mx-auto px-6 py-3 flex justify-between items-center gap-4 lg:gap-8">
       <RouterLink to="/" @click="closeMobileMenu">
         <AppLogo class="h-16 w-auto" />
       </RouterLink>
