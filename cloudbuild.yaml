@@ -1,38 +1,58 @@
 options:
-  # This option tells Cloud Build to send logs directly to Cloud Logging
-  # and not to a Cloud Storage bucket. This is the recommended approach when
-  # using a custom service account to avoid permission issues with the default
-  # logs bucket.
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 1: Install dependencies using the official npm cloud builder.
-  # This step runs `npm install` to download all the project dependencies.
+  # Step 1: Install dependencies
   - name: 'gcr.io/cloud-builders/npm'
     args: ['install']
     id: 'npm-install'
 
-  # Step 2: Build the production version of the Vue.js application.
-  # This step runs the `npm run build` script defined in your package.json.
-  # It generates the static HTML, CSS, and JavaScript files in the /dist directory.
+  # Step 2: Build the Nuxt SSR application.
+  # This runs `npm run build`, which creates the self-contained .output directory.
   - name: 'gcr.io/cloud-builders/npm'
-    entrypoint: 'npx'
-    args: ['vite', 'build']
+    args: ['run', 'build']
     id: 'npm-build'
-    waitFor: ['npm-install'] # Ensure this step runs after dependencies are installed.
+    waitFor: ['npm-install']
 
-  # Step 3: Deploy the static files to Google Cloud Storage.
-  # This step uses gsutil to synchronize the contents of the /dist directory
-  # with your Cloud Storage bucket. The -d flag deletes objects in the bucket
-  # that are not present in the source, ensuring a clean deployment.
-  # The -r flag makes the copy recursive.
-  - name: 'gcr.io/cloud-builders/gsutil'
+  # Step 3: Build the Docker container image using the Dockerfile.
+  # The image is tagged with the commit SHA for traceability.
+  - name: 'gcr.io/cloud-builders/docker'
     args:
-      - '-m'
-      - 'rsync'
-      - '-d'
-      - '-r'
-      - 'dist'
-      - 'gs://${_BUCKET_NAME}' # This is a substitution variable you'll set in the trigger.
-    id: 'deploy-to-gcs'
-    waitFor: ['npm-build'] # Ensure this step runs after the build is complete.
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '.'
+    id: 'docker-build'
+    waitFor: ['npm-build']
+
+  # Step 4: Push the container image to Artifact Registry.
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+    id: 'docker-push'
+    waitFor: ['docker-build']
+
+  # Step 5: Deploy the new container image to Cloud Run.
+  - name: 'gcr.io/google-cloud-sdk/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}' # Substitution variable for the Cloud Run service name
+      - '--image=us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '--region=us-central1' # Your preferred region
+      - '--platform=managed'
+      - '--allow-unauthenticated' # Make the service publicly accessible
+      - '--project=${_PROJECT_ID}'
+    id: 'deploy-to-cloud-run'
+    waitFor: ['docker-push']
+
+# Substitution variables to be configured in the Cloud Build trigger.
+substitutions:
+  _SERVICE_NAME: 'ivmanto-com' # Your Cloud Run service name
+  _REPO_NAME: 'ivmanto-com-repo' # Your Artifact Registry repository name
+
+# The image created by this build.
+images:
+  - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA}'
