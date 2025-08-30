@@ -6,6 +6,7 @@ import (
 
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
+	"ivmanto.com/backend/internal/contact"
 	"ivmanto.com/backend/internal/email"
 )
 
@@ -25,14 +26,14 @@ func main() {
 	var emailService email.Service = email.NewMockService()
 	// emailService := email.NewSmtpService(&cfg.Email)
 
-	// 3. Initialize services and handlers
+	// 3. Initialize services and handlers.
+	contactHandler := contact.NewHandler(emailService)
 	bookingService := booking.NewBookingService(bookingStore, emailService, &cfg.Booking)
 	bookingHandler := booking.NewHandler(bookingService)
 
 	mux := http.NewServeMux()
+	contactHandler.RegisterRoutes(mux)
 	bookingHandler.RegisterRoutes(mux)
-
-	// TODO: Add contact form handler registration here later.
 
 	log.Printf("Starting server on :%s", cfg.Service.Port)
 	if err := http.ListenAndServe(":"+cfg.Service.Port, mux); err != nil {

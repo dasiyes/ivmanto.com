@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
+import ContactForm from '@/components/ContactForm.vue'
 import { RouterLink } from 'vue-router'
 import { articles } from '@/data/articles'
 import { computed } from 'vue'
@@ -110,32 +111,10 @@ const featuredArticles = computed(() =>
         <div class="text-center mb-12">
           <h2 class="text-3xl md:text-4xl font-bold">Let's Build Something Great Together</h2>
           <p class="text-lg text-gray-300 mt-4 max-w-2xl mx-auto">
-            Have a project in mind? Let my AI assistant help you draft your inquiry.
+            Have a project in mind? Let me know the details and I'll draft your inquiry.
           </p>
         </div>
-        <div class="max-w-xl mx-auto bg-white/10 p-6 md:p-8 rounded-xl backdrop-blur-sm">
-          <div>
-            <div class="h-80 overflow-y-auto pr-2 space-y-4 mb-4">
-              <div class="flex justify-start">
-                <div class="p-3 rounded-lg max-w-xs bg-secondary text-white">
-                  Hello! To help me understand your needs, please briefly describe the project or
-                  challenge you're facing.
-                </div>
-              </div>
-            </div>
-            <div class="flex gap-4">
-              <input
-                type="text"
-                placeholder="Type your response..."
-                class="flex-grow bg-white/20 border-transparent rounded-md py-2 px-3 text-white focus:ring-accent focus:border-accent"
-              /><button
-                class="bg-accent text-white font-bold py-2 px-5 rounded-lg hover:bg-opacity-90 transition-all flex items-center justify-center w-24"
-              >
-                <span>Send</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <ContactForm />
       </div>
     </section>
   </div>
