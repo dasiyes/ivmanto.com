@@ -6,6 +6,7 @@ import BlogView from '@/views/BlogView.vue'
 import ArticleListView from '@/views/ArticleListView.vue'
 import ArticleView from '@/views/ArticleView.vue'
 import ServiceView from '@/views/ServiceView.vue'
+import BookingCalendar from '../views/BookingCalendar.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +49,11 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView,
+    },
+    {
+      path: '/booking', // <-- Add this new route object
+      name: 'booking',
+      component: BookingCalendar,
     },
     {
       path: '/login',
