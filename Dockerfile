@@ -12,8 +12,8 @@ WORKDIR /app
 # Copy package.json and lock file to leverage Docker layer caching
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using the lockfile for a deterministic build
+RUN npm ci
 
 # Copy the rest of the application's source code
 COPY . .
@@ -23,21 +23,25 @@ RUN npm run build
 
 # Stage 2: Create the final, lightweight production image
 FROM node:20-bookworm-slim
-
-# Apply the latest available security patches to the final image.
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install a production-ready static web server
-RUN npm install -g serve
-
+ 
+# Node.js apps run as the 'node' user by default, which is a security best practice.
+# Set the working directory.
 WORKDIR /app
+ 
+# Copy package manifests from the build stage.
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/package-lock.json ./package-lock.json
 
-# Copy the standalone, built application from the 'build' stage
+# Install ONLY production dependencies. This creates a smaller and more secure image.
+RUN npm ci --omit=dev
+ 
+# Copy the built application assets
 COPY --from=build /app/dist .
-
-# Expose the port Cloud Run will listen on. 'serve' automatically uses the PORT env var.
+ 
+# Expose the port Cloud Run will listen on. The 'serve' package automatically
+# respects the PORT environment variable provided by Cloud Run.
 EXPOSE 8080
-
-# Start the server. The '-s' flag is crucial for Single-Page Applications.
-CMD ["serve", "-s", "."]
+ 
+# Use the 'start' script from package.json to run the server. This ensures
+# the execution is consistent and dependencies are managed locally.
+CMD ["npm", "start"]
