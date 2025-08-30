@@ -43,5 +43,8 @@ RUN npm ci --omit=dev
 # Copy the built application assets
 COPY --from=build /app/dist .
 
-# Expose the port the app will run on and start the server
-CMD ["node", "server/index.mjs"]
+# Expose the port Cloud Run will listen on. 'serve' automatically uses the PORT env var.
+EXPOSE 8080
+
+# Start the server. The '-s' flag is crucial for Single-Page Applications.
+CMD ["serve", "-s", "."]
