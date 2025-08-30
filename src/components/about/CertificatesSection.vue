@@ -2,27 +2,27 @@
 const certificates = [
   {
     name: 'Professional Cloud Architect',
-    imgSrc: '/src/assets/certs/cert_ca.png',
+    imgSrc: '/certs/cert_ca.png',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Professional Data Engineer',
-    imgSrc: '/src/assets/certs/cert_de.png',
+    imgSrc: '/certs/cert_de.png',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Professional Developer',
-    imgSrc: '/src/assets/certs/cert_dev.png',
+    imgSrc: '/certs/cert_dev.png',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Extend Google Agentspace assistant capabilities',
-    imgSrc: '/src/assets/certs/badge.png',
+    imgSrc: '/certs/badge.png',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Develop Advanced Enterprise Search and Conversation Applications Skill Badge',
-    imgSrc: '/src/assets/certs/badge2.png',
+    imgSrc: '/certs/badge2.png',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   // You can add more certificates here by duplicating the object above

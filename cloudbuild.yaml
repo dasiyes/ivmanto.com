@@ -30,7 +30,7 @@ steps:
       - '--image=europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:${COMMIT_SHA}'
       - '--region=europe-west3'
       - '--platform=managed'
-      - '--allow-unauthenticated'
+      - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
     waitFor: ['frontend-push']
 
@@ -62,7 +62,7 @@ steps:
       - '--image=europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_BACKEND_SERVICE_NAME}:${COMMIT_SHA}'
       - '--region=europe-west3'
       - '--platform=managed'
-      - '--allow-unauthenticated'
+      - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
       # Set the SMTP_PASS secret from Secret Manager
       - '--update-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'

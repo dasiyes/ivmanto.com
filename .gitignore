@@ -29,7 +29,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-.env
+/.env
 
 # Go build artifacts
 /backend/ivmanto-backend-service
