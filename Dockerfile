@@ -12,8 +12,8 @@ WORKDIR /app
 # Copy package.json and lock file to leverage Docker layer caching
 COPY package.json package-lock.json ./
 
-# Install dependencies using the lockfile for a deterministic build
-RUN npm ci
+# Install dependencies
+RUN npm install
 
 # Copy the rest of the application's source code
 COPY . .
@@ -32,15 +32,8 @@ RUN apt-get update && apt-get upgrade -y && \
 RUN npm install -g serve
 
 WORKDIR /app
- 
-# Copy package manifests from the build stage.
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/package-lock.json ./package-lock.json
 
-# Install ONLY production dependencies. This creates a smaller and more secure image.
-RUN npm ci --omit=dev
- 
-# Copy the built application assets
+# Copy the standalone, built application from the 'build' stage
 COPY --from=build /app/dist .
 
 # Expose the port Cloud Run will listen on. 'serve' automatically uses the PORT env var.
