@@ -18,11 +18,16 @@ func NewHandler(service *BookingService) *Handler {
 
 // RegisterRoutes registers the booking routes with a mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/booking/availability", h.handleGetAvailability)
-	mux.HandleFunc("POST /api/booking/book", h.handleCreateBooking)
+	mux.HandleFunc("/api/booking/availability", h.handleGetAvailability)
+	mux.HandleFunc("/api/booking/book", h.handleCreateBooking)
 }
 
 func (h *Handler) handleGetAvailability(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {
 		http.Error(w, "date query parameter is required", http.StatusBadRequest)
@@ -47,6 +52,11 @@ func (h *Handler) handleGetAvailability(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	var req BookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

@@ -5,6 +5,7 @@ const formData = ref({
   name: '',
   email: '',
   message: '',
+  sendCopyToSelf: false,
 })
 
 const formState = ref<'idle' | 'submitting' | 'success' | 'error'>('idle')
@@ -31,7 +32,7 @@ async function handleSubmit() {
     formState.value = 'success'
     // Optionally reset form after a delay
     setTimeout(() => {
-      formData.value = { name: '', email: '', message: '' }
+      formData.value = { name: '', email: '', message: '', sendCopyToSelf: false }
       formState.value = 'idle'
     }, 3000)
   } catch (err: any) {
@@ -84,7 +85,17 @@ async function handleSubmit() {
           ></textarea>
         </div>
       </div>
-      <div class="mt-8">
+      <div class="mt-6">
+        <label class="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            v-model="formData.sendCopyToSelf"
+            class="h-4 w-4 rounded border-gray-400 bg-white/20 text-accent focus:ring-accent"
+          />
+          <span class="ml-2 text-gray-300">Send a copy of this message to myself</span>
+        </label>
+      </div>
+      <div class="mt-6">
         <button
           type="submit"
           :disabled="formState === 'submitting'"

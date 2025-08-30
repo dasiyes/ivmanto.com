@@ -23,8 +23,9 @@ func main() {
 	// Use the MockService for local dev to avoid needing real SMTP credentials.
 	// To use the real SMTP service, comment out the MockService and uncomment the SmtpService.
 	// the SMTP password is loaded into the config (e.g., from an environment variable).
-	var emailService email.Service = email.NewMockService()
-	// emailService := email.NewSmtpService(&cfg.Email)
+	// var emailService email.Service = email.NewMockService()
+	// NOTE: Switching to the real SMTP service.
+	emailService := email.NewSmtpService(&cfg.Email)
 
 	// 3. Initialize services and handlers.
 	contactHandler := contact.NewHandler(emailService)

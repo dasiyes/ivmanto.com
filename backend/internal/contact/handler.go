@@ -2,6 +2,7 @@ package contact
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"ivmanto.com/backend/internal/email"
@@ -44,7 +45,7 @@ func (h *Handler) handleContactSubmit(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.emailer.SendContactMessage(msg); err != nil {
 		// In a real app, you'd log the internal error but not expose details to the client.
-		// log.Printf("Failed to send contact email: %v", err)
+		log.Printf("Failed to send contact email: %v", err)
 		http.Error(w, "Failed to send message", http.StatusInternalServerError)
 		return
 	}

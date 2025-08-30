@@ -7,9 +7,10 @@ import (
 
 // ContactMessage represents the data from the contact form.
 type ContactMessage struct {
-	Name    string
-	Email   string
-	Message string
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Message        string `json:"message"`
+	SendCopyToSelf bool   `json:"sendCopyToSelf,omitempty"`
 }
 
 // Service defines the interface for sending all application emails.
