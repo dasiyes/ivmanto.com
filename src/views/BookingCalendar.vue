@@ -33,15 +33,27 @@ const formattedDate = computed(() => {
 
 const isPreviousDayDisabled = computed(() => {
   const today = new Date()
-  today.setHours(0, 0, 0, 0) // Normalize to the start of the day
-  return selectedDate.value <= today
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+  const selected = selectedDate.value
+  const startOfSelected = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate())
+
+  return startOfSelected.getTime() <= startOfToday.getTime()
 })
 
 const isNextDayDisabled = computed(() => {
   const today = new Date()
-  const limitDate = new Date(today.setDate(today.getDate() + bookingWindowDays))
-  limitDate.setHours(0, 0, 0, 0) // Normalize
-  return selectedDate.value >= limitDate
+  // new Date() constructor correctly handles month/year rollovers
+  const limitDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + bookingWindowDays,
+  )
+
+  const selected = selectedDate.value
+  const startOfSelected = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate())
+
+  return startOfSelected.getTime() >= limitDate.getTime()
 })
 
 const timezone = computed(() => {
@@ -49,7 +61,10 @@ const timezone = computed(() => {
 })
 
 function toYYYYMMDD(date: Date) {
-  return date.toISOString().split('T')[0]
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 async function fetchAvailability(date: Date) {
@@ -61,17 +76,12 @@ async function fetchAvailability(date: Date) {
     const dateStr = toYYYYMMDD(date)
     const response = await fetch(`/api/booking/availability?date=${dateStr}`)
     if (!response.ok) {
-      // Provide a more specific error for easier debugging
       throw new Error(`Server responded with status ${response.status}`)
     }
-    const text = await response.text()
-    // An empty body is a valid response for a day with no slots, but fails JSON.parse.
-    // This check prevents that error.
-    if (text) {
-      availableSlots.value = JSON.parse(text)
-    } else {
-      availableSlots.value = []
-    }
+    // response.json() can fail on an empty body, so we catch that case.
+    const data = await response.json().catch(() => null)
+    // Ensure availableSlots is always an array to prevent template errors on `.length`.
+    availableSlots.value = data || []
   } catch (e: any) {
     console.error('Failed to fetch availability:', e)
     error.value = 'Could not load available time slots. Please try again later.'
@@ -82,11 +92,15 @@ async function fetchAvailability(date: Date) {
 }
 
 function changeDay(amount: number) {
-  const newDate = new Date(selectedDate.value)
-  newDate.setDate(newDate.getDate() + amount)
-  newDate.setHours(12, 0, 0, 0) // Avoid timezone-related date shifts
+  const currentDate = selectedDate.value
+  // This "functional" approach of creating a new Date from primitives is the
+  // most robust way to avoid mutation side-effects with Vue's reactivity.
+  const newDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate() + amount,
+  )
   selectedDate.value = newDate
-  // A watcher will automatically fetch availability
 }
 
 function selectSlot(slot: TimeSlot) {
@@ -255,7 +269,7 @@ onMounted(() => {
             ></path>
           </svg>
           <span class="block sm:inline"
-            >No available slots for this day. Please try another date.</span
+            >There are no available slots for this day. Please try another date.</span
           >
         </div>
       </div>

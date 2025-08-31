@@ -26,6 +26,7 @@ var (
 type Service struct {
 	calSvc     *calendar.Service
 	calendarID string
+	location   *time.Location
 }
 
 // BookingDetails contains information for a new booking.
@@ -55,17 +56,31 @@ func NewService(ctx context.Context, credentialFile, calendarID string) (*Servic
 		return nil, fmt.Errorf("unable to retrieve Calendar client: %w", err)
 	}
 
+	// Fetch calendar details to get its timezone. This is crucial for correctly
+	// interpreting date-only queries from the frontend.
+	cal, err := srv.Calendars.Get(calendarID).Do()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve calendar details for ID %s: %w", calendarID, err)
+	}
+	loc, err := time.LoadLocation(cal.TimeZone)
+	if err != nil {
+		// Fallback to UTC if the location is not found, but log a warning.
+		// This can happen in minimal container environments.
+		fmt.Printf("WARNING: could not load timezone '%s', falling back to UTC. Error: %v\n", cal.TimeZone, err)
+		loc = time.UTC
+	}
+
 	return &Service{
 		calSvc:     srv,
 		calendarID: calendarID,
+		location:   loc,
 	}, nil
 }
 
 // GetAvailability fetches available time slots for a given day.
 func (s *Service) GetAvailability(day time.Time) ([]*calendar.Event, error) {
-	// We need to specify the timezone of the calendar to get correct results.
-	// For now, let's assume UTC. In a future version, this could be configurable.
-	loc := time.UTC
+	// Use the calendar's timezone to define the start and end of the day.
+	loc := s.location
 	startOfDay := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, loc)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
@@ -109,11 +124,18 @@ func (s *Service) BookSlot(details BookingDetails) (*calendar.Event, error) {
 	eventToUpdate := events.Items[0]
 
 	// Update event details
-	eventToUpdate.Summary = fmt.Sprintf("Booked: Consultation with %s", details.Name)
-	eventToUpdate.Description = details.Notes
-	eventToUpdate.Attendees = []*calendar.EventAttendee{
-		{Email: details.Email},
-	}
+	eventToUpdate.Summary = fmt.Sprintf("Consultation: %s", details.Name)
+	// Add all relevant details to the description for the consultant to see.
+	eventToUpdate.Description = fmt.Sprintf(
+		"Client Name: %s\nClient Email: %s\n\nNotes:\n%s",
+		details.Name,
+		details.Email,
+		details.Notes,
+	)
+	// The service account cannot invite external attendees without domain-wide delegation.
+	// Instead of inviting them, we will send them a separate confirmation email with an .ics attachment.
+	// This avoids the 403 Forbidden error.
+	eventToUpdate.Attendees = nil
 
 	// Add Google Meet conference
 	// A unique RequestId prevents retries from creating duplicate meetings.
@@ -121,22 +143,27 @@ func (s *Service) BookSlot(details BookingDetails) (*calendar.Event, error) {
 	eventToUpdate.ConferenceData = &calendar.ConferenceData{
 		CreateRequest: &calendar.CreateConferenceRequest{
 			RequestId: conferenceRequestID,
-			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{
-				Type: "hangoutsMeet",
-			},
+			// By leaving ConferenceSolutionKey empty, we let Google Calendar use the
+			// default conference provider for the calendar, which is typically Google Meet.
+			// This is more robust than explicitly requesting "hangoutsMeet".
 		},
 	}
 
 	// Perform the update.
 	// conferenceDataVersion: 1 tells Google to add a new Meet link.
-	// SendUpdates: "all" sends calendar invites to new attendees.
+	// SendUpdates: "none" because we are not sending calendar invites from here.
 	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToUpdate.Id, eventToUpdate).
 		ConferenceDataVersion(1).
-		SendUpdates("all").
+		SendUpdates("none").
 		Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to update event: %w", err)
 	}
 
 	return updatedEvent, nil
+}
+
+// Location returns the timezone of the calendar.
+func (s *Service) Location() *time.Location {
+	return s.location
 }

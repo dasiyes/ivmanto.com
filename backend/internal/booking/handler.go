@@ -34,8 +34,16 @@ func (h *Handler) handleGetAvailability(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Use a specific layout to parse the date string
-	day, err := time.Parse(time.DateOnly, dateStr)
+	// The frontend sends a date like "2025-09-01". We must interpret this
+	// date in the calendar's local timezone to define the correct 24-hour
+	// window for that day. We assume the gcal.Service can provide its
+	// timezone location, which it should fetch upon initialization.
+	loc := h.gcalSvc.Location()
+
+	// Parse the date string using the calendar's timezone. This creates a
+	// time.Time object representing midnight at the beginning of the requested
+	// day in that specific timezone.
+	day, err := time.ParseInLocation(time.DateOnly, dateStr, loc)
 	if err != nil {
 		http.Error(w, "Invalid date format, please use YYYY-MM-DD", http.StatusBadRequest)
 		return

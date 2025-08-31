@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
 	"ivmanto.com/backend/internal/contact"
@@ -13,6 +14,15 @@ import (
 )
 
 func main() {
+	// Load .env file for local development.
+	// In production (like Cloud Run), environment variables are set directly.
+	err := godotenv.Load()
+	if err != nil {
+		// We don't want to fail if the .env file is missing,
+		// as it's optional for production environments.
+		log.Println("INFO: .env file not found, loading config from environment")
+	}
+
 	// 1. Load configuration
 	cfg, err := config.Load()
 	if err != nil {
