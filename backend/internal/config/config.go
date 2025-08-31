@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"time"
 )
@@ -25,6 +26,7 @@ type BookingConfig struct {
 	ConsultationDuration time.Duration
 	WorkDayStartHour     int
 	WorkDayEndHour       int
+	CalendarID           string // Loaded from env var
 }
 
 // EmailConfig holds configuration for the email service.
@@ -50,6 +52,8 @@ func Load() (*Config, error) {
 			ConsultationDuration: 30 * time.Minute,
 			WorkDayStartHour:     9,  // 9 AM UTC
 			WorkDayEndHour:       17, // 5 PM UTC
+			// This MUST be loaded from an environment variable.
+			CalendarID: os.Getenv("CALENDAR_ID"),
 		},
 		Email: EmailConfig{
 			SmtpHost:      "smtp.gmail.com",
@@ -62,6 +66,10 @@ func Load() (*Config, error) {
 	}
 	if cfg.Service.Port == "" {
 		cfg.Service.Port = "8080" // Default for local dev
+	}
+	if cfg.Booking.CalendarID == "" {
+		// We can't run without this.
+		return nil, errors.New("CALENDAR_ID environment variable not set")
 	}
 	return cfg, nil
 }

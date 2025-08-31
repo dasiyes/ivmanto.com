@@ -3,8 +3,8 @@ import { RouterLink } from 'vue-router'
 import { ref, onMounted, computed, watch } from 'vue'
 
 type TimeSlot = {
-  startTime: string
-  endTime: string
+  start: string
+  end: string
 }
 
 const selectedDate = ref(new Date())
@@ -105,7 +105,7 @@ async function handleBookingSubmit() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        startTime: selectedSlot.value.startTime,
+        start: selectedSlot.value.start,
         ...bookingDetails.value,
       }),
     })
@@ -230,11 +230,11 @@ onMounted(() => {
         <div v-if="availableSlots.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <button
             v-for="slot in availableSlots"
-            :key="slot.startTime"
+            :key="slot.start"
             @click="selectSlot(slot)"
             class="p-3 border rounded-lg text-center text-primary hover:bg-primary hover:text-white transition-colors"
           >
-            {{ formatTime(slot.startTime) }}
+            {{ formatTime(slot.start) }}
           </button>
         </div>
         <div
@@ -263,7 +263,7 @@ onMounted(() => {
       <!-- Booking Form -->
       <form v-else @submit.prevent="handleBookingSubmit">
         <h4 class="text-xl font-semibold mb-4">
-          Confirming for: {{ formatTime(selectedSlot.startTime) }}
+          Confirming for: {{ formatTime(selectedSlot.start) }}
         </h4>
         <div class="space-y-4">
           <div>
