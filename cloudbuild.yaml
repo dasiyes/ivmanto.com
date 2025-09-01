@@ -68,7 +68,8 @@ steps:
       - '--service-account=${_BACKEND_SA_NAME}'
       # Atomically set all environment variables and secrets for the new revision.
       # This ensures the service starts with the correct configuration.
-      - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
+      # We use the full resource path to be unambiguous.
+      - '--set-secrets=SMTP_PASS=projects/${PROJECT_ID}/secrets/${_SMTP_SECRET_NAME}:latest'
       - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
     waitFor: ['backend-push']
 
