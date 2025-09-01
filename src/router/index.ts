@@ -6,8 +6,8 @@ import BlogView from '@/views/BlogView.vue'
 import ArticleListView from '@/views/ArticleListView.vue'
 import ArticleView from '@/views/ArticleView.vue'
 import ServiceView from '@/views/ServiceView.vue'
-import BookingCalendar from '../views/BookingCalendar.vue'
-import BookingCancellation from '../views/BookingCancellation.vue'
+import BookingCalendar from '@/views/BookingCalendar.vue'
+import BookingCancellation from '@/views/BookingCancellation.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

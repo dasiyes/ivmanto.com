@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 import { ref, onMounted, computed, watch } from 'vue'
 
 type TimeSlot = {
+  id: string
   start: string
   end: string
 }
@@ -119,7 +120,7 @@ async function handleBookingSubmit() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        start: selectedSlot.value.start,
+        eventId: selectedSlot.value.id,
         ...bookingDetails.value,
       }),
     })

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,8 +21,16 @@ var (
 	ErrSlotNotFound = errors.New("slot not found or already booked")
 )
 
-// Service interacts with the Google Calendar API.
-type Service struct {
+// Service defines the interface for interacting with Google Calendar.
+type Service interface {
+	GetAvailability(day time.Time) ([]*calendar.Event, error)
+	BookSlot(details BookingDetails) (*calendar.Event, error)
+	CancelBooking(ctx context.Context, token string) (*calendar.Event, error)
+	Location() *time.Location
+}
+
+// gcalService implements the Service interface for Google Calendar.
+type gcalService struct {
 	calSvc               *calendar.Service
 	calendarID           string
 	location             *time.Location
@@ -31,18 +39,15 @@ type Service struct {
 
 // BookingDetails contains information for a new booking.
 type BookingDetails struct {
-	StartTime time.Time
-	Name      string
-	Email     string
-	Notes     string
+	EventID string
+	Name    string
+	Email   string
+	Notes   string
 }
 
 // NewService creates a new calendar service client.
-func NewService(ctx context.Context, credentialFile, calendarID, availableSlotSummary string) (*Service, error) {
-	b, err := os.ReadFile(credentialFile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read client secret file '%s': %w", credentialFile, err)
-	}
+func NewService(ctx context.Context, credentialsJSON, calendarID, availableSlotSummary string) (Service, error) {
+	b := []byte(credentialsJSON)
 
 	// We use a service account for server-to-server authentication.
 	config, err := google.JWTConfigFromJSON(b, calendar.CalendarScope)
@@ -70,17 +75,17 @@ func NewService(ctx context.Context, credentialFile, calendarID, availableSlotSu
 		loc = time.UTC
 	}
 
-	return &Service{
+	return &gcalService{
 		calSvc:               srv,
 		calendarID:           calendarID,
 		location:             loc,
-		availableSlotSummary: availableSlotSummary,
+		availableSlotSummary: strings.TrimSpace(availableSlotSummary),
 	}, nil
 }
 
 // GetAvailability fetches available time slots for a given day.
 // It now lists events with a specific summary to find available slots.
-func (s *Service) GetAvailability(day time.Time) ([]*calendar.Event, error) {
+func (s *gcalService) GetAvailability(day time.Time) ([]*calendar.Event, error) {
 	loc := s.location
 	startOfDay := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, loc)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -103,30 +108,25 @@ func (s *Service) GetAvailability(day time.Time) ([]*calendar.Event, error) {
 
 // BookSlot books a consultation by finding an "Available" event and updating it.
 // This provides an atomic way to claim a slot.
-func (s *Service) BookSlot(details BookingDetails) (*calendar.Event, error) {
-	// 1. Find the specific "Available" event at the requested start time.
-	// We query a very narrow time window to ensure we get the exact slot.
-	// Using Q (text search) is a good filter, but we'll double-check the summary.
-	list, err := s.calSvc.Events.List(s.calendarID).
-		TimeMin(details.StartTime.Format(time.RFC3339)).
-		TimeMax(details.StartTime.Add(1 * time.Second).Format(time.RFC3339)).
-		Q(s.availableSlotSummary).
-		SingleEvents(true).
-		MaxResults(1).
-		Do()
+func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) {
+	log.Printf("INFO: [gcal] Attempting to book event with ID: %s", details.EventID)
 
+	// 1. Get the event directly by its unique ID. This is more reliable than searching.
+	eventToBook, err := s.calSvc.Events.Get(s.calendarID, details.EventID).Do()
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve event to book: %w", err)
+		// If the error is 404, it means the event doesn't exist, which we treat as a slot not found.
+		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == http.StatusNotFound {
+			return nil, ErrSlotNotFound
+		}
+		return nil, fmt.Errorf("unable to retrieve event to book with ID %s: %w", details.EventID, err)
 	}
 
-	if len(list.Items) == 0 {
-		return nil, ErrSlotNotFound
-	}
-
-	eventToBook := list.Items[0]
+	log.Printf("INFO: [gcal] Found available event %s to book.", eventToBook.Id)
 
 	// 2. Verify the event is indeed an available slot and not already booked.
-	if eventToBook.Summary != s.availableSlotSummary {
+	// We trim the space from the calendar summary to be robust against accidental whitespace.
+	if strings.TrimSpace(eventToBook.Summary) != s.availableSlotSummary {
+		log.Printf("ERROR: [gcal] Slot verification failed. Event summary from calendar: '%s' does not match expected summary from config: '%s'", strings.TrimSpace(eventToBook.Summary), s.availableSlotSummary)
 		return nil, ErrSlotNotFound
 	}
 
@@ -158,27 +158,22 @@ func (s *Service) BookSlot(details BookingDetails) (*calendar.Event, error) {
 		details.Email,
 		details.Notes,
 	)
-	// By default, a service account cannot add attendees to an event without
-	// being granted domain-wide delegation of authority. We will handle sending
-	// a confirmation email from our own backend instead.
+	// We set attendees to nil because a service account typically cannot add attendees
+	// without domain-wide delegation. We handle notifications via our email service.
 	eventToBook.Attendees = nil
 	// Request Google Meet conference data to be added to the event.
 	eventToBook.ConferenceData = &calendar.ConferenceData{
 		CreateRequest: &calendar.CreateConferenceRequest{
 			RequestId: fmt.Sprintf("ivmanto-booking-%d", time.Now().UnixNano()),
-			// By omitting the ConferenceSolutionKey, we ask Google Calendar to use
-			// the default conference provider configured for this calendar. This is
-			// the most robust method for Workspace accounts, as it respects the
-			// server-side configuration instead of being overly prescriptive.
-			// This resolves the "Invalid conference type value" error.
+			// By omitting ConferenceSolutionKey, we ask Google to use the default
+			// provider for the calendar, which is the most robust method.
 		},
 	}
 
 	// 4. Atomically update the event. The ETag mechanism handled by the client library
 	// ensures that if the event was changed between our read and write, this will fail.
-	_, err = s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).
+	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).
 		ConferenceDataVersion(1). // Required when modifying conference data
-		// We remove SendUpdates("all") as there are no attendees to notify.
 		Do()
 
 	if err != nil {
@@ -188,64 +183,74 @@ func (s *Service) BookSlot(details BookingDetails) (*calendar.Event, error) {
 		}
 		return nil, fmt.Errorf("failed to update event during booking: %w", err)
 	}
+	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
 
 	// 5. Re-fetch the event to ensure we have the latest data, including the generated HangoutLink.
-	// The conference generation can be asynchronous, and the object returned from Update might not have it.
-	finalEvent, err := s.calSvc.Events.Get(s.calendarID, eventToBook.Id).Do()
-	if err != nil {
-		// If we can't get the event after updating it, it's a problem, but the booking was made.
-		// We'll log it and return an error, but a more robust system might handle this differently.
-		return nil, fmt.Errorf("event was booked but failed to retrieve final details: %w", err)
-	}
-
-	return finalEvent, nil
+	// This is the most critical step. The object returned from an Update call is not guaranteed
+	// to contain all the latest data (like ExtendedProperties or the final HangoutLink).
+	// A Get call is the only way to ensure we have the definitive state of the event.
+	log.Printf("INFO: [gcal] Re-fetching event %s to get its final state.", updatedEvent.Id)
+	finalEvent, err := s.calSvc.Events.Get(s.calendarID, updatedEvent.Id).Do()
+	return finalEvent, err
 }
 
-// CancelSlot finds an event by its cancellation token and reverts it to an "Available" slot.
-func (s *Service) CancelSlot(token string) (*calendar.Event, error) {
-	if token == "" {
-		return nil, errors.New("cancellation token cannot be empty")
-	}
-
+// CancelBooking finds an event by its cancellation token and reverts it to an available slot.
+// It returns the original event details for notification purposes.
+func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calendar.Event, error) {
+	log.Printf("INFO: [gcal] Searching for event with cancellation token %s...", token[:8])
 	// 1. Find the event using the private extended property.
-	// This is the most secure way to identify the event to cancel.
-	list, err := s.calSvc.Events.List(s.calendarID).
-		PrivateExtendedProperty(fmt.Sprintf("cancellation_token=%s", token)).
+	query := fmt.Sprintf("cancellation_token=%s", token)
+	events, err := s.calSvc.Events.List(s.calendarID).
+		PrivateExtendedProperty(query).
 		MaxResults(1).
 		Do()
-
 	if err != nil {
-		return nil, fmt.Errorf("failed to search for event by cancellation token: %w", err)
+		return nil, fmt.Errorf("failed to query for event with token: %w", err)
 	}
 
-	if len(list.Items) == 0 {
-		return nil, ErrSlotNotFound // Token is invalid or event already cancelled/deleted.
+	if len(events.Items) == 0 {
+		log.Printf("WARN: [gcal] No event found for cancellation token %s...", token[:8])
+		return nil, ErrSlotNotFound // Using existing error for "not found"
 	}
 
-	eventToCancel := list.Items[0]
+	eventToCancel := events.Items[0]
+	log.Printf("INFO: [gcal] Found event %s to cancel.", eventToCancel.Id)
 
-	// 2. Revert the event to an "Available" slot.
+	// 2. Preserve original details for notifications before modifying.
+	// We retrieve the client details from the private properties we stored during booking.
+	originalEvent := &calendar.Event{
+		Id:      eventToCancel.Id,
+		Summary: eventToCancel.Summary,
+		Start:   eventToCancel.Start,
+		End:     eventToCancel.End,
+		Attendees: []*calendar.EventAttendee{
+			{
+				DisplayName: eventToCancel.ExtendedProperties.Private["client_name"],
+				Email:       eventToCancel.ExtendedProperties.Private["client_email"],
+			},
+		},
+	}
+
+	// 3. Update the event to revert it to an "Available" slot.
 	eventToCancel.Summary = s.availableSlotSummary
-	eventToCancel.Description = "" // Clear client notes
+	eventToCancel.Description = "This slot is now available for booking."
 	eventToCancel.Attendees = nil
-	// To remove conference data, we must set it to an empty object and
-	// specify ConferenceDataVersion(1) in the update call. Setting it to nil
-	// is not sufficient.
 	eventToCancel.ConferenceData = &calendar.ConferenceData{}
-	eventToCancel.ExtendedProperties.Private["cancellation_token"] = "" // Invalidate the token
+	delete(eventToCancel.ExtendedProperties.Private, "cancellation_token")
+	delete(eventToCancel.ExtendedProperties.Private, "client_name")
+	delete(eventToCancel.ExtendedProperties.Private, "client_email")
 
-	// 3. Update the event.
-	cancelledEvent, err := s.calSvc.Events.Update(s.calendarID, eventToCancel.Id, eventToCancel).
-		ConferenceDataVersion(1). // Required when modifying conference data.
-		Do()
+	// 4. Persist the update to Google Calendar.
+	_, err = s.calSvc.Events.Update(s.calendarID, eventToCancel.Id, eventToCancel).ConferenceDataVersion(1).Do()
 	if err != nil {
-		return nil, fmt.Errorf("failed to update event during cancellation: %w", err)
+		return nil, fmt.Errorf("failed to update event to available: %w", err)
 	}
+	log.Printf("INFO: [gcal] Successfully reverted event %s to an available slot.", eventToCancel.Id)
 
-	return cancelledEvent, nil
+	return originalEvent, nil
 }
 
 // Location returns the timezone of the calendar.
-func (s *Service) Location() *time.Location {
+func (s *gcalService) Location() *time.Location {
 	return s.location
 }

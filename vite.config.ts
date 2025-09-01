@@ -1,4 +1,3 @@
-// vite.config.ts
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
@@ -14,10 +13,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy /api requests to our local Go backend
+      // Proxy all requests starting with /api to the Go backend
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8080', // The address of your running Go server
         changeOrigin: true,
+        // DO NOT rewrite the path. The Go backend's routes are already prefixed with /api.
+        // The absence of a 'rewrite' rule here is the fix.
       },
     },
   },
