@@ -209,6 +209,17 @@ func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *cal
 
 	subject := "Your consultation is confirmed!"
 	meetLink := getMeetLink(event)
+
+	var meetLinkHTML string
+	if meetLink != "" {
+		meetLinkHTML = fmt.Sprintf(`<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>`, meetLink, meetLink)
+	} else {
+		// If the link is not available after retries, we simply omit it from the email.
+		// The .ics file will also have an empty location, but the calendar event itself
+		// should eventually be updated by Google. This is the most truthful approach.
+		meetLinkHTML = ""
+	}
+
 	// In a real app, this body would come from an HTML template.
 	htmlBody := fmt.Sprintf(`
 		<p>Hi %s,</p>
@@ -216,7 +227,7 @@ func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *cal
 		<ul>
 			<li><strong>Date:</strong> %s</li>
 			<li><strong>Time:</strong> %s - %s (%s)</li>
-			<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>
+			%s
 		</ul>
 		<p>A calendar invitation (.ics file) is attached to this email. Please open it to add the event to your calendar.</p>
 		<p>We look forward to speaking with you!</p>
@@ -226,7 +237,7 @@ func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *cal
 		startTime.Format("3:04 PM"),
 		endTime.Format("3:04 PM"),
 		startTime.Location().String(),
-		meetLink, meetLink)
+		meetLinkHTML)
 
 	// Add a cancellation link if a token is present in the event's private properties.
 	if event.ExtendedProperties != nil && event.ExtendedProperties.Private != nil {
@@ -307,7 +318,7 @@ func (s *SmtpService) SendBookingCancellationToClient(toName, toEmail string, st
 	htmlBody := fmt.Sprintf(`
 		<p>Hi %s,</p>
 		<p>This is a confirmation that your consultation scheduled for <strong>%s</strong> has been successfully cancelled.</p>
-		<p>If you wish to book another time, please feel free to visit our booking page again.</p>
+		<p>If you wish to book another time, please feel free to visit our <a href="https://ivmanto.com/booking"><strong>booking page</strong></a> again.</p>
 		<p>Thanks,<br>The IVMANTO Team</p>`,
 		toName,
 		startTime.Format("Monday, January 2, 2006 at 3:04 PM MST"))

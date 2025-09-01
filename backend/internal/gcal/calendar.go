@@ -158,22 +158,25 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		details.Email,
 		details.Notes,
 	)
-	// We set attendees to nil because a service account typically cannot add attendees
-	// without domain-wide delegation. We handle notifications via our email service.
+	// We do not add attendees directly, as this requires domain-wide delegation for the service account.
+	// Instead, our application will send a confirmation email with an .ics attachment.
 	eventToBook.Attendees = nil
 	// Request Google Meet conference data to be added to the event.
 	eventToBook.ConferenceData = &calendar.ConferenceData{
 		CreateRequest: &calendar.CreateConferenceRequest{
 			RequestId: fmt.Sprintf("ivmanto-booking-%d", time.Now().UnixNano()),
-			// By omitting ConferenceSolutionKey, we ask Google to use the default
-			// provider for the calendar, which is the most robust method.
+			// To be more explicit, we can force the creation of a Google Meet link
+			// instead of relying on the calendar's default.
+			// Using "eventHangout" is often more compatible with non-Google Workspace accounts
+			// than "hangoutsMeet", while still generating a Google Meet link.
+			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{Type: "eventHangout"},
 		},
 	}
 
 	// 4. Atomically update the event. The ETag mechanism handled by the client library
 	// ensures that if the event was changed between our read and write, this will fail.
 	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).
-		ConferenceDataVersion(1). // Required when modifying conference data
+		ConferenceDataVersion(1). // Required when modifying conference data.
 		Do()
 
 	if err != nil {
@@ -185,13 +188,37 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	}
 	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
 
-	// 5. Re-fetch the event to ensure we have the latest data, including the generated HangoutLink.
-	// This is the most critical step. The object returned from an Update call is not guaranteed
-	// to contain all the latest data (like ExtendedProperties or the final HangoutLink).
-	// A Get call is the only way to ensure we have the definitive state of the event.
-	log.Printf("INFO: [gcal] Re-fetching event %s to get its final state.", updatedEvent.Id)
-	finalEvent, err := s.calSvc.Events.Get(s.calendarID, updatedEvent.Id).Do()
-	return finalEvent, err
+	// 5. Re-fetch the event to ensure we have the latest data.
+	// Conference data generation can be asynchronous. We'll retry a few times to get it.
+	var finalEvent *calendar.Event
+	var getErr error
+	maxRetries := 3
+	retryDelay := 500 * time.Millisecond
+
+	for i := 0; i < maxRetries; i++ {
+		log.Printf("INFO: [gcal] Fetching event %s to get conference data (Attempt %d/%d)...", updatedEvent.Id, i+1, maxRetries)
+		finalEvent, getErr = s.calSvc.Events.Get(s.calendarID, updatedEvent.Id).Do()
+		if getErr != nil {
+			log.Printf("ERROR: [gcal] Failed to fetch event %s: %v", updatedEvent.Id, getErr)
+			return nil, getErr
+		}
+
+		// Check if conference data is available. We check both HangoutLink and ConferenceData.EntryPoints.
+		if finalEvent.HangoutLink != "" || (finalEvent.ConferenceData != nil && len(finalEvent.ConferenceData.EntryPoints) > 0) {
+			log.Printf("INFO: [gcal] Successfully fetched event with conference data.")
+			return finalEvent, nil
+		}
+
+		if i < maxRetries-1 {
+			log.Printf("WARN: [gcal] Conference data not yet available for event %s. Retrying in %v...", updatedEvent.Id, retryDelay)
+			time.Sleep(retryDelay)
+		}
+	}
+
+	// If we exit the loop, it means we couldn't get the link after several retries.
+	// We'll return the last fetched event, and the email service will have to handle an empty link.
+	log.Printf("WARN: [gcal] Could not retrieve conference data for event %s after %d retries. Proceeding without it.", updatedEvent.Id, maxRetries)
+	return finalEvent, nil
 }
 
 // CancelBooking finds an event by its cancellation token and reverts it to an available slot.
@@ -235,7 +262,9 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	eventToCancel.Summary = s.availableSlotSummary
 	eventToCancel.Description = "This slot is now available for booking."
 	eventToCancel.Attendees = nil
-	eventToCancel.ConferenceData = &calendar.ConferenceData{}
+	// Set ConferenceData to nil to explicitly remove the Google Meet link.
+	// This requires ConferenceDataVersion(1) in the Update call.
+	eventToCancel.ConferenceData = nil
 	delete(eventToCancel.ExtendedProperties.Private, "cancellation_token")
 	delete(eventToCancel.ExtendedProperties.Private, "client_name")
 	delete(eventToCancel.ExtendedProperties.Private, "client_email")
