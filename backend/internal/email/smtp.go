@@ -3,13 +3,18 @@ package email
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"mime/multipart"
 	"net/smtp"
+	"net/textproto"
 	"strings"
 	"time"
 
+	"google.golang.org/api/calendar/v3"
 	"ivmanto.com/backend/internal/config"
+	"ivmanto.com/backend/internal/ical"
 )
 
 // SmtpService is a concrete implementation of the email Service using SMTP.
@@ -48,25 +53,49 @@ func stripPlusAlias(email string) string {
 }
 
 // send is a private helper to construct and dispatch an email.
-func (s *SmtpService) send(to, cc []string, subject, body string) error {
-	// Construct the email message headers.
-	headers := make(map[string]string)
-	headers["From"] = fmt.Sprintf("%s <%s>", s.cfg.SendFromAlias, s.cfg.SendFrom)
-	headers["To"] = strings.Join(to, ", ")
-	if len(cc) > 0 {
-		headers["Cc"] = strings.Join(cc, ", ")
-	}
-	headers["Subject"] = subject
-	headers["MIME-Version"] = "1.0"
-	headers["Content-Type"] = "text/html; charset=\"utf-8\""
+func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment *ical.Attachment) error {
+	// Build the message body using multipart writer for attachments.
+	var bodyBuffer bytes.Buffer
+	writer := multipart.NewWriter(&bodyBuffer)
 
-	// Build the full message.
-	var msg bytes.Buffer
-	for k, v := range headers {
-		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	// HTML part
+	htmlHeaders := textproto.MIMEHeader{}
+	htmlHeaders.Set("Content-Type", "text/html; charset=utf-8")
+	part, err := writer.CreatePart(htmlHeaders)
+	if err != nil {
+		return fmt.Errorf("failed to create html part: %w", err)
 	}
+	_, err = part.Write([]byte(htmlBody))
+	if err != nil {
+		return fmt.Errorf("failed to write html body: %w", err)
+	}
+
+	// Attachment part
+	if attachment != nil {
+		attachment.Headers.Set("Content-Transfer-Encoding", "base64")
+		part, err := writer.CreatePart(attachment.Headers)
+		if err != nil {
+			return fmt.Errorf("failed to create attachment part: %w", err)
+		}
+		b64Writer := base64.NewEncoder(base64.StdEncoding, part)
+		b64Writer.Write(attachment.Body)
+		b64Writer.Close()
+	}
+
+	writer.Close()
+
+	// Build the full message with top-level headers.
+	var msg bytes.Buffer
+	msg.WriteString(fmt.Sprintf("From: %s <%s>\r\n", s.cfg.SendFromAlias, s.cfg.SendFrom))
+	msg.WriteString(fmt.Sprintf("To: %s\r\n", strings.Join(to, ", ")))
+	if len(cc) > 0 {
+		msg.WriteString(fmt.Sprintf("Cc: %s\r\n", strings.Join(cc, ", ")))
+	}
+	msg.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
+	msg.WriteString("MIME-Version: 1.0\r\n")
+	msg.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\r\n", writer.Boundary()))
 	msg.WriteString("\r\n")
-	msg.WriteString(body)
+	msg.Write(bodyBuffer.Bytes())
 
 	addr := fmt.Sprintf("%s:%s", s.cfg.SmtpHost, s.cfg.SmtpPort)
 
@@ -154,12 +183,83 @@ func (s *SmtpService) send(to, cc []string, subject, body string) error {
 	return nil
 }
 
+// getMeetLink robustly extracts the Google Meet link from a calendar event.
+// It first checks the primary `HangoutLink` field. If that is empty, it iterates
+// through the `ConferenceData` entry points to find the video link. This is
+// necessary because the `HangoutLink` is not always populated immediately.
+func getMeetLink(event *calendar.Event) string {
+	if event.HangoutLink != "" {
+		return event.HangoutLink
+	}
+
+	if event.ConferenceData != nil {
+		for _, entryPoint := range event.ConferenceData.EntryPoints {
+			if entryPoint.EntryPointType == "video" {
+				return entryPoint.Uri
+			}
+		}
+	}
+	return "" // Return empty if no link is found
+}
+
 // SendBookingConfirmation sends a confirmation email to the user.
-func (s *SmtpService) SendBookingConfirmation(name, toEmail string, startTime time.Time) error {
+func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *calendar.Event) error {
+	startTime, _ := time.Parse(time.RFC3339, event.Start.DateTime)
+	endTime, _ := time.Parse(time.RFC3339, event.End.DateTime)
+
 	subject := "Your consultation is confirmed!"
+	meetLink := getMeetLink(event)
 	// In a real app, this body would come from an HTML template.
-	body := fmt.Sprintf("Hi %s,<br><br>Your consultation on %s is confirmed.<br><br>Thanks,<br>The Team", name, startTime.Format(time.RFC1123))
-	return s.send([]string{toEmail}, nil, subject, body)
+	htmlBody := fmt.Sprintf(`
+		<p>Hi %s,</p>
+		<p>Your 30-minute consultation is confirmed. Here are the details:</p>
+		<ul>
+			<li><strong>Date:</strong> %s</li>
+			<li><strong>Time:</strong> %s - %s (%s)</li>
+			<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>
+		</ul>
+		<p>A calendar invitation (.ics file) is attached to this email. Please open it to add the event to your calendar.</p>
+		<p>We look forward to speaking with you!</p>
+		<p>Thanks,<br>The IVMANTO Team</p>`,
+		toName,
+		startTime.Format("Monday, January 2, 2006"),
+		startTime.Format("3:04 PM"),
+		endTime.Format("3:04 PM"),
+		startTime.Location().String(),
+		meetLink, meetLink)
+
+	// Add a cancellation link if a token is present in the event's private properties.
+	if event.ExtendedProperties != nil && event.ExtendedProperties.Private != nil {
+		if token, ok := event.ExtendedProperties.Private["cancellation_token"]; ok && token != "" {
+			// The frontend will have a route at /booking/cancel that handles the API call.
+			// It's best practice for the backend to provide the full URL.
+			cancellationURL := fmt.Sprintf("https://ivmanto.com/booking/cancel?token=%s", token)
+			htmlBody += fmt.Sprintf(`<p style="font-size: small; color: #666;">Need to make a change? <a href="%s">Cancel this booking</a>.</p>`, cancellationURL)
+		}
+	}
+
+	// Generate the .ics file content
+	icsContent := ical.Generate(ical.EventDetails{
+		UID:         event.ICalUID,
+		StartTime:   startTime,
+		EndTime:     endTime,
+		Summary:     event.Summary,
+		Description: event.Description,
+		Location:    meetLink,
+		Name:        toName,
+		Email:       toEmail,
+	})
+
+	// Create the attachment
+	attachment := &ical.Attachment{
+		Headers: textproto.MIMEHeader{
+			"Content-Type":        {`text/calendar; charset="utf-8"; method=REQUEST`},
+			"Content-Disposition": {`attachment; filename="invite.ics"`},
+		},
+		Body: []byte(icsContent),
+	}
+
+	return s.send([]string{toEmail}, nil, subject, htmlBody, attachment)
 }
 
 // SendBookingNotificationToAdmin sends a notification email to the admin.
@@ -175,7 +275,7 @@ func (s *SmtpService) SendBookingNotificationToAdmin(name, clientEmail string, s
 
 	subject := "New Consultation Booked!"
 	body := fmt.Sprintf("New booking with:<br>Name: %s<br>Email: %s<br>Time: %s<br>Notes: %s", name, clientEmail, startTime.Format(time.RFC1123), notes)
-	return s.send([]string{adminEmail}, nil, subject, body)
+	return s.send([]string{adminEmail}, nil, subject, body, nil)
 }
 
 // SendContactMessage sends the contact form message to the admin.
@@ -198,5 +298,35 @@ func (s *SmtpService) SendContactMessage(msg ContactMessage) error {
 		ccList = append(ccList, msg.Email)
 	}
 
-	return s.send([]string{adminEmail}, ccList, subject, body)
+	return s.send([]string{adminEmail}, ccList, subject, body, nil)
+}
+
+// SendBookingCancellationToClient sends a cancellation confirmation to the user.
+func (s *SmtpService) SendBookingCancellationToClient(toName, toEmail string, startTime time.Time) error {
+	subject := "Your consultation has been cancelled"
+	htmlBody := fmt.Sprintf(`
+		<p>Hi %s,</p>
+		<p>This is a confirmation that your consultation scheduled for <strong>%s</strong> has been successfully cancelled.</p>
+		<p>If you wish to book another time, please feel free to visit our booking page again.</p>
+		<p>Thanks,<br>The IVMANTO Team</p>`,
+		toName,
+		startTime.Format("Monday, January 2, 2006 at 3:04 PM MST"))
+
+	return s.send([]string{toEmail}, nil, subject, htmlBody, nil)
+}
+
+// SendBookingCancellationToAdmin sends a notification to the admin about a client cancellation.
+func (s *SmtpService) SendBookingCancellationToAdmin(clientName, clientEmail string, startTime time.Time) error {
+	parts := strings.Split(s.cfg.SendFrom, "@")
+	var adminEmail string
+	if len(parts) == 2 {
+		// Use a '+cancellation' alias to help with filtering in the admin's inbox.
+		adminEmail = fmt.Sprintf("%s+cancellation@%s", parts[0], parts[1])
+	} else {
+		adminEmail = s.cfg.SendFrom // Fallback for non-standard emails
+	}
+
+	subject := "Consultation Cancelled by Client"
+	body := fmt.Sprintf("The consultation with <strong>%s (%s)</strong> for <strong>%s</strong> has been cancelled by the client.", clientName, clientEmail, startTime.Format(time.RFC1123))
+	return s.send([]string{adminEmail}, nil, subject, body, nil)
 }

@@ -27,6 +27,7 @@ type BookingConfig struct {
 	WorkDayStartHour     int
 	WorkDayEndHour       int
 	CalendarID           string // Loaded from env var
+	AvailableSlotSummary string `env:"GCAL_AVAILABLE_SLOT_SUMMARY,required"` // <-- Add this line
 }
 
 // EmailConfig holds configuration for the email service.
@@ -53,7 +54,8 @@ func Load() (*Config, error) {
 			WorkDayStartHour:     9,  // 9 AM UTC
 			WorkDayEndHour:       17, // 5 PM UTC
 			// This MUST be loaded from an environment variable.
-			CalendarID: os.Getenv("CALENDAR_ID"),
+			CalendarID:           os.Getenv("CALENDAR_ID"),
+			AvailableSlotSummary: os.Getenv("GCAL_AVAILABLE_SLOT_SUMMARY"),
 		},
 		Email: EmailConfig{
 			SmtpHost:      "smtp.gmail.com",
@@ -70,6 +72,9 @@ func Load() (*Config, error) {
 	if cfg.Booking.CalendarID == "" {
 		// We can't run without this.
 		return nil, errors.New("CALENDAR_ID environment variable not set")
+	}
+	if cfg.Booking.AvailableSlotSummary == "" {
+		return nil, errors.New("GCAL_AVAILABLE_SLOT_SUMMARY environment variable not set")
 	}
 	return cfg, nil
 }

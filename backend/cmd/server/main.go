@@ -36,14 +36,19 @@ func main() {
 	// Initialize the Google Calendar service. This is the core of our new booking engine.
 	// It replaces the InMemoryBookingStore and the old BookingService.
 	ctx := context.Background()
-	gcalSvc, err := gcal.NewService(ctx, "gcp-credentials.json", cfg.Booking.CalendarID)
+	gcalSvc, err := gcal.NewService(
+		ctx,
+		"gcp-credentials.json",
+		cfg.Booking.CalendarID,
+		cfg.Booking.AvailableSlotSummary,
+	)
 	if err != nil {
 		log.Fatalf("FATAL: Failed to create Google Calendar service: %v", err)
 	}
 
 	// 3. Initialize handlers.
 	contactHandler := contact.NewHandler(emailService)
-	bookingHandler := booking.NewHandler(gcalSvc)
+	bookingHandler := booking.NewHandler(gcalSvc, emailService)
 
 	// 4. Register routes
 	mux := http.NewServeMux()
