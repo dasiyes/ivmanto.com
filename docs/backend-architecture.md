@@ -116,6 +116,11 @@ The Go backend will expose the following RESTful endpoints under the `/api` path
   - **Payload:** `{ "startTime": string, "name": string, "email": string, "notes": string }`
   - **Response:** `201-Created` on success with the created booking object. `409 Conflict` if the slot is already taken.
 
+- **`POST /api/booking/cancel`**
+  - **Description:** Cancels an existing booking using a cancellation token.
+  - **Payload:** `{ "token": string }`
+  - **Response:** `200 OK` on success with a confirmation message. `404 Not Found` if the token is invalid or the booking does not exist.
+
 ## 6. CI/CD Pipeline with Cloud Build
 
 We will extend our `cloudbuild.yaml` to handle both frontend and backend deployments in a single run.
