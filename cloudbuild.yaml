@@ -64,16 +64,24 @@ steps:
       - '--platform=managed'
       - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
-      # Set the SMTP_PASS secret from Secret Manager
-      - '--update-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
+      # Explicitly set the runtime service account for the new revision.
+      - '--service-account=${_BACKEND_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com'
+      # Atomically set all environment variables and secrets for the new revision.
+      # This ensures the service starts with the correct configuration.
+      - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
+      - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
 substitutions:
   _FRONTEND_SERVICE_NAME: 'ivmanto-com'
   _BACKEND_SERVICE_NAME: 'ivmanto-backend-service'
+  _BACKEND_SA_NAME: 'ivmanto-backend-sa'
   _REPO_NAME: 'ivmanto-com-repo'
   _SMTP_SECRET_NAME: 'smtp-password'
+  # These must be configured in the Cloud Build Trigger UI.
+  _CALENDAR_ID: 'your-calendar-id@group.calendar.google.com'
+  _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB'
 
 # The image created by this build.
 images:
