@@ -165,11 +165,11 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	eventToBook.ConferenceData = &calendar.ConferenceData{
 		CreateRequest: &calendar.CreateConferenceRequest{
 			RequestId: fmt.Sprintf("ivmanto-booking-%d", time.Now().UnixNano()),
-			// To be more explicit, we can force the creation of a Google Meet link
-			// instead of relying on the calendar's default.
-			// Using "eventHangout" is often more compatible with non-Google Workspace accounts
-			// than "hangoutsMeet", while still generating a Google Meet link.
-			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{Type: "eventHangout"},
+			// For a Google Workspace account, "hangoutsMeet" is the modern and
+			// recommended conference solution type. This ensures a unique
+			// Google Meet link is generated for every booking, which is exactly
+			// what we want.
+			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{Type: "hangoutsMeet"},
 		},
 	}
 

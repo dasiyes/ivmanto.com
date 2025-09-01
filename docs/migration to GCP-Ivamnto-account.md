@@ -74,6 +74,8 @@ Go to Secret Manager.
 Click "+ CREATE SECRET".
 Name: smtp-password (this must match \_SMTP_SECRET_NAME in cloudbuild.yaml).
 Secret value: Enter your SMTP password.
+Under "Replication", select "User-managed".
+Click "ADD REPLICATION" and choose the same region you used for your Artifact Registry (e.g., `europe-west3`). This is a best practice for data locality and ensures your Cloud Run service can access it.
 Click "CREATE SECRET".
 Step 3: Grant Secret Access to Cloud Build
 
