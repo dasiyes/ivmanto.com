@@ -64,7 +64,7 @@ steps:
       - '--platform=managed'
       - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
-      # Explicitly set the runtime service account for the new revision.
+      # Set the runtime service account for the new revision. This is critical.
       - '--service-account=${_BACKEND_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com'
       # Atomically set all environment variables and secrets for the new revision.
       # This ensures the service starts with the correct configuration.
