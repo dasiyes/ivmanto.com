@@ -32,6 +32,7 @@ steps:
       - '--platform=managed'
       - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
+      - '--allow-unauthenticated'
     waitFor: ['frontend-push']
 
   # ==================================================================
@@ -64,6 +65,7 @@ steps:
       - '--platform=managed'
       - '--ingress=internal-and-cloud-load-balancing'
       - '--project=${PROJECT_ID}'
+      - '--allow-unauthenticated'
       # Set the runtime service account for the new revision. This is critical.
       - '--service-account=${_BACKEND_SA_NAME}'
       # Atomically set all environment variables and secrets for the new revision.
