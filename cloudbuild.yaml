@@ -68,9 +68,9 @@ steps:
       - '--service-account=${_BACKEND_SA_NAME}'
       # Atomically set all environment variables and secrets for the new revision.
       # This ensures the service starts with the correct configuration.
-      # DEBUGGING STEP: Temporarily remove the secret to isolate the problem.
-      - '--clear-secrets'
-      - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_PASS=is-a-dummy-value'
+      - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
+      - >-
+        --set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -83,6 +83,10 @@ substitutions:
   # These must be configured in the Cloud Build Trigger UI.
   _CALENDAR_ID: 'your-calendar-id@group.calendar.google.com'
   _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB'
+  _SMTP_HOST: 'smtp.example.com'
+  _SMTP_PORT: '587'
+  _SEND_FROM: 'you@ivmanto.com'
+  _SEND_FROM_ALIAS: 'IVMANTO'
 
 # The image created by this build.
 images:
