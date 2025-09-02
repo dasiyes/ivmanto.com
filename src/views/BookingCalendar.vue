@@ -82,7 +82,21 @@ async function fetchAvailability(date: Date) {
     // response.json() can fail on an empty body, so we catch that case.
     const data = await response.json().catch(() => null)
     // Ensure availableSlots is always an array to prevent template errors on `.length`.
-    availableSlots.value = data || []
+    let slots = data || []
+
+    // Check if the fetched date is today.
+    const now = new Date()
+    const isFetchingForToday =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+
+    if (isFetchingForToday) {
+      // Filter out slots where the start time has already passed.
+      slots = slots.filter((slot: TimeSlot) => new Date(slot.start).getTime() > now.getTime())
+    }
+
+    availableSlots.value = slots
   } catch (e: any) {
     console.error('Failed to fetch availability:', e)
     error.value = 'Could not load available time slots. Please try again later.'

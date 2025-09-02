@@ -158,9 +158,10 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		details.Email,
 		details.Notes,
 	)
-	// We do not add attendees directly, as this requires domain-wide delegation for the service account.
-	// Instead, our application will send a confirmation email with an .ics attachment.
-	eventToBook.Attendees = nil
+	// We do not add the client as an attendee directly, as this can require
+	// domain-wide delegation. Instead, we send an .ics attachment in the
+	// confirmation email. We will leave the existing attendees (i.e., the calendar owner) on the event.
+	// eventToBook.Attendees = nil // This was likely causing a permissions error by trying to remove the calendar owner.
 	// Request Google Meet conference data to be added to the event.
 	eventToBook.ConferenceData = &calendar.ConferenceData{
 		CreateRequest: &calendar.CreateConferenceRequest{
@@ -261,7 +262,8 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	// 3. Update the event to revert it to an "Available" slot.
 	eventToCancel.Summary = s.availableSlotSummary
 	eventToCancel.Description = "This slot is now available for booking."
-	eventToCancel.Attendees = nil
+	// Do not modify the attendees list to avoid permission errors trying to remove the calendar owner.
+	// eventToCancel.Attendees = nil
 	// Set ConferenceData to nil to explicitly remove the Google Meet link.
 	// This requires ConferenceDataVersion(1) in the Update call.
 	eventToCancel.ConferenceData = nil
