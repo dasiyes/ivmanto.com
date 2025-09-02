@@ -46,17 +46,17 @@ type BookingDetails struct {
 }
 
 // NewService creates a new calendar service client.
-func NewService(ctx context.Context, credentialsJSON, calendarID, availableSlotSummary string) (Service, error) {
-	b := []byte(credentialsJSON)
-
-	// We use a service account for server-to-server authentication.
-	config, err := google.JWTConfigFromJSON(b, calendar.CalendarScope)
+func NewService(ctx context.Context, calendarID, availableSlotSummary string) (Service, error) {
+	// When running on Google Cloud (like Cloud Run), the client library will
+	// automatically find the credentials of the service account the service is
+	// running as. This is the recommended and most secure way to authenticate.
+	// For local development, it uses the credentials from `gcloud auth application-default login`.
+	creds, err := google.FindDefaultCredentials(ctx, calendar.CalendarScope)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse client secret file to config: %w", err)
+		return nil, fmt.Errorf("unable to find default credentials: %w", err)
 	}
-	client := config.Client(ctx)
 
-	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+	srv, err := calendar.NewService(ctx, option.WithCredentials(creds))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve Calendar client: %w", err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/booking"
@@ -34,17 +33,10 @@ func main() {
 	// The email service is kept for the contact form and future notifications.
 	emailService := email.NewSmtpService(&cfg.Email)
 
-	// Read the GCP credentials file
-	creds, err := os.ReadFile("gcp-credentials.json")
-	if err != nil {
-		log.Fatalf("FATAL: Failed to read gcp-credentials.json: %v", err)
-	}
-
 	// Initialize the Google Calendar service. This is the core of our new booking engine.
 	ctx := context.Background()
-	gcalSvc, err := gcal.NewService( // Assuming gcal.NewService is updated to accept credentials as a string/byte slice
+	gcalSvc, err := gcal.NewService(
 		ctx,
-		string(creds),
 		cfg.Booking.CalendarID,
 		cfg.Booking.AvailableSlotSummary,
 	)
