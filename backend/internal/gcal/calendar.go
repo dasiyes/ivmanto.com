@@ -185,8 +185,8 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		if gerr, ok := err.(*googleapi.Error); ok && (gerr.Code == http.StatusConflict || gerr.Code == http.StatusPreconditionFailed) {
 			return nil, ErrSlotNotFound
 		}
-		// The error is likely a fundamental permissions issue with impersonation or calendar write access.
-		return nil, fmt.Errorf("failed to update event during booking (check service account permissions and domain-wide delegation): %w", err)
+		// This is a generic error for when the event update fails for reasons other than a conflict.
+		return nil, fmt.Errorf("failed to update event during booking: %w", err)
 	}
 	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
 
