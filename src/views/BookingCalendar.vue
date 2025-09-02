@@ -92,8 +92,16 @@ async function fetchAvailability(date: Date) {
       date.getDate() === now.getDate()
 
     if (isFetchingForToday) {
+      console.log('[BookingCalendar] Filtering slots for today. Current time:', now.toISOString())
+      console.log('[BookingCalendar] Original slots received:', JSON.parse(JSON.stringify(slots)))
       // Filter out slots where the start time has already passed.
-      slots = slots.filter((slot: TimeSlot) => new Date(slot.start).getTime() > now.getTime())
+      slots = slots.filter((slot: TimeSlot) => {
+        const slotTime = new Date(slot.start)
+        const isFuture = slotTime.getTime() > now.getTime()
+        console.log(`[BookingCalendar] Checking slot ${slot.start}: is in future? ${isFuture}`)
+        return isFuture
+      })
+      console.log('[BookingCalendar] Filtered slots:', JSON.parse(JSON.stringify(slots)))
     }
 
     availableSlots.value = slots
