@@ -174,59 +174,24 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	// confirmation email. We will leave the existing attendees (i.e., the calendar owner) on the event.
 	// eventToBook.Attendees = nil
 	// Request Google Meet conference data to be added to the event.
-	eventToBook.ConferenceData = &calendar.ConferenceData{
-		CreateRequest: &calendar.CreateConferenceRequest{
-			RequestId:             fmt.Sprintf("ivmanto-booking-%d", time.Now().UnixNano()),
-			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{Type: "hangoutsMeet"},
-		},
-	}
+	// Google Meet creation has been removed as requested.
 
 	// 4. Atomically update the event. The ETag mechanism handled by the client library
 	// ensures that if the event was changed between our read and write, this will fail.
-	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).
-		ConferenceDataVersion(1). // Required when modifying conference data.
-		Do()
+	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).Do()
 
 	if err != nil {
 		// Check for a 409 Conflict or 412 Precondition Failed, which indicates the slot was just taken.
 		if gerr, ok := err.(*googleapi.Error); ok && (gerr.Code == http.StatusConflict || gerr.Code == http.StatusPreconditionFailed) {
 			return nil, ErrSlotNotFound
 		}
-		return nil, fmt.Errorf("failed to update event during booking (this may be a permissions issue for creating Google Meet links): %w", err)
+		// The error is likely a fundamental permissions issue with impersonation or calendar write access.
+		return nil, fmt.Errorf("failed to update event during booking (check service account permissions and domain-wide delegation): %w", err)
 	}
 	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
 
-	// 5. Re-fetch the event to ensure we have the latest data.
-	// Conference data generation can be asynchronous. We'll retry a few times to get it.
-	var finalEvent *calendar.Event
-	var getErr error
-	maxRetries := 3
-	retryDelay := 500 * time.Millisecond
-
-	for i := 0; i < maxRetries; i++ {
-		log.Printf("INFO: [gcal] Fetching event %s to get conference data (Attempt %d/%d)...", updatedEvent.Id, i+1, maxRetries)
-		finalEvent, getErr = s.calSvc.Events.Get(s.calendarID, updatedEvent.Id).Do()
-		if getErr != nil {
-			log.Printf("ERROR: [gcal] Failed to fetch event %s: %v", updatedEvent.Id, getErr)
-			return nil, getErr
-		}
-
-		// Check if conference data is available. We check both HangoutLink and ConferenceData.EntryPoints.
-		if finalEvent.HangoutLink != "" || (finalEvent.ConferenceData != nil && len(finalEvent.ConferenceData.EntryPoints) > 0) {
-			log.Printf("INFO: [gcal] Successfully fetched event with conference data.")
-			return finalEvent, nil
-		}
-
-		if i < maxRetries-1 {
-			log.Printf("WARN: [gcal] Conference data not yet available for event %s. Retrying in %v...", updatedEvent.Id, retryDelay)
-			time.Sleep(retryDelay)
-		}
-	}
-
-	// If we exit the loop, it means we couldn't get the link after several retries.
-	// We'll return the last fetched event, and the email service will have to handle an empty link.
-	log.Printf("WARN: [gcal] Could not retrieve conference data for event %s after %d retries. Proceeding without it.", updatedEvent.Id, maxRetries)
-	return finalEvent, nil
+	// Return the updated event directly. No Google Meet link will be included.
+	return updatedEvent, nil
 }
 
 // CancelBooking finds an event by its cancellation token and reverts it to an available slot.
@@ -271,15 +236,15 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	eventToCancel.Description = "This slot is now available for booking."
 	// Do not modify the attendees list to avoid permission errors trying to remove the calendar owner.
 	// eventToCancel.Attendees = nil
-	// Set ConferenceData to nil to explicitly remove the Google Meet link.
-	// This requires ConferenceDataVersion(1) in the Update call.
-	eventToCancel.ConferenceData = nil
+	// Conference data modification has been removed to align with the booking logic.
+	// The Meet link, if it was ever created, will remain on the reverted event.
+	// eventToCancel.ConferenceData = nil
 	delete(eventToCancel.ExtendedProperties.Private, "cancellation_token")
 	delete(eventToCancel.ExtendedProperties.Private, "client_name")
 	delete(eventToCancel.ExtendedProperties.Private, "client_email")
 
 	// 4. Persist the update to Google Calendar.
-	_, err = s.calSvc.Events.Update(s.calendarID, eventToCancel.Id, eventToCancel).ConferenceDataVersion(1).Do()
+	_, err = s.calSvc.Events.Update(s.calendarID, eventToCancel.Id, eventToCancel).Do()
 	if err != nil {
 		return nil, fmt.Errorf("failed to update event to available: %w", err)
 	}
