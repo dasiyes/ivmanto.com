@@ -3,7 +3,7 @@ package booking
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -13,13 +13,15 @@ import (
 
 // Handler manages booking-related HTTP requests.
 type Handler struct {
+	logger   *slog.Logger
 	gcalSvc  gcal.Service
 	emailSvc email.Service
 }
 
 // NewHandler creates a new booking handler.
-func NewHandler(gcalSvc gcal.Service, emailSvc email.Service) *Handler {
+func NewHandler(logger *slog.Logger, gcalSvc gcal.Service, emailSvc email.Service) *Handler {
 	return &Handler{
+		logger:   logger,
 		gcalSvc:  gcalSvc,
 		emailSvc: emailSvc,
 	}
@@ -42,7 +44,7 @@ func (h *Handler) respondJSON(w http.ResponseWriter, status int, payload interfa
 	w.WriteHeader(status)
 	if payload != nil {
 		if err := json.NewEncoder(w).Encode(payload); err != nil {
-			log.Printf("ERROR: could not write JSON response: %v", err)
+			h.logger.Error("could not write JSON response", "error", err)
 		}
 	}
 }
@@ -54,11 +56,6 @@ func (h *Handler) respondError(w http.ResponseWriter, status int, message string
 
 // handleCancelBooking processes a request to cancel a booking.
 func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		h.respondError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
 	var req cancelRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.respondError(w, http.StatusBadRequest, "Invalid request body")
@@ -70,11 +67,11 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("INFO: Received cancellation request for token: %s...", req.Token[:8])
+	h.logger.Info("Received cancellation request", "token_prefix", req.Token[:8])
 
 	originalEvent, err := h.gcalSvc.CancelBooking(r.Context(), req.Token)
 	if err != nil {
-		log.Printf("ERROR: [handler] Failed to cancel booking for token %s...: %v", req.Token[:8], err)
+		h.logger.Error("Failed to cancel booking", "token_prefix", req.Token[:8], "error", err)
 		if errors.Is(err, gcal.ErrSlotNotFound) {
 			h.respondError(w, http.StatusNotFound, "Booking not found. The link may be invalid or expired.")
 			return
@@ -83,7 +80,7 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("INFO: Booking cancelled successfully. Event ID: %s", originalEvent.Id)
+	h.logger.Info("Booking cancelled successfully", "event_id", originalEvent.Id)
 
 	// Extract details for notifications
 	var clientName, clientEmail string
@@ -91,7 +88,7 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 		clientName = originalEvent.Attendees[0].DisplayName
 		clientEmail = originalEvent.Attendees[0].Email
 	} else {
-		log.Printf("WARN: Could not find attendee details on cancelled event %s. Notifications may be incomplete.", originalEvent.Id)
+		h.logger.Warn("Could not find attendee details on cancelled event. Notifications may be incomplete.", "event_id", originalEvent.Id)
 		clientName = "Client" // Fallback
 	}
 	startTime, _ := time.Parse(time.RFC3339, originalEvent.Start.DateTime)
@@ -100,14 +97,14 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := h.emailSvc.SendBookingCancellationToClient(clientName, clientEmail, startTime)
 		if err != nil {
-			log.Printf("ERROR: Failed to send cancellation email to client %s: %v", clientEmail, err)
+			h.logger.Error("Failed to send cancellation email to client", "client_email", clientEmail, "error", err)
 		}
 	}()
 
 	go func() {
 		err := h.emailSvc.SendBookingCancellationToAdmin(clientName, clientEmail, startTime)
 		if err != nil {
-			log.Printf("ERROR: Failed to send cancellation notification to admin: %v", err)
+			h.logger.Error("Failed to send cancellation notification to admin", "error", err)
 		}
 	}()
 
@@ -116,11 +113,6 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 
 // handleGetAvailability handles requests for available time slots.
 func (h *Handler) handleGetAvailability(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		h.respondError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {
 		h.respondError(w, http.StatusBadRequest, "date query parameter is required")
@@ -137,7 +129,7 @@ func (h *Handler) handleGetAvailability(w http.ResponseWriter, r *http.Request) 
 
 	events, err := h.gcalSvc.GetAvailability(day)
 	if err != nil {
-		log.Printf("ERROR: Failed to get availability from Google Calendar: %v", err)
+		h.logger.Error("Failed to get availability from Google Calendar", "error", err)
 		h.respondError(w, http.StatusInternalServerError, "Failed to get availability")
 		return
 	}
@@ -170,12 +162,7 @@ type createBookingRequest struct {
 
 // handleCreateBooking handles a new booking request.
 func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
-	log.Printf("INFO: [handler] Received POST /api/booking/book request")
-	if r.Method != http.MethodPost {
-		h.respondError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
+	h.logger.Info("Received POST /api/booking/book request")
 	var req createBookingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.respondError(w, http.StatusBadRequest, "Invalid request body")
@@ -197,33 +184,33 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 
 	event, err := h.gcalSvc.BookSlot(bookingDetails)
 	if err != nil {
-		log.Printf("ERROR: [handler] BookSlot service call failed: %v", err)
+		h.logger.Error("BookSlot service call failed", "error", err)
 		if errors.Is(err, gcal.ErrSlotNotFound) {
 			h.respondError(w, http.StatusConflict, "This time slot is no longer available. Please select another time.")
 			return
 		}
-		log.Printf("ERROR: Failed to create booking in Google Calendar: %v", err)
+		h.logger.Error("Failed to create booking in Google Calendar", "error", err)
 		h.respondError(w, http.StatusInternalServerError, "An internal error occurred while creating the booking.")
 		return
 	}
 
-	log.Printf("INFO: Booking created successfully. Event ID: %s", event.Id)
+	h.logger.Info("Booking created successfully", "event_id", event.Id)
 
 	// Send confirmation emails in the background
 	go func() {
 		if err := h.emailSvc.SendBookingConfirmation(req.Name, req.Email, event); err != nil {
-			log.Printf("ERROR: Failed to send booking confirmation to client %s: %v", req.Email, err)
+			h.logger.Error("Failed to send booking confirmation to client", "client_email", req.Email, "error", err)
 		}
 	}()
 	go func() {
 		// We need to parse the start time from the event for the admin notification
 		startTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
 		if err != nil {
-			log.Printf("ERROR: Could not parse start time from booked event for admin email: %v", err)
+			h.logger.Error("Could not parse start time from booked event for admin email", "error", err)
 			return
 		}
 		if err := h.emailSvc.SendBookingNotificationToAdmin(req.Name, req.Email, startTime, req.Notes); err != nil {
-			log.Printf("ERROR: Failed to send booking notification to admin: %v", err)
+			h.logger.Error("Failed to send booking notification to admin", "error", err)
 		}
 	}()
 
