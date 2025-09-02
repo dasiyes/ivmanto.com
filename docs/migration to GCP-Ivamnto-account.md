@@ -99,13 +99,16 @@ Configuration: Cloud Build configuration file (cloudbuild.yaml).
 
 > **Critical:** In the "Advanced" or "Service account" section of the trigger configuration, ensure that the service account selected is the **Cloud Build service account** (`[PROJECT_NUMBER]@cloudbuild.gserviceaccount.com`). Do **not** use the default Compute Engine service account. We have already granted the necessary permissions to the correct Cloud Build account in Phase 2. Using the wrong account will cause permission errors.
 
-Substitution Variables: Your cloudbuild.yaml is already set up to use these. You don't need to add them here unless you want to override the defaults. The defaults are:
-In the "Substitution variables" section, you must provide values for the following variables that are specific to your environment:
+Substitution Variables: In the "Substitution variables" section of the trigger, you must provide values for the following variables that are specific to your environment. These will override the placeholder defaults in `cloudbuild.yaml`.
 
-- **\_CALENDAR_ID**: Your "IVMANTO Consultations" calendar ID (e.g., `c_123...abc@group.calendar.google.com`).
-- **\_GCAL_AVAILABLE_SLOT_SUMMARY**: The exact title you use for available slots in your calendar (e.g., `AfB`).
+- **`_CALENDAR_ID`**: Your "IVMANTO Consultations" calendar ID (e.g., `c_123...abc@group.calendar.google.com`).
+- **`_GCAL_AVAILABLE_SLOT_SUMMARY`**: The exact title you use for available slots in your calendar (e.g., `AfB`).
+- **`_SMTP_HOST`**: The hostname of your SMTP server (e.g., `smtp.gmail.com`).
+- **`_SMTP_PORT`**: The port for your SMTP server (e.g., `587`).
+- **`_SEND_FROM`**: The email address the backend will send emails from (e.g., `contact@ivmanto.com`).
+- **`_SEND_FROM_ALIAS`**: The "From" name that appears in emails (e.g., `IVMANTO Support`).
 
-The other variables (`_FRONTEND_SERVICE_NAME`, `_BACKEND_SERVICE_NAME`, etc.) have sensible defaults in `cloudbuild.yaml` and do not need to be added here.
+The other variables (`_FRONTEND_SERVICE_NAME`, `_BACKEND_SERVICE_NAME`, etc.) have sensible defaults in `cloudbuild.yaml` and do not need to be added here unless you want to change them.
 
 Step 3: Trigger the First Deployment
 
