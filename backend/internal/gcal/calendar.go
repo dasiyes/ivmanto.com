@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/option"
+	"ivmanto.com/backend/internal/config"
 )
 
 var (
@@ -46,26 +48,34 @@ type BookingDetails struct {
 }
 
 // NewService creates a new calendar service client.
-func NewService(ctx context.Context, calendarID, availableSlotSummary string) (Service, error) {
-	// When running on Google Cloud (like Cloud Run), the client library will
-	// automatically find the credentials of the service account the service is
-	// running as. This is the recommended and most secure way to authenticate.
-	// For local development, it uses the credentials from `gcloud auth application-default login`.
-	creds, err := google.FindDefaultCredentials(ctx, calendar.CalendarScope)
+func NewService(ctx context.Context, cfg *config.Config, credentialsPath string) (Service, error) {
+	// To use Domain-Wide Delegation (which is required to create Google Meet links
+	// on behalf of a user), we must authenticate using a service account JSON key
+	// and specify the user to impersonate.
+	jsonKey, err := os.ReadFile(credentialsPath)
 	if err != nil {
-		return nil, fmt.Errorf("unable to find default credentials: %w", err)
+		return nil, fmt.Errorf("unable to read service account key file from %s: %w", credentialsPath, err)
 	}
 
-	srv, err := calendar.NewService(ctx, option.WithCredentials(creds))
+	// Create a JWT configuration from the JSON key.
+	jwtConf, err := google.JWTConfigFromJSON(jsonKey, calendar.CalendarScope)
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve Calendar client: %w", err)
+		return nil, fmt.Errorf("cannot create JWT config from credentials file: %w", err)
+	}
+	// Set the user to impersonate. This is the crucial step for Domain-Wide Delegation.
+	jwtConf.Subject = cfg.Email.SendFrom
+	tokenSource := jwtConf.TokenSource(ctx)
+
+	srv, err := calendar.NewService(ctx, option.WithTokenSource(tokenSource))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve Calendar client with impersonation: %w", err)
 	}
 
 	// Fetch calendar details to get its timezone. This is crucial for correctly
 	// interpreting date-only queries from the frontend.
-	cal, err := srv.Calendars.Get(calendarID).Do()
+	cal, err := srv.Calendars.Get(cfg.GCal.CalendarID).Do()
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve calendar details for ID %s: %w", calendarID, err)
+		return nil, fmt.Errorf("unable to retrieve calendar details for ID %s: %w", cfg.GCal.CalendarID, err)
 	}
 	loc, err := time.LoadLocation(cal.TimeZone)
 	if err != nil {
@@ -77,9 +87,9 @@ func NewService(ctx context.Context, calendarID, availableSlotSummary string) (S
 
 	return &gcalService{
 		calSvc:               srv,
-		calendarID:           calendarID,
+		calendarID:           cfg.GCal.CalendarID,
 		location:             loc,
-		availableSlotSummary: strings.TrimSpace(availableSlotSummary),
+		availableSlotSummary: strings.TrimSpace(cfg.GCal.AvailableSlotSummary),
 	}, nil
 }
 
