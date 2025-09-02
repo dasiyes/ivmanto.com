@@ -1,14 +1,53 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
 import ContactForm from '@/components/ContactForm.vue'
+import InspirationModal from '@/components/InspirationModal.vue'
 import { RouterLink } from 'vue-router'
 import { articles } from '@/data/articles'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 // Sort articles by date to ensure the latest are featured, then take the top 3.
 const featuredArticles = computed(() =>
   [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
 )
+
+// State for the "Need Inspiration" feature
+const topic = ref('')
+const isLoading = ref(false)
+const generatedIdeas = ref<{ title: string; summary: string }[]>([])
+const error = ref<string | null>(null)
+const isModalOpen = ref(false)
+
+async function handleGenerateIdeas() {
+  if (!topic.value.trim()) return
+
+  isModalOpen.value = true
+  isLoading.value = true
+  error.value = null
+  generatedIdeas.value = []
+
+  try {
+    const response = await fetch('/api/generate-ideas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ topic: topic.value }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to generate ideas.')
+    }
+
+    generatedIdeas.value = await response.json()
+  } catch (e: any) {
+    console.error('Failed to generate ideas:', e)
+    error.value = e.message || 'An unexpected error occurred. Please try again later.'
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -95,18 +134,25 @@ const featuredArticles = computed(() =>
           <p class="text-lg text-gray-600 mt-3 max-w-xl mx-auto">
             Enter a topic below and our AI will generate some creative article ideas for you.
           </p>
-          <div class="mt-6 max-w-lg mx-auto flex flex-col sm:flex-row gap-4">
+          <form
+            @submit.prevent="handleGenerateIdeas"
+            class="mt-6 max-w-lg mx-auto flex flex-col sm:flex-row gap-4"
+          >
             <input
+              v-model="topic"
               type="text"
               placeholder="e.g., 'AI in retail'"
               class="w-full bg-white border-gray-300 rounded-md py-3 px-4 focus:ring-accent focus:border-accent text-lg"
-            /><button
+            />
+            <button
+              type="submit"
               class="bg-accent text-white font-bold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-all text-lg whitespace-nowrap flex items-center justify-center"
+              :disabled="isLoading"
             >
-              <span>✨ Generate Ideas</span>
+              <span v-if="!isLoading">✨ Generate Ideas</span>
+              <span v-else>Generating...</span>
             </button>
-          </div>
-          <div class="mt-8 text-left"><!--v-if--></div>
+          </form>
         </div>
       </div>
     </section>
@@ -122,6 +168,15 @@ const featuredArticles = computed(() =>
         <ContactForm />
       </div>
     </section>
+
+    <InspirationModal
+      :is-open="isModalOpen"
+      :is-loading="isLoading"
+      :ideas="generatedIdeas"
+      :error="error"
+      :topic="topic"
+      @close="isModalOpen = false"
+    />
   </div>
 </template>
 

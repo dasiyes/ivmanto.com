@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
-
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/booking"
@@ -13,34 +12,31 @@ import (
 	"ivmanto.com/backend/internal/contact"
 	"ivmanto.com/backend/internal/email"
 	"ivmanto.com/backend/internal/gcal"
+	"ivmanto.com/backend/internal/ideas"
+	"ivmanto.com/backend/internal/middleware"
 )
 
 func main() {
 	// Load .env file for local development.
-	// In production (like Cloud Run), environment variables are set directly.
 	err := godotenv.Load()
 	if err != nil {
-		// We don't want to fail if the .env file is missing,
-		// as it's optional for production environments.
-		log.Println("INFO: .env file not found, loading config from environment")
+		slog.Info(".env file not found, loading config from environment")
 	}
 
-	// 1. Load configuration
+	// 1. Initialize structured logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger) // Set as default for convenience
+
+	// 2. Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("FATAL: could not load config: %s\n", err)
+		slog.Error("could not load config", "error", err)
+		os.Exit(1)
 	}
 
-	// 2. Initialize services
-	// The email service is kept for the contact form and future notifications.
+	// 3. Initialize services
 	emailService := email.NewSmtpService(&cfg.Email)
-
-	// Initialize the Google Calendar service. This is the core of our new booking engine.
 	ctx := context.Background()
-
-	// Define the path for the service account credentials.
-	// For local dev, we point to the file in the backend dir.
-	// For production, this path will be mounted by Cloud Run from Secret Manager.
 	gcpCredsPath := "gcp-credentials.json"
 	if prodPath := os.Getenv("GCP_CREDENTIALS_PATH"); prodPath != "" {
 		gcpCredsPath = prodPath
@@ -48,20 +44,33 @@ func main() {
 
 	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
 	if err != nil {
-		log.Fatalf("FATAL: Failed to create Google Calendar service: %v", err)
+		slog.Error("Failed to create Google Calendar service", "error", err)
+		os.Exit(1)
 	}
 
-	// 3. Initialize handlers.
-	contactHandler := contact.NewHandler(emailService)
-	bookingHandler := booking.NewHandler(gcalSvc, emailService)
+	// 4. Initialize handlers, passing dependencies
+	contactHandler := contact.NewHandler(logger, emailService)
+	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
 
-	// 4. Register routes
+	// 5. Register routes
 	mux := http.NewServeMux()
 	contactHandler.RegisterRoutes(mux)
 	bookingHandler.RegisterRoutes(mux)
+	mux.HandleFunc("POST /api/generate-ideas", ideas.Handler(logger))
 
-	log.Printf("INFO: Starting server on :%s", cfg.Service.Port)
-	if err := http.ListenAndServe(":"+cfg.Service.Port, mux); err != nil {
-		log.Fatalf("FATAL: could not start server: %s\n", err)
+	// 6. Apply middleware
+	var finalHandler http.Handler = mux
+	finalHandler = middleware.Cors(finalHandler)
+	finalHandler = middleware.RequestLogger(logger, finalHandler)
+
+	// 7. Start server
+	slog.Info("Starting server", "port", cfg.Service.Port)
+	server := &http.Server{
+		Addr:    ":" + cfg.Service.Port,
+		Handler: finalHandler,
+	}
+	if err := server.ListenAndServe(); err != nil {
+		slog.Error("could not start server", "error", err)
+		os.Exit(1)
 	}
 }
