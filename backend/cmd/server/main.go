@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"net/http"
 
@@ -36,8 +37,16 @@ func main() {
 
 	// Initialize the Google Calendar service. This is the core of our new booking engine.
 	ctx := context.Background()
-	// The NewService function now handles auth contextually (local vs prod).
-	gcalSvc, err := gcal.NewService(ctx, cfg)
+
+	// Define the path for the service account credentials.
+	// For local dev, we point to the file in the backend dir.
+	// For production, this path will be mounted by Cloud Run from Secret Manager.
+	gcpCredsPath := "gcp-credentials.json"
+	if prodPath := os.Getenv("GCP_CREDENTIALS_PATH"); prodPath != "" {
+		gcpCredsPath = prodPath
+	}
+
+	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
 	if err != nil {
 		log.Fatalf("FATAL: Failed to create Google Calendar service: %v", err)
 	}
