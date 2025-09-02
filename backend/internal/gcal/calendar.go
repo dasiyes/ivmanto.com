@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
@@ -129,11 +130,25 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		return nil, ErrSlotNotFound
 	}
 
-	// DIAGNOSTIC: Temporarily disable setting extended properties to isolate the 500 error.
-	// If the booking still fails, the issue is a fundamental permission problem with the
-	// service account's ability to edit events on the calendar.
-	// We will also clear any existing properties to ensure a clean update.
-	eventToBook.ExtendedProperties = nil
+	// Generate a unique cancellation token for this booking.
+	cancellationUUID, err := uuid.NewRandom()
+	if err != nil {
+		// This is a server-side issue, but we shouldn't fail the whole booking for it.
+		// Log it and continue. The user just won't get a cancellation link.
+		log.Printf("WARNING: could not generate cancellation token UUID: %v", err)
+	} else {
+		cancellationToken := cancellationUUID.String()
+		if eventToBook.ExtendedProperties == nil {
+			eventToBook.ExtendedProperties = &calendar.EventExtendedProperties{}
+		}
+		if eventToBook.ExtendedProperties.Private == nil {
+			eventToBook.ExtendedProperties.Private = make(map[string]string)
+		}
+		// Store booking details for later use (e.g., cancellation notifications).
+		eventToBook.ExtendedProperties.Private["cancellation_token"] = cancellationToken
+		eventToBook.ExtendedProperties.Private["client_name"] = details.Name
+		eventToBook.ExtendedProperties.Private["client_email"] = details.Email
+	}
 
 	// 3. Update the event with the client's details.
 	eventToBook.Summary = fmt.Sprintf("Consultation: %s", details.Name)
@@ -146,31 +161,65 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	// We do not add the client as an attendee directly, as this can require
 	// domain-wide delegation. Instead, we send an .ics attachment in the
 	// confirmation email. We will leave the existing attendees (i.e., the calendar owner) on the event.
-	// eventToBook.Attendees = nil // This was likely causing a permissions error by trying to remove the calendar owner.
+	// eventToBook.Attendees = nil
 	// Request Google Meet conference data to be added to the event.
-	// Temporarily disable conference data creation to debug the 500 error.
-	// If booking succeeds without this, the issue is related to permissions for creating Meet links.
-	eventToBook.ConferenceData = nil
+	eventToBook.ConferenceData = &calendar.ConferenceData{
+		CreateRequest: &calendar.CreateConferenceRequest{
+			RequestId: fmt.Sprintf("ivmanto-booking-%d", time.Now().UnixNano()),
+			// For a Google Workspace account, "hangoutsMeet" is the modern and
+			// recommended conference solution type. This ensures a unique
+			// Google Meet link is generated for every booking, which is exactly
+			// what we want.
+			ConferenceSolutionKey: &calendar.ConferenceSolutionKey{Type: "hangoutsMeet"},
+		},
+	}
 
 	// 4. Atomically update the event. The ETag mechanism handled by the client library
 	// ensures that if the event was changed between our read and write, this will fail.
-	// We remove ConferenceDataVersion(1) as we are not modifying conference data now.
-	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).Do()
+	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).
+		ConferenceDataVersion(1). // Required when modifying conference data.
+		Do()
 
 	if err != nil {
 		// Check for a 409 Conflict or 412 Precondition Failed, which indicates the slot was just taken.
 		if gerr, ok := err.(*googleapi.Error); ok && (gerr.Code == http.StatusConflict || gerr.Code == http.StatusPreconditionFailed) {
 			return nil, ErrSlotNotFound
 		}
-		return nil, fmt.Errorf("failed to update event during booking: %w", err)
+		return nil, fmt.Errorf("failed to update event during booking (this may be a permissions issue for creating Google Meet links): %w", err)
 	}
 	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
 
 	// 5. Re-fetch the event to ensure we have the latest data.
-	// Since we are not creating conference data, the retry logic is not needed.
-	// We can just return the updatedEvent directly.
-	// The email sending logic will need to handle a nil/empty HangoutLink.
-	return updatedEvent, nil
+	// Conference data generation can be asynchronous. We'll retry a few times to get it.
+	var finalEvent *calendar.Event
+	var getErr error
+	maxRetries := 3
+	retryDelay := 500 * time.Millisecond
+
+	for i := 0; i < maxRetries; i++ {
+		log.Printf("INFO: [gcal] Fetching event %s to get conference data (Attempt %d/%d)...", updatedEvent.Id, i+1, maxRetries)
+		finalEvent, getErr = s.calSvc.Events.Get(s.calendarID, updatedEvent.Id).Do()
+		if getErr != nil {
+			log.Printf("ERROR: [gcal] Failed to fetch event %s: %v", updatedEvent.Id, getErr)
+			return nil, getErr
+		}
+
+		// Check if conference data is available. We check both HangoutLink and ConferenceData.EntryPoints.
+		if finalEvent.HangoutLink != "" || (finalEvent.ConferenceData != nil && len(finalEvent.ConferenceData.EntryPoints) > 0) {
+			log.Printf("INFO: [gcal] Successfully fetched event with conference data.")
+			return finalEvent, nil
+		}
+
+		if i < maxRetries-1 {
+			log.Printf("WARN: [gcal] Conference data not yet available for event %s. Retrying in %v...", updatedEvent.Id, retryDelay)
+			time.Sleep(retryDelay)
+		}
+	}
+
+	// If we exit the loop, it means we couldn't get the link after several retries.
+	// We'll return the last fetched event, and the email service will have to handle an empty link.
+	log.Printf("WARN: [gcal] Could not retrieve conference data for event %s after %d retries. Proceeding without it.", updatedEvent.Id, maxRetries)
+	return finalEvent, nil
 }
 
 // CancelBooking finds an event by its cancellation token and reverts it to an available slot.
