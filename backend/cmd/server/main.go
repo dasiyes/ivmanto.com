@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"log"
+
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/booking"
@@ -34,18 +34,10 @@ func main() {
 	// The email service is kept for the contact form and future notifications.
 	emailService := email.NewSmtpService(&cfg.Email)
 
-	// Define the path for the service account credentials.
-	// For local dev, we point to the file in the backend dir.
-	// For production, this path will be mounted by Cloud Run from Secret Manager.
-	gcpCredsPath := "gcp-credentials.json"
-	if prodPath := os.Getenv("GCP_CREDENTIALS_PATH"); prodPath != "" {
-		gcpCredsPath = prodPath
-	}
-
 	// Initialize the Google Calendar service. This is the core of our new booking engine.
 	ctx := context.Background()
-	// We now pass the path to the credentials file to enable Domain-Wide Delegation.
-	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
+	// The NewService function now handles auth contextually (local vs prod).
+	gcalSvc, err := gcal.NewService(ctx, cfg)
 	if err != nil {
 		log.Fatalf("FATAL: Failed to create Google Calendar service: %v", err)
 	}

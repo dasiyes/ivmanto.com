@@ -69,11 +69,10 @@ steps:
       # Set the runtime service account for the new revision. This is critical.
       - '--service-account=${_BACKEND_SA_NAME}'
       # Atomically set all environment variables and secrets for the new revision.
-      # This ensures the service starts with the correct configuration. We mount the
-      # GCP credentials JSON from Secret Manager to a file path.
-      - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:1,/etc/gcp/gcp-credentials.json=${_GCP_CREDS_SECRET_NAME}:1'
+      # The runtime service account needs the "Secret Manager Secret Accessor" role for each.
+      - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
       - >-
-        --set-env-vars=GCP_CREDENTIALS_PATH=/etc/gcp/gcp-credentials.json,CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}
+        --set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -83,7 +82,6 @@ substitutions:
   _BACKEND_SA_NAME: 'ivmanto-backend-sa'
   _REPO_NAME: 'ivmanto-com-repo'
   _SMTP_SECRET_NAME: 'smtp-password'
-  _GCP_CREDS_SECRET_NAME: 'gcp-credentials-json'
   # These must be configured in the Cloud Build Trigger UI.
   _CALENDAR_ID: 'your-calendar-id@group.calendar.google.com'
   _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB'

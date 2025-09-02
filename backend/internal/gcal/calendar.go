@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
@@ -48,23 +49,42 @@ type BookingDetails struct {
 }
 
 // NewService creates a new calendar service client.
-func NewService(ctx context.Context, cfg *config.Config, credentialsPath string) (Service, error) {
-	// To use Domain-Wide Delegation (which is required to create Google Meet links
-	// on behalf of a user), we must authenticate using a service account JSON key
-	// and specify the user to impersonate.
-	jsonKey, err := os.ReadFile(credentialsPath)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read service account key file from %s: %w", credentialsPath, err)
-	}
+func NewService(ctx context.Context, cfg *config.Config) (Service, error) {
+	var tokenSource oauth2.TokenSource
 
-	// Create a JWT configuration from the JSON key.
-	jwtConf, err := google.JWTConfigFromJSON(jsonKey, calendar.CalendarScope)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create JWT config from credentials file: %w", err)
+	// Check if we are running in a GCP environment (like Cloud Run).
+	// The GOOGLE_CLOUD_PROJECT env var is a reliable indicator.
+	if os.Getenv("GOOGLE_CLOUD_PROJECT") != "" {
+		// Production on GCP: Use the runtime service account identity for impersonation.
+		log.Println("INFO: [gcal] Authenticating using GCP environment service account with impersonation.")
+		creds, err := google.FindDefaultCredentials(ctx, calendar.CalendarScope)
+		if err != nil {
+			return nil, fmt.Errorf("unable to find default credentials in GCP environment: %w", err)
+		}
+
+		// Configure the credentials for domain-wide delegation by specifying the subject.
+		conf, err := google.JWTConfigFromJSON(creds.JSON, calendar.CalendarScope)
+		if err != nil {
+			return nil, fmt.Errorf("unable to configure JWT from default credentials: %w", err)
+		}
+		conf.Subject = cfg.Email.SendFrom
+		tokenSource = conf.TokenSource(ctx)
+
+	} else {
+		// Local Development: Use the gcp-credentials.json file.
+		log.Println("INFO: [gcal] Authenticating using local gcp-credentials.json file.")
+		credentialsPath := "gcp-credentials.json"
+		jsonKey, err := os.ReadFile(credentialsPath)
+		if err != nil {
+			return nil, fmt.Errorf("local development: unable to read service account key file from %s: %w", credentialsPath, err)
+		}
+		jwtConf, err := google.JWTConfigFromJSON(jsonKey, calendar.CalendarScope)
+		if err != nil {
+			return nil, fmt.Errorf("local development: cannot create JWT config from credentials file: %w", err)
+		}
+		jwtConf.Subject = cfg.Email.SendFrom
+		tokenSource = jwtConf.TokenSource(ctx)
 	}
-	// Set the user to impersonate. This is the crucial step for Domain-Wide Delegation.
-	jwtConf.Subject = cfg.Email.SendFrom
-	tokenSource := jwtConf.TokenSource(ctx)
 
 	srv, err := calendar.NewService(ctx, option.WithTokenSource(tokenSource))
 	if err != nil {
