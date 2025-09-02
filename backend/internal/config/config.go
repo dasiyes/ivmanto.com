@@ -58,11 +58,11 @@ func Load() (*Config, error) {
 			AvailableSlotSummary: os.Getenv("GCAL_AVAILABLE_SLOT_SUMMARY"),
 		},
 		Email: EmailConfig{
-			SmtpHost:      "smtp.gmail.com",
-			SmtpPort:      "587",
-			SendFrom:      "nikolay.tonev@ivmanto.com",
-			SendFromAlias: "accounts@ivmanto.com",
-			// In a real app, load this securely.
+			SmtpHost:      os.Getenv("SMTP_HOST"),
+			SmtpPort:      os.Getenv("SMTP_PORT"),
+			SendFrom:      os.Getenv("SEND_FROM"),
+			SendFromAlias: os.Getenv("SEND_FROM_ALIAS"),
+			// This is loaded from Secret Manager and passed as an env var.
 			SmtpPass: os.Getenv("SMTP_PASS"),
 		},
 	}
@@ -75,6 +75,18 @@ func Load() (*Config, error) {
 	}
 	if cfg.Booking.AvailableSlotSummary == "" {
 		return nil, errors.New("GCAL_AVAILABLE_SLOT_SUMMARY environment variable not set")
+	}
+	if cfg.Email.SmtpHost == "" {
+		return nil, errors.New("SMTP_HOST environment variable not set")
+	}
+	if cfg.Email.SmtpPort == "" {
+		return nil, errors.New("SMTP_PORT environment variable not set")
+	}
+	if cfg.Email.SendFrom == "" {
+		return nil, errors.New("SEND_FROM environment variable not set")
+	}
+	if cfg.Email.SmtpPass == "" {
+		return nil, errors.New("SMTP_PASS environment variable not set")
 	}
 	return cfg, nil
 }
