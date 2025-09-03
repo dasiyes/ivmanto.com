@@ -49,8 +49,8 @@ func main() {
 	// For GCal, we use Application Default Credentials (ADC).
 	// On Cloud Run, this uses the attached service account's identity.
 	// For local development, run `gcloud auth application-default login`.
-	gcpCredsPath := "" // An empty path forces the client library to use ADC.
-	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
+
+	gcalSvc, err := gcal.NewService(ctx, cfg)
 	if err != nil {
 		slog.Error("Failed to create Google Calendar service", "error", err)
 		os.Exit(1)

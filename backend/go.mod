@@ -1,13 +1,14 @@
 module ivmanto.com/backend
 
-go 1.24
+go 1.23.0
+
+toolchain go1.24.3
 
 require (
 	cloud.google.com/go/compute/metadata v0.8.0
 	cloud.google.com/go/vertexai v0.15.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
-	golang.org/x/oauth2 v0.30.0
 	google.golang.org/api v0.246.0
 )
 
@@ -32,6 +33,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
