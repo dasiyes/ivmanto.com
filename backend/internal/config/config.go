@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/compute/metadata"
 )
@@ -60,8 +61,22 @@ func Load() (*Config, error) {
 	sendFromAlias := os.Getenv("SEND_FROM_ALIAS")
 	smtpPass := os.Getenv("SMTP_PASS")
 
-	if smtpHost == "" || smtpPort == "" || sendFrom == "" || smtpPass == "" {
-		return nil, fmt.Errorf("one or more required email environment variables are not set (SMTP_HOST, SMTP_PORT, SEND_FROM, SMTP_PASS)")
+	// More detailed check for missing environment variables
+	var missingVars []string
+	if smtpHost == "" {
+		missingVars = append(missingVars, "SMTP_HOST")
+	}
+	if smtpPort == "" {
+		missingVars = append(missingVars, "SMTP_PORT")
+	}
+	if sendFrom == "" {
+		missingVars = append(missingVars, "SEND_FROM")
+	}
+	if smtpPass == "" {
+		missingVars = append(missingVars, "SMTP_PASS")
+	}
+	if len(missingVars) > 0 {
+		return nil, fmt.Errorf("missing required environment variables: %s", strings.Join(missingVars, ", "))
 	}
 
 	calendarID := os.Getenv("CALENDAR_ID")
@@ -87,10 +102,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("GCP_LOCATION environment variable is not set")
 	}
 
+	generateIdeasPromptTemplate := os.Getenv("GENERATE_IDEAS_PROMPT_TEMPLATE")
+
 	return &Config{
 		Service: ServiceConfig{Port: port},
 		Email:   EmailConfig{SmtpHost: smtpHost, SmtpPort: smtpPort, SendFrom: sendFrom, SendFromAlias: sendFromAlias, SmtpPass: smtpPass},
 		GCal:    GCalConfig{CalendarID: calendarID, AvailableSlotSummary: availableSlotSummary},
 		GCP:     GCPConfig{ProjectID: projectID, Location: location},
+		Ideas:   IdeasConfig{GenerateIdeasPromptTemplate: generateIdeasPromptTemplate},
 	}, nil
 }
