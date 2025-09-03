@@ -3,10 +3,12 @@ package booking
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
+	"google.golang.org/api/calendar/v3"
 	"ivmanto.com/backend/internal/email"
 	"ivmanto.com/backend/internal/gcal"
 )
@@ -32,6 +34,25 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/booking/book", h.handleCreateBooking)
 	mux.HandleFunc("GET /api/booking/availability", h.handleGetAvailability)
 	mux.HandleFunc("POST /api/booking/cancel", h.handleCancelBooking)
+}
+
+// getMeetLink robustly extracts the Google Meet link from a calendar event.
+// It first checks the primary `HangoutLink` field. If that is empty, it iterates
+// through the `ConferenceData` entry points to find the video link. This is
+// necessary because the `HangoutLink` is not always populated immediately.
+func getMeetLink(event *calendar.Event) string {
+	if event.HangoutLink != "" {
+		return event.HangoutLink
+	}
+
+	if event.ConferenceData != nil {
+		for _, entryPoint := range event.ConferenceData.EntryPoints {
+			if entryPoint.EntryPointType == "video" {
+				return entryPoint.Uri
+			}
+		}
+	}
+	return "" // Return empty if no link is found
 }
 
 type cancelRequest struct {
@@ -198,7 +219,29 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 
 	// Send confirmation emails in the background
 	go func() {
-		if err := h.emailSvc.SendBookingConfirmation(req.Name, req.Email, event); err != nil {
+		startTime, _ := time.Parse(time.RFC3339, event.Start.DateTime)
+		endTime, _ := time.Parse(time.RFC3339, event.End.DateTime)
+
+		var cancellationURL string
+		if event.ExtendedProperties != nil && event.ExtendedProperties.Private != nil {
+			if token, ok := event.ExtendedProperties.Private["cancellation_token"]; ok && token != "" {
+				cancellationURL = fmt.Sprintf("https://ivmanto.com/booking/cancel?token=%s", token)
+			}
+		}
+
+		emailDetails := email.BookingConfirmationDetails{
+			ToName:          req.Name,
+			ToEmail:         req.Email,
+			StartTime:       startTime,
+			EndTime:         endTime,
+			Timezone:        startTime.Location().String(),
+			MeetLink:        getMeetLink(event),
+			CancellationURL: cancellationURL,
+			IcsUID:          event.ICalUID,
+			IcsSummary:      event.Summary,
+			IcsDescription:  event.Description,
+		}
+		if err := h.emailSvc.SendBookingConfirmation(emailDetails); err != nil {
 			h.logger.Error("Failed to send booking confirmation to client", "client_email", req.Email, "error", err)
 		}
 	}()

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/api/calendar/v3"
 	"ivmanto.com/backend/internal/config"
 	"ivmanto.com/backend/internal/ical"
 )
@@ -78,7 +77,7 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 			return fmt.Errorf("failed to create attachment part: %w", err)
 		}
 		b64Writer := base64.NewEncoder(base64.StdEncoding, part)
-		b64Writer.Write(attachment.Body)
+		_, _ = b64Writer.Write(attachment.Body)
 		b64Writer.Close()
 	}
 
@@ -183,40 +182,14 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 	return nil
 }
 
-// getMeetLink robustly extracts the Google Meet link from a calendar event.
-// It first checks the primary `HangoutLink` field. If that is empty, it iterates
-// through the `ConferenceData` entry points to find the video link. This is
-// necessary because the `HangoutLink` is not always populated immediately.
-func getMeetLink(event *calendar.Event) string {
-	if event.HangoutLink != "" {
-		return event.HangoutLink
-	}
-
-	if event.ConferenceData != nil {
-		for _, entryPoint := range event.ConferenceData.EntryPoints {
-			if entryPoint.EntryPointType == "video" {
-				return entryPoint.Uri
-			}
-		}
-	}
-	return "" // Return empty if no link is found
-}
-
 // SendBookingConfirmation sends a confirmation email to the user.
-func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *calendar.Event) error {
-	startTime, _ := time.Parse(time.RFC3339, event.Start.DateTime)
-	endTime, _ := time.Parse(time.RFC3339, event.End.DateTime)
-
+func (s *SmtpService) SendBookingConfirmation(details BookingConfirmationDetails) error {
 	subject := "Your consultation is confirmed!"
-	meetLink := getMeetLink(event)
 
 	var meetLinkHTML string
-	if meetLink != "" {
-		meetLinkHTML = fmt.Sprintf(`<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>`, meetLink, meetLink)
+	if details.MeetLink != "" {
+		meetLinkHTML = fmt.Sprintf(`<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>`, details.MeetLink, details.MeetLink)
 	} else {
-		// If the link is not available after retries, we simply omit it from the email.
-		// The .ics file will also have an empty location, but the calendar event itself
-		// should eventually be updated by Google. This is the most truthful approach.
 		meetLinkHTML = ""
 	}
 
@@ -232,33 +205,27 @@ func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *cal
 		<p>A calendar invitation (.ics file) is attached to this email. Please open it to add the event to your calendar.</p>
 		<p>We look forward to speaking with you!</p>
 		<p>Thanks,<br>The IVMANTO Team</p>`,
-		toName,
-		startTime.Format("Monday, January 2, 2006"),
-		startTime.Format("3:04 PM"),
-		endTime.Format("3:04 PM"),
-		startTime.Location().String(),
+		details.ToName,
+		details.StartTime.Format("Monday, January 2, 2006"),
+		details.StartTime.Format("3:04 PM"),
+		details.EndTime.Format("3:04 PM"),
+		details.Timezone,
 		meetLinkHTML)
 
-	// Add a cancellation link if a token is present in the event's private properties.
-	if event.ExtendedProperties != nil && event.ExtendedProperties.Private != nil {
-		if token, ok := event.ExtendedProperties.Private["cancellation_token"]; ok && token != "" {
-			// The frontend will have a route at /booking/cancel that handles the API call.
-			// It's best practice for the backend to provide the full URL.
-			cancellationURL := fmt.Sprintf("https://ivmanto.com/booking/cancel?token=%s", token)
-			htmlBody += fmt.Sprintf(`<p style="font-size: small; color: #666;">Need to make a change? <a href="%s">Cancel this booking</a>.</p>`, cancellationURL)
-		}
+	if details.CancellationURL != "" {
+		htmlBody += fmt.Sprintf(`<p style="font-size: small; color: #666;">Need to make a change? <a href="%s">Cancel this booking</a>.</p>`, details.CancellationURL)
 	}
 
 	// Generate the .ics file content
 	icsContent := ical.Generate(ical.EventDetails{
-		UID:         event.ICalUID,
-		StartTime:   startTime,
-		EndTime:     endTime,
-		Summary:     event.Summary,
-		Description: event.Description,
-		Location:    meetLink,
-		Name:        toName,
-		Email:       toEmail,
+		UID:         details.IcsUID,
+		StartTime:   details.StartTime,
+		EndTime:     details.EndTime,
+		Summary:     details.IcsSummary,
+		Description: details.IcsDescription,
+		Location:    details.MeetLink,
+		Name:        details.ToName,
+		Email:       details.ToEmail,
 	})
 
 	// Create the attachment
@@ -270,7 +237,7 @@ func (s *SmtpService) SendBookingConfirmation(toName, toEmail string, event *cal
 		Body: []byte(icsContent),
 	}
 
-	return s.send([]string{toEmail}, nil, subject, htmlBody, attachment)
+	return s.send([]string{details.ToEmail}, nil, subject, htmlBody, attachment)
 }
 
 // SendBookingNotificationToAdmin sends a notification email to the admin.
@@ -340,4 +307,29 @@ func (s *SmtpService) SendBookingCancellationToAdmin(clientName, clientEmail str
 	subject := "Consultation Cancelled by Client"
 	body := fmt.Sprintf("The consultation with <strong>%s (%s)</strong> for <strong>%s</strong> has been cancelled by the client.", clientName, clientEmail, startTime.Format(time.RFC1123))
 	return s.send([]string{adminEmail}, nil, subject, body, nil)
+}
+
+// SendGeneratedIdeas sends an email with the list of generated ideas.
+func (s *SmtpService) SendGeneratedIdeas(toEmail, topic string, ideas []GeneratedIdea) error {
+	subject := fmt.Sprintf("Your generated ideas for \"%s\"", topic)
+
+	var ideasHTML strings.Builder
+	ideasHTML.WriteString("<ul>")
+	for _, idea := range ideas {
+		ideasHTML.WriteString(fmt.Sprintf("<li><strong>%s:</strong> %s</li>", idea.Title, idea.Summary))
+	}
+	ideasHTML.WriteString("</ul>")
+
+	htmlBody := fmt.Sprintf(`
+		<p>Hi there,</p>
+		<p>As requested, here are the blog post ideas we generated for the topic "<strong>%s</strong>":</p>
+		%s
+		<p>If these ideas spark your interest, imagine what we could achieve with a dedicated consultation. We can help you turn these concepts into a full-fledged data strategy.</p>
+		<p>Ready to take the next step? <a href="https://ivmanto.com/booking"><strong>Book a free consultation today!</strong></a></p>
+		<p>Best,<br>The IVMANTO Team</p>`,
+		topic,
+		ideasHTML.String(),
+	)
+
+	return s.send([]string{toEmail}, nil, subject, htmlBody, nil)
 }
