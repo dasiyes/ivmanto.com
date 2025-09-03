@@ -24,6 +24,7 @@ Cloud Logging API (to write and view build logs)
 Artifact Registry API (to store your Docker images)
 Secret Manager API (to securely store your SMTP password)
 Google Calendar API (for the booking system)
+Vertex AI API (for the AI features)
 Step 3: Link Billing Account A billing account is required to use these services.
 
 Go to the Billing section.
@@ -83,12 +84,12 @@ Secret value: Enter your SMTP password.
 Under "Replication", select "User-managed".
 Click "ADD REPLICATION" and choose the same region you used for your Artifact Registry (e.g., `europe-west3`). This is a best practice for data locality and ensures your Cloud Run service can access it.
 Click "CREATE SECRET".
-Step 3: Grant Secret Access to Cloud Build
+Step 3: Grant Secret Access to the Backend Service
 
 Go back to the Secret Manager page.
 Select the checkbox next to your smtp-password secret.
 In the right-hand panel, click "ADD PRINCIPAL".
-In the "New principals" field, paste the service account email for Cloud Build (from Phase 2, Step 1).
+In the "New principals" field, paste the service account email for your backend service: `ivmanto-backend-sa@<your-project-id>.iam.gserviceaccount.com`.
 In the "Select a role" dropdown, choose "Secret Manager Secret Accessor".
 Click "SAVE".
 Phase 4: Deployment

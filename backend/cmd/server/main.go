@@ -28,6 +28,13 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger) // Set as default for convenience
 
+	// Get the port from the environment variable.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port if not specified
+		slog.Info("Defaulting to port", "number", port)
+	}
+
 	// 2. Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -74,12 +81,6 @@ func main() {
 	finalHandler = middleware.RequestLogger(logger, finalHandler)
 
 	// 7. Start server
-	// Cloud Run provides the PORT env var, which we must use.
-	// For local dev, we fall back to the port from our config file.
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = cfg.Service.Port
-	}
 	slog.Info("Starting server", "port", port)
 	server := &http.Server{
 		Addr:    ":" + port,
