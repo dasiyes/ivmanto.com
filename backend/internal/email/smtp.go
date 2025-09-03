@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
-	"log"
+	"log/slog"
 	"mime/multipart"
 	"net/smtp"
 	"net/textproto"
@@ -18,18 +18,20 @@ import (
 
 // SmtpService is a concrete implementation of the email Service using SMTP.
 type SmtpService struct {
-	cfg  *config.EmailConfig
-	auth smtp.Auth
+	cfg    *config.EmailConfig
+	auth   smtp.Auth
+	logger *slog.Logger
 }
 
 // NewSmtpService creates a new SMTP email service.
 // It requires a valid EmailConfig. The SMTP password should be loaded from a secure source.
-func NewSmtpService(cfg *config.EmailConfig) *SmtpService {
+func NewSmtpService(cfg *config.EmailConfig, logger *slog.Logger) *SmtpService {
 	// In a real app, you'd check if cfg.SmtpPass is empty and handle it.
 	auth := smtp.PlainAuth("", cfg.SendFrom, cfg.SmtpPass, cfg.SmtpHost)
 	return &SmtpService{
-		cfg:  cfg,
-		auth: auth,
+		cfg:    cfg,
+		auth:   auth,
+		logger: logger,
 	}
 }
 
@@ -100,10 +102,10 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 
 	allRecipients := append(to, cc...)
 
-	log.Printf("Connecting to SMTP server at %s", addr)
+	s.logger.Info("Connecting to SMTP server", "address", addr)
 	c, err := smtp.Dial(addr)
 	if err != nil {
-		log.Printf("ERROR: Failed to connect to SMTP server: %v", err)
+		s.logger.Error("Failed to connect to SMTP server", "error", err)
 		return err
 	}
 	defer c.Close()
@@ -111,33 +113,33 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 	// It's good practice to say hello to the server.
 	// The hostname can be anything, but localhost is common for clients.
 	if err = c.Hello("localhost"); err != nil {
-		log.Printf("ERROR: Failed to send HELO to SMTP server: %v", err)
+		s.logger.Error("Failed to send HELO to SMTP server", "error", err)
 		return err
 	}
 
 	// Use STARTTLS. Gmail requires this on port 587.
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		log.Println("Server supports STARTTLS. Upgrading connection...")
+		s.logger.Info("Server supports STARTTLS. Upgrading connection...")
 		config := &tls.Config{ServerName: s.cfg.SmtpHost}
 		if err = c.StartTLS(config); err != nil {
-			log.Printf("ERROR: Failed to start TLS: %v", err)
+			s.logger.Error("Failed to start TLS", "error", err)
 			return err
 		}
 	}
 
 	// Authenticate.
 	if s.auth != nil {
-		log.Println("Authenticating...")
+		s.logger.Info("Authenticating with SMTP server")
 		if err = c.Auth(s.auth); err != nil {
-			log.Printf("ERROR: Authentication failed: %v", err)
+			s.logger.Error("SMTP authentication failed", "error", err)
 			return err
 		}
 	}
 
 	// Set the sender.
-	log.Printf("Setting sender to %s", s.cfg.SendFrom)
+	s.logger.Debug("Setting SMTP sender", "from", s.cfg.SendFrom)
 	if err = c.Mail(s.cfg.SendFrom); err != nil {
-		log.Printf("ERROR: Failed to set sender: %v", err)
+		s.logger.Error("SMTP MAIL command failed", "error", err)
 		return err
 	}
 
@@ -145,40 +147,40 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 	for _, rcpt := range allRecipients {
 		// Strip +alias for the RCPT TO command, as some servers require the base address.
 		baseRcpt := stripPlusAlias(rcpt)
-		log.Printf("Adding recipient %s (sending to %s)", rcpt, baseRcpt)
+		s.logger.Debug("Adding SMTP recipient", "recipient", rcpt, "base_recipient", baseRcpt)
 		if err = c.Rcpt(baseRcpt); err != nil {
-			log.Printf("ERROR: Failed to add recipient %s (as %s): %v", rcpt, baseRcpt, err)
+			s.logger.Error("SMTP RCPT command failed", "recipient", rcpt, "error", err)
 			return err
 		}
 	}
 
 	// Get the writer for the data and write the message.
-	log.Println("Sending email body...")
+	s.logger.Debug("Sending email body")
 	wc, err := c.Data()
 	if err != nil {
-		log.Printf("ERROR: Failed to get data writer: %v", err)
+		s.logger.Error("SMTP DATA command failed", "error", err)
 		return err
 	}
 	_, err = wc.Write(msg.Bytes())
 	if err != nil {
-		log.Printf("ERROR: Failed to write email body: %v", err)
+		s.logger.Error("Failed to write email body to SMTP connection", "error", err)
 		return err
 	}
 	err = wc.Close()
 	if err != nil {
-		log.Printf("ERROR: Failed to close data writer: %v", err)
+		s.logger.Error("Failed to close SMTP data writer", "error", err)
 		return err
 	}
 
 	// Quit the session.
-	log.Println("Quitting SMTP session.")
+	s.logger.Debug("Quitting SMTP session")
 	err = c.Quit()
 	if err != nil {
-		log.Printf("ERROR: Failed to quit SMTP session: %v", err)
+		s.logger.Warn("Failed to quit SMTP session cleanly", "error", err)
 		return err
 	}
 
-	log.Printf("Email sent successfully to %s", strings.Join(allRecipients, ", "))
+	s.logger.Info("Email sent successfully", "recipients", strings.Join(allRecipients, ", "))
 	return nil
 }
 
@@ -310,25 +312,18 @@ func (s *SmtpService) SendBookingCancellationToAdmin(clientName, clientEmail str
 }
 
 // SendGeneratedIdeas sends an email with the list of generated ideas.
-func (s *SmtpService) SendGeneratedIdeas(toEmail, topic string, ideas []GeneratedIdea) error {
+func (s *SmtpService) SendGeneratedIdeas(toEmail, topic string, ideasBody string) error {
 	subject := fmt.Sprintf("Your generated ideas for \"%s\"", topic)
-
-	var ideasHTML strings.Builder
-	ideasHTML.WriteString("<ul>")
-	for _, idea := range ideas {
-		ideasHTML.WriteString(fmt.Sprintf("<li><strong>%s:</strong> %s</li>", idea.Title, idea.Summary))
-	}
-	ideasHTML.WriteString("</ul>")
 
 	htmlBody := fmt.Sprintf(`
 		<p>Hi there,</p>
 		<p>As requested, here are the blog post ideas we generated for the topic "<strong>%s</strong>":</p>
 		%s
 		<p>If these ideas spark your interest, imagine what we could achieve with a dedicated consultation. We can help you turn these concepts into a full-fledged data strategy.</p>
-		<p>Ready to take the next step? <a href="https://ivmanto.com/booking"><strong>Book a free consultation today!</strong></a></p>
+		<p>Ready to take the next step? <a href="https://ivmanto.com/booking"><strong>Book a free consultation today!</strong></a></p> 
 		<p>Best,<br>The IVMANTO Team</p>`,
 		topic,
-		ideasHTML.String(),
+		ideasBody, // Now directly use the pre-formatted ideasBody
 	)
 
 	return s.send([]string{toEmail}, nil, subject, htmlBody, nil)

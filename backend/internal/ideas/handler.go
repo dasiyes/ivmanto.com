@@ -1,91 +1,144 @@
 package ideas
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 
 	"cloud.google.com/go/vertexai/genai"
+	"ivmanto.com/backend/internal/email"
 )
 
-// GenerateIdeasRequest is the expected structure of the request body.
+// ModelName is the specific Vertex AI model to use for generating ideas.
+// We use gemini-1.5-pro as it is available in the europe-west3 region.
+// The original gemini-1.0-pro is not available there, which caused the error.
+const ModelName = "gemini-1.5-pro"
+
+// Handler manages ideas-related HTTP requests.
+type Handler struct {
+	logger      *slog.Logger
+	genaiClient *genai.Client
+	emailSvc    email.Service
+}
+
+// NewHandler creates a new ideas handler.
+func NewHandler(logger *slog.Logger, genaiClient *genai.Client, emailSvc email.Service) *Handler {
+	return &Handler{
+		logger:      logger,
+		genaiClient: genaiClient,
+		emailSvc:    emailSvc,
+	}
+}
+
+// RegisterRoutes sets up the routing for ideas endpoints.
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/generate-ideas", h.handleGenerateIdeas)
+	mux.HandleFunc("POST /api/ideas/email", h.handleEmailIdeas)
+}
+
+// --- Response Helpers ---
+func (h *Handler) respondJSON(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if payload != nil {
+		if err := json.NewEncoder(w).Encode(payload); err != nil {
+			h.logger.Error("could not write JSON response", "error", err)
+		}
+	}
+}
+
+func (h *Handler) respondError(w http.ResponseWriter, status int, message string) {
+	h.respondJSON(w, status, map[string]string{"error": message})
+}
+
+// --- Generate Ideas Handler Logic ---
+
+// GenerateIdeasRequest represents the expected JSON body for a generate-ideas request.
 type GenerateIdeasRequest struct {
 	Topic string `json:"topic"`
 }
 
-// IdeaResponse defines the structure for a single generated idea.
-type IdeaResponse struct {
-	Title   string `json:"title"`
-	Summary string `json:"summary"`
+// GenerateIdeasResponse represents the JSON response containing the generated ideas.
+type GenerateIdeasResponse struct {
+	Ideas []string `json:"ideas"`
 }
 
-// cleanJSONString removes markdown code blocks if they exist.
-func cleanJSONString(s string) string {
-	if strings.HasPrefix(s, "```json") {
-		s = strings.TrimPrefix(s, "```json")
-		s = strings.TrimSuffix(s, "```")
+func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
+	var req GenerateIdeasRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
 	}
-	return strings.TrimSpace(s)
+	if req.Topic == "" {
+		h.respondError(w, http.StatusBadRequest, "Topic cannot be empty")
+		return
+	}
+
+	h.logger.Info("Received idea generation request", "topic", req.Topic)
+
+	model := h.genaiClient.GenerativeModel(ModelName)
+	model.SetTemperature(0.8)
+
+	prompt := genai.Text("Generate a numbered list of 5 creative and actionable business ideas related to: " + req.Topic)
+
+	resp, err := model.GenerateContent(r.Context(), prompt)
+	if err != nil {
+		h.logger.Error("Error generating content from Vertex AI", "error", err, "model", ModelName)
+		h.respondError(w, http.StatusInternalServerError, "Failed to generate ideas from AI model")
+		return
+	}
+
+	var generatedText string
+	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+		if txt, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
+			generatedText = string(txt)
+		}
+	}
+
+	if generatedText == "" {
+		h.logger.Warn("Vertex AI returned a response with no text content", "topic", req.Topic)
+		h.respondError(w, http.StatusInternalServerError, "AI model returned an empty response")
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, GenerateIdeasResponse{Ideas: strings.Split(generatedText, "\n")})
 }
 
-// Handler creates an HTTP handler for generating ideas.
-func Handler(logger *slog.Logger, genaiClient *genai.Client) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, `{"error": "Only POST method is allowed"}`, http.StatusMethodNotAllowed)
-			return
-		}
+// --- Email Ideas Handler Logic ---
 
-		var req GenerateIdeasRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, `{"error": "Invalid request body"}`, http.StatusBadRequest)
-			return
-		}
+// EmailIdeasRequest is the structure for the email ideas request.
+type EmailIdeasRequest struct {
+	Email string   `json:"email"`
+	Topic string   `json:"topic"`
+	Ideas []string `json:"ideas"`
+}
 
-		if req.Topic == "" {
-			http.Error(w, `{"error": "Topic cannot be empty"}`, http.StatusBadRequest)
-			return
-		}
-
-		logger.Info("Received topic for idea generation", "topic", req.Topic)
-
-		ctx := context.Background()
-		prompt := fmt.Sprintf(
-			`You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'. Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a valid JSON array of objects, where each object has a "title" and a "summary" field. Do not include any other text or explanations outside of the JSON array.`,
-			req.Topic,
-		)
-
-		// Using a stable model version. The latest models require a newer client library.
-		model := genaiClient.GenerativeModel("gemini-1.0-pro")
-		resp, err := model.GenerateContent(ctx, genai.Text(prompt))
-		if err != nil {
-			logger.Error("Error generating content from Vertex AI", "error", err)
-			http.Error(w, `{"error": "Failed to generate ideas from AI service."}`, http.StatusInternalServerError)
-			return
-		}
-
-		if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
-			logger.Error("AI service returned empty response")
-			http.Error(w, `{"error": "AI service returned an empty response."}`, http.StatusInternalServerError)
-			return
-		}
-
-		// The response part is of type genai.Text, which is an alias for string.
-		part := resp.Candidates[0].Content.Parts[0]
-		aiResponseText, ok := part.(genai.Text)
-		if !ok {
-			logger.Error("AI response part is not of type genai.Text", "type", fmt.Sprintf("%T", part))
-			http.Error(w, `{"error": "Unexpected response format from AI service."}`, http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		// Manually clean the JSON response as older models may wrap it in markdown.
-		jsonStr := cleanJSONString(string(aiResponseText))
-		_, _ = w.Write([]byte(jsonStr))
+func (h *Handler) handleEmailIdeas(w http.ResponseWriter, r *http.Request) {
+	var req EmailIdeasRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("Failed to decode email ideas request", "error", err)
+		h.respondError(w, http.StatusBadRequest, "Invalid request body")
+		return
 	}
+
+	if req.Email == "" || req.Topic == "" || len(req.Ideas) == 0 {
+		h.respondError(w, http.StatusBadRequest, "Email, topic, and ideas are required")
+		return
+	}
+
+	h.logger.Info("Received request to email ideas", "email", req.Email, "topic", req.Topic)
+
+	// The email service likely expects a single string for the body, not a slice.
+	// We'll format the ideas into a single string here.
+	emailBody := strings.Join(req.Ideas, "\n")
+
+	err := h.emailSvc.SendGeneratedIdeas(req.Email, req.Topic, emailBody)
+	if err != nil {
+		h.logger.Error("Failed to send generated ideas email", "error", err)
+		h.respondError(w, http.StatusInternalServerError, "Failed to send email")
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]string{"message": "Email sent successfully"})
 }
