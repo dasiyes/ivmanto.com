@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// 3. Initialize services
-	emailService := email.NewSmtpService(&cfg.Email)
+	emailService := email.NewSmtpService(&cfg.Email, logger)
 	ctx := context.Background()
 
 	// For GCal, we use a service account key for domain-wide delegation.
@@ -61,15 +61,13 @@ func main() {
 	// 4. Initialize handlers, passing dependencies
 	contactHandler := contact.NewHandler(logger, emailService)
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
-	ideasGenerateHandler := ideas.Handler(logger, genaiClient)
-	ideasEmailHandler := ideas.EmailHandler(logger, emailService)
+	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService)
 
 	// 5. Register routes
 	mux := http.NewServeMux()
 	contactHandler.RegisterRoutes(mux)
 	bookingHandler.RegisterRoutes(mux)
-	mux.HandleFunc("POST /api/generate-ideas", ideasGenerateHandler)
-	mux.HandleFunc("POST /api/ideas/email", ideasEmailHandler)
+	ideasHandler.RegisterRoutes(mux)
 
 	// 6. Apply middleware
 	var finalHandler http.Handler = mux

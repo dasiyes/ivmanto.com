@@ -9,5 +9,5 @@ type Service interface {
 	SendBookingNotificationToAdmin(name, clientEmail string, startTime time.Time, notes string) error
 	SendBookingCancellationToClient(toName, toEmail string, startTime time.Time) error
 	SendBookingCancellationToAdmin(clientName, clientEmail string, startTime time.Time) error
-	SendGeneratedIdeas(toEmail, topic string, ideas []GeneratedIdea) error
+	SendGeneratedIdeas(toEmail, topic string, ideasBody string) error
 }
