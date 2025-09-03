@@ -67,7 +67,7 @@ func main() {
 	// 4. Initialize handlers, passing dependencies
 	contactHandler := contact.NewHandler(logger, emailService)
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
-	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService)
+	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService, cfg.Ideas.GenerateIdeasPromptTemplate)
 
 	// 5. Register routes
 	mux := http.NewServeMux()

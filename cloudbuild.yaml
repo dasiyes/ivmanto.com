@@ -71,7 +71,7 @@ steps:
       # The runtime service account needs the "Secret Manager Secret Accessor" role.
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
       - >-
-        --set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS},GCP_PROJECT_ID=${_GCP_PROJECT_ID},GCP_LOCATION=${_GCP_LOCATION}
+        --set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS},GCP_PROJECT_ID=${_GCP_PROJECT_ID},GCP_LOCATION=${_GCP_LOCATION},GENERATE_IDEAS_PROMPT_TEMPLATE="${_GENERATE_IDEAS_PROMPT_TEMPLATE}"
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -90,6 +90,7 @@ substitutions:
   _SEND_FROM_ALIAS: 'IVMANTO Accounts'
   _GCP_PROJECT_ID: 'ivmanto-com-prod'
   _GCP_LOCATION: 'europe-west3'
+  _GENERATE_IDEAS_PROMPT_TEMPLATE: "You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'. Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a JSON array of objects, each with a 'title' and 'summary' field."
 
 # The image created by this build.
 images:
