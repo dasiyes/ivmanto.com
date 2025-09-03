@@ -43,20 +43,26 @@ Step 2: Create a Service Account for the Backend This account will be used by yo
 Go to IAM & Admin -> Service Accounts.
 Click "+ CREATE SERVICE ACCOUNT".
 Service account name: ivmanto-backend-sa
-Click "CREATE AND CONTINUE", then "DONE".
-Find the newly created service account, click the three dots (⋮) under "Actions", and select "Manage keys".
-Click "ADD KEY" -> "Create new key".
-Select JSON and click "CREATE". A JSON file will be downloaded.
-Crucially:
-Rename this file to gcp-credentials.json.
-Place it in the /backend directory of your project.
-Ensure gcp-credentials.json is listed in your .gitignore file. Never commit this file to your repository.
-Step 3: Share Your Google Calendar
+Click "CREATE AND CONTINUE". On the "Grant this service account access to project" step, add the following roles:
 
-Open the downloaded gcp-credentials.json file and copy the client_email value.
+- **Vertex AI User** (to allow access to the GenAI API)
+  Click "CONTINUE", then "DONE".
+
+Step 3: Share Your Google Calendar
+Go to the `ivmanto-backend-sa` service account details page in the GCP Console.
+Copy its email address (e.g., `ivmanto-backend-sa@ivmanto-com-prod.iam.gserviceaccount.com`).
 Go to your "IVMANTO Consultations" Google Calendar settings.
-Under "Share with specific people or groups", add the copied client_email.
+Under "Share with specific people or groups", add the copied service account email.
 Set its permissions to "Make changes to events".
+
+Step 4: Configure Local Development Environment
+To run the backend server on your local machine, you must configure Application Default Credentials (ADC). This allows the Go application to use your personal Google Cloud identity for authentication during development.
+
+Open your terminal and run the following command:
+`gcloud auth application-default login`
+
+Follow the prompts to log in with your Google account. This only needs to be done once per machine.
+
 Phase 3: Infrastructure Setup
 This phase creates the cloud resources your application will use.
 

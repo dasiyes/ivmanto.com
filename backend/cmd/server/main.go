@@ -39,11 +39,10 @@ func main() {
 	emailService := email.NewSmtpService(&cfg.Email, logger)
 	ctx := context.Background()
 
-	// For GCal, we use a service account key for domain-wide delegation.
-	gcpCredsPath := "gcp-credentials.json" // Local dev default
-	if prodPath := os.Getenv("GCP_CREDENTIALS_PATH"); prodPath != "" {
-		gcpCredsPath = prodPath
-	}
+	// For GCal, we use Application Default Credentials (ADC).
+	// On Cloud Run, this uses the attached service account's identity.
+	// For local development, run `gcloud auth application-default login`.
+	gcpCredsPath := "" // An empty path forces the client library to use ADC.
 	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
 	if err != nil {
 		slog.Error("Failed to create Google Calendar service", "error", err)
@@ -75,9 +74,15 @@ func main() {
 	finalHandler = middleware.RequestLogger(logger, finalHandler)
 
 	// 7. Start server
-	slog.Info("Starting server", "port", cfg.Service.Port)
+	// Cloud Run provides the PORT env var, which we must use.
+	// For local dev, we fall back to the port from our config file.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = cfg.Service.Port
+	}
+	slog.Info("Starting server", "port", port)
 	server := &http.Server{
-		Addr:    ":" + cfg.Service.Port,
+		Addr:    ":" + port,
 		Handler: finalHandler,
 	}
 	if err := server.ListenAndServe(); err != nil {

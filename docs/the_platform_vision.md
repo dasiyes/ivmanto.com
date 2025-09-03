@@ -46,39 +46,9 @@ This is the most important flow, as it directly relates to customer acquisition.
 
 ### \*\*Let's Get Started: Phase 1 - The Booking Engine
 
-The foundation of this entire system is the Google Calendar integration. Let's start here.
+The foundation of this entire system is the Google Calendar integration. The setup and implementation details are covered in the following documents:
 
-### **Your Task: Initial GCP Setup (5-10 minutes)**
+- Backend Architecture
+- Migration to GCP Guide
 
-Before I can provide the code, you'll need to perform a few one-time setup steps in your Google Cloud Console. This will give our Go application the necessary permissions.
-
-1.  **Enable the Google Calendar API:**
-    - Go to the Google Calendar API page in the Google Cloud Console.
-    - Make sure your `ivmanto-com` project is selected.
-    - Click **Enable.**
-
-2.  **Create a Service Account:**
-    - Navigate to **IAM & Admin -> Service Accounts.**
-    * Click + **CREATE SERVICE ACCOUNT.**
-    * Give it a name (e.g., `booking-service-account`) and a description. Click **CREATE AND CONTINUE.**
-    * For permissions, you can skip adding a role for now. Click **CONTINUE.**
-    * Skip granting user access and click **DONE.**
-
-3.  **Create and Download a JSON Key:**
-    - Find your newly created service account in the list.
-    - Click on it, then go to the **KEYS** tab.
-    - Click **ADD KEY -> Create new key.**
-    - Choose **JSON** as the key type and click CREATE. A JSON file will be downloaded to your computer. Treat this file like a password; it's very sensitive.
-
-4.  **Create and Share a Dedicated Google Calendar:**
-    - Go to your personal Google Calendar.
-    - Create a new calendar named something like "IVMANTO Consultations".
-    - Find the new calendar, click the three dots, and go to **Settings and sharing**.
-    - Under **Share with specific people or groups**, click **Add people and groups**.
-    - Open the JSON key file you downloaded. Find the `client_email` value (it looks like an email address) and paste it into the box.
-    - Set the permissions to **Make changes to events**.
-    - Click **Send.**
-
-Once you have completed these steps, rename the downloaded JSON key file to `gcp-credentials.json` and place it in the root of your **/backend** directory. We will add it to **.gitignore** to ensure it's never committed to your repository.
-
-After you've done this, let me know, and I will provide the first set of code changes to replace our in-memory booking store with a live Google Calendar integration.
+These guides detail the use of a Service Account with Application Default Credentials (ADC), which is the secure, keyless method for authentication both in production on Cloud Run and for local development.
