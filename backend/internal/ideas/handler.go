@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/vertexai/genai"
 )
 
@@ -54,8 +55,14 @@ func Handler(logger *slog.Logger) http.HandlerFunc {
 		logger.Info("Received topic for idea generation", "topic", req.Topic)
 
 		ctx := context.Background()
-		projectID := os.Getenv("GCP_PROJECT_ID")
 		location := os.Getenv("GCP_LOCATION")
+
+		// On GCP, ProjectID is available from the metadata server.
+		projectID, err := metadata.ProjectID()
+		if err != nil {
+			logger.Error("Failed to retrieve GCP_PROJECT_ID from metadata, falling back to env var", "error", err)
+			projectID = os.Getenv("GCP_PROJECT_ID")
+		}
 
 		if projectID == "" || location == "" {
 			logger.Error("GCP_PROJECT_ID or GCP_LOCATION environment variables not set.")

@@ -51,12 +51,15 @@ func main() {
 	// 4. Initialize handlers, passing dependencies
 	contactHandler := contact.NewHandler(logger, emailService)
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
+	ideasGenerateHandler := ideas.Handler(logger)
+	ideasEmailHandler := ideas.EmailHandler(logger, emailService)
 
 	// 5. Register routes
 	mux := http.NewServeMux()
 	contactHandler.RegisterRoutes(mux)
 	bookingHandler.RegisterRoutes(mux)
-	mux.HandleFunc("POST /api/generate-ideas", ideas.Handler(logger))
+	mux.HandleFunc("POST /api/generate-ideas", ideasGenerateHandler)
+	mux.HandleFunc("POST /api/ideas/email", ideasEmailHandler)
 
 	// 6. Apply middleware
 	var finalHandler http.Handler = mux
