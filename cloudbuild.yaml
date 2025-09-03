@@ -73,7 +73,7 @@ steps:
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
       - '--set-secrets=/etc/gcp/gcp-credentials.json=${_GCP_CREDS_SECRET_NAME}:latest'
       - >-
-        --set-env-vars=GCP_CREDENTIALS_PATH=/etc/gcp/gcp-credentials.json,CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}
+        --set-env-vars=GCP_CREDENTIALS_PATH=/etc/gcp/gcp-credentials.json,CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS},GCP_PROJECT_ID=${_GCP_PROJECT_ID},GCP_LOCATION=${_GCP_LOCATION}
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -91,6 +91,8 @@ substitutions:
   _SMTP_PORT: '587'
   _SEND_FROM: 'nikolay.tonev@ivmanto.com'
   _SEND_FROM_ALIAS: 'accounts@ivmanto.com'
+  _GCP_PROJECT_ID: 'ivmanto-com-prod'
+  _GCP_LOCATION: 'europe-west3'
 
 # The image created by this build.
 images:
