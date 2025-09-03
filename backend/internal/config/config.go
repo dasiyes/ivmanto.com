@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+
+	"cloud.google.com/go/compute/metadata"
 )
 
 // Config holds all configuration for the application.
@@ -10,6 +12,7 @@ type Config struct {
 	Service ServiceConfig
 	Email   EmailConfig
 	GCal    GCalConfig
+	GCP     GCPConfig
 }
 
 // ServiceConfig holds configuration for the HTTP service.
@@ -30,6 +33,12 @@ type EmailConfig struct {
 type GCalConfig struct {
 	CalendarID           string
 	AvailableSlotSummary string
+}
+
+// GCPConfig holds project-level Google Cloud configuration.
+type GCPConfig struct {
+	ProjectID string
+	Location  string
 }
 
 // Load reads configuration from environment variables.
@@ -55,9 +64,27 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("one or more required Google Calendar environment variables are not set (CALENDAR_ID, GCAL_AVAILABLE_SLOT_SUMMARY)")
 	}
 
+	// GCP Project and Location are needed for Vertex AI.
+	// The preferred way to get the Project ID on Cloud Run is from the metadata server.
+	projectID, err := metadata.ProjectID()
+	if err != nil {
+		// Fallback to env var if not on GCP or metadata server is unavailable.
+		// This is useful for local development.
+		projectID = os.Getenv("GCP_PROJECT_ID")
+	}
+	if projectID == "" {
+		return nil, fmt.Errorf("GCP_PROJECT_ID could not be determined from metadata or environment variable")
+	}
+
+	location := os.Getenv("GCP_LOCATION")
+	if location == "" {
+		return nil, fmt.Errorf("GCP_LOCATION environment variable is not set")
+	}
+
 	return &Config{
 		Service: ServiceConfig{Port: port},
 		Email:   EmailConfig{SmtpHost: smtpHost, SmtpPort: smtpPort, SendFrom: sendFrom, SendFromAlias: sendFromAlias, SmtpPass: smtpPass},
 		GCal:    GCalConfig{CalendarID: calendarID, AvailableSlotSummary: availableSlotSummary},
+		GCP:     GCPConfig{ProjectID: projectID, Location: location},
 	}, nil
 }

@@ -68,7 +68,6 @@ steps:
       - '--allow-unauthenticated'
       # Set the runtime service account for the new revision. This is critical.
       - '--service-account=${_BACKEND_SA_NAME}'
-      # Atomically set all environment variables and secrets for the new revision.
       # The runtime service account needs the "Secret Manager Secret Accessor" role.
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
       - '--set-secrets=/etc/gcp/gcp-credentials.json=${_GCP_CREDS_SECRET_NAME}:latest'
