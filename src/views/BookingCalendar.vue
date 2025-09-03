@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { ref, onMounted, computed, watch } from 'vue'
 
 type TimeSlot = {
@@ -7,6 +7,8 @@ type TimeSlot = {
   start: string
   end: string
 }
+
+const route = useRoute()
 
 const selectedDate = ref(new Date())
 const bookingWindowDays = 30 // The booking window should ideally come from a shared config
@@ -184,6 +186,14 @@ watch(selectedDate, (newDate) => {
 })
 
 onMounted(() => {
+  const { topic, summary } = route.query
+  if (topic && summary && typeof topic === 'string' && typeof summary === 'string') {
+    bookingDetails.value.notes = `I'm interested in exploring the topic: "${topic}".
+
+Summary: ${summary}`
+    // Clear query params to avoid them persisting on refresh
+    window.history.replaceState({}, '', route.path)
+  }
   fetchAvailability(selectedDate.value)
 })
 </script>
