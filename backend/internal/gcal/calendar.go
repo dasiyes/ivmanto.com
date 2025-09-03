@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/impersonate"
 	"google.golang.org/api/option"
 	"ivmanto.com/backend/internal/config"
 )
@@ -47,25 +46,23 @@ type BookingDetails struct {
 	Notes   string
 }
 
-// NewService creates a new calendar service client.
-func NewService(ctx context.Context, cfg *config.Config, credentialsPath string) (Service, error) {
-	slog.Info("Authenticating for Google Calendar using service account key", "path", credentialsPath)
-	// To use Domain-Wide Delegation, we must authenticate using a service account JSON key
-	// and specify the user to impersonate via the 'Subject' field.
-	jsonKey, err := os.ReadFile(credentialsPath)
+// NewService creates a new calendar service client using Application Default Credentials.
+// It's configured for Domain-Wide Delegation to impersonate the user specified in the config.
+func NewService(ctx context.Context, cfg *config.Config) (Service, error) {
+	slog.Info("Authenticating for Google Calendar using Application Default Credentials with impersonation")
+
+	// Create a TokenSource that impersonates the target user (Domain-Wide Delegation).
+	// This is the modern, recommended way to handle impersonation with ADC.
+	// It will automatically find and use Application Default Credentials.
+	ts, err := impersonate.CredentialsTokenSource(ctx, impersonate.CredentialsConfig{
+		TargetPrincipal: cfg.Email.SendFrom,
+		Scopes:          []string{calendar.CalendarScope},
+	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to read service account key file from %s: %w", credentialsPath, err)
+		return nil, fmt.Errorf("failed to create impersonated token source: %w", err)
 	}
 
-	// Create a JWT configuration from the JSON key.
-	jwtConf, err := google.JWTConfigFromJSON(jsonKey, calendar.CalendarScope)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create JWT config from credentials file: %w", err)
-	}
-	jwtConf.Subject = cfg.Email.SendFrom // Set the user to impersonate.
-	tokenSource := jwtConf.TokenSource(ctx)
-
-	srv, err := calendar.NewService(ctx, option.WithTokenSource(tokenSource))
+	srv, err := calendar.NewService(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve Calendar client with impersonation: %w", err)
 	}
