@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
-	"google.golang.org/api/impersonate"
 	"google.golang.org/api/option"
 	"ivmanto.com/backend/internal/config"
 )
@@ -47,24 +46,17 @@ type BookingDetails struct {
 }
 
 // NewService creates a new calendar service client using Application Default Credentials.
-// It's configured for Domain-Wide Delegation to impersonate the user specified in the config.
+// On GCP, this uses the attached service account. For local dev, it uses `gcloud auth application-default login`.
 func NewService(ctx context.Context, cfg *config.Config) (Service, error) {
-	slog.Info("Authenticating for Google Calendar using Application Default Credentials with impersonation")
+	slog.Info("Authenticating for Google Calendar using Application Default Credentials")
 
-	// Create a TokenSource that impersonates the target user (Domain-Wide Delegation).
-	// This is the modern, recommended way to handle impersonation with ADC.
-	// It will automatically find and use Application Default Credentials.
-	ts, err := impersonate.CredentialsTokenSource(ctx, impersonate.CredentialsConfig{
-		TargetPrincipal: cfg.Email.SendFrom,
-		Scopes:          []string{calendar.CalendarScope},
-	})
+	// Application Default Credentials (ADC) will be used automatically.
+	// On Cloud Run, this is the attached service account.
+	// Locally, this is the identity from `gcloud auth application-default login`.
+	// We just need to specify the required scope.
+	srv, err := calendar.NewService(ctx, option.WithScopes(calendar.CalendarScope))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create impersonated token source: %w", err)
-	}
-
-	srv, err := calendar.NewService(ctx, option.WithTokenSource(ts))
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve Calendar client with impersonation: %w", err)
+		return nil, fmt.Errorf("unable to retrieve Calendar client: %w", err)
 	}
 
 	// Fetch calendar details to get its timezone. This is crucial for correctly
