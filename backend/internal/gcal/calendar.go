@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -49,10 +49,9 @@ type BookingDetails struct {
 
 // NewService creates a new calendar service client.
 func NewService(ctx context.Context, cfg *config.Config, credentialsPath string) (Service, error) {
-	log.Printf("INFO: [gcal] Authenticating using credentials from: %s", credentialsPath)
-	// To use Domain-Wide Delegation (which is required to create Google Meet links
-	// on behalf of a user), we must authenticate using a service account JSON key
-	// and specify the user to impersonate.
+	slog.Info("Authenticating for Google Calendar using service account key", "path", credentialsPath)
+	// To use Domain-Wide Delegation, we must authenticate using a service account JSON key
+	// and specify the user to impersonate via the 'Subject' field.
 	jsonKey, err := os.ReadFile(credentialsPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read service account key file from %s: %w", credentialsPath, err)
@@ -63,8 +62,7 @@ func NewService(ctx context.Context, cfg *config.Config, credentialsPath string)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create JWT config from credentials file: %w", err)
 	}
-	// Set the user to impersonate. This is the crucial step for Domain-Wide Delegation.
-	jwtConf.Subject = cfg.Email.SendFrom
+	jwtConf.Subject = cfg.Email.SendFrom // Set the user to impersonate.
 	tokenSource := jwtConf.TokenSource(ctx)
 
 	srv, err := calendar.NewService(ctx, option.WithTokenSource(tokenSource))
@@ -82,7 +80,7 @@ func NewService(ctx context.Context, cfg *config.Config, credentialsPath string)
 	if err != nil {
 		// Fallback to UTC if the location is not found, but log a warning.
 		// This can happen in minimal container environments.
-		fmt.Printf("WARNING: could not load timezone '%s', falling back to UTC. Error: %v\n", cal.TimeZone, err)
+		slog.Warn("could not load timezone, falling back to UTC", "timezone", cal.TimeZone, "error", err)
 		loc = time.UTC
 	}
 
@@ -120,7 +118,7 @@ func (s *gcalService) GetAvailability(day time.Time) ([]*calendar.Event, error) 
 // BookSlot books a consultation by finding an "Available" event and updating it.
 // This provides an atomic way to claim a slot.
 func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) {
-	log.Printf("INFO: [gcal] Attempting to book event with ID: %s", details.EventID)
+	slog.Info("Attempting to book event", "eventID", details.EventID)
 
 	// 1. Get the event directly by its unique ID. This is more reliable than searching.
 	eventToBook, err := s.calSvc.Events.Get(s.calendarID, details.EventID).Do()
@@ -132,12 +130,12 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		return nil, fmt.Errorf("unable to retrieve event to book with ID %s: %w", details.EventID, err)
 	}
 
-	log.Printf("INFO: [gcal] Found available event %s to book.", eventToBook.Id)
+	slog.Info("Found available event to book", "eventID", eventToBook.Id)
 
 	// 2. Verify the event is indeed an available slot and not already booked.
 	// We trim the space from the calendar summary to be robust against accidental whitespace.
 	if strings.TrimSpace(eventToBook.Summary) != s.availableSlotSummary {
-		log.Printf("ERROR: [gcal] Slot verification failed. Event summary from calendar: '%s' does not match expected summary from config: '%s'", strings.TrimSpace(eventToBook.Summary), s.availableSlotSummary)
+		slog.Error("Slot verification failed", "eventSummary", strings.TrimSpace(eventToBook.Summary), "expectedSummary", s.availableSlotSummary)
 		return nil, ErrSlotNotFound
 	}
 
@@ -146,7 +144,7 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	if err != nil {
 		// This is a server-side issue, but we shouldn't fail the whole booking for it.
 		// Log it and continue. The user just won't get a cancellation link.
-		log.Printf("WARNING: could not generate cancellation token UUID: %v", err)
+		slog.Warn("could not generate cancellation token UUID", "error", err)
 	} else {
 		cancellationToken := cancellationUUID.String()
 		if eventToBook.ExtendedProperties == nil {
@@ -188,7 +186,7 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		// This is a generic error for when the event update fails for reasons other than a conflict.
 		return nil, fmt.Errorf("failed to update event during booking: %w", err)
 	}
-	log.Printf("INFO: [gcal] Successfully updated event %s with booking details.", updatedEvent.Id)
+	slog.Info("Successfully updated event with booking details", "eventID", updatedEvent.Id)
 
 	// Return the updated event directly. No Google Meet link will be included.
 	return updatedEvent, nil
@@ -197,7 +195,7 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 // CancelBooking finds an event by its cancellation token and reverts it to an available slot.
 // It returns the original event details for notification purposes.
 func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calendar.Event, error) {
-	log.Printf("INFO: [gcal] Searching for event with cancellation token %s...", token[:8])
+	slog.Info("Searching for event with cancellation token", "tokenPrefix", token[:8])
 	// 1. Find the event using the private extended property.
 	query := fmt.Sprintf("cancellation_token=%s", token)
 	events, err := s.calSvc.Events.List(s.calendarID).
@@ -209,12 +207,12 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	}
 
 	if len(events.Items) == 0 {
-		log.Printf("WARN: [gcal] No event found for cancellation token %s...", token[:8])
+		slog.Warn("No event found for cancellation token", "tokenPrefix", token[:8])
 		return nil, ErrSlotNotFound // Using existing error for "not found"
 	}
 
 	eventToCancel := events.Items[0]
-	log.Printf("INFO: [gcal] Found event %s to cancel.", eventToCancel.Id)
+	slog.Info("Found event to cancel", "eventID", eventToCancel.Id)
 
 	// 2. Preserve original details for notifications before modifying.
 	// We retrieve the client details from the private properties we stored during booking.
@@ -248,7 +246,7 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	if err != nil {
 		return nil, fmt.Errorf("failed to update event to available: %w", err)
 	}
-	log.Printf("INFO: [gcal] Successfully reverted event %s to an available slot.", eventToCancel.Id)
+	slog.Info("Successfully reverted event to an available slot", "eventID", eventToCancel.Id)
 
 	return originalEvent, nil
 }

@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 
-	"cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/vertexai/genai"
 )
 
@@ -34,7 +32,7 @@ func cleanJSONString(s string) string {
 }
 
 // Handler creates an HTTP handler for generating ideas.
-func Handler(logger *slog.Logger) http.HandlerFunc {
+func Handler(logger *slog.Logger, genaiClient *genai.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, `{"error": "Only POST method is allowed"}`, http.StatusMethodNotAllowed)
@@ -55,36 +53,13 @@ func Handler(logger *slog.Logger) http.HandlerFunc {
 		logger.Info("Received topic for idea generation", "topic", req.Topic)
 
 		ctx := context.Background()
-		location := os.Getenv("GCP_LOCATION")
-
-		// On GCP, ProjectID is available from the metadata server.
-		projectID, err := metadata.ProjectID()
-		if err != nil {
-			logger.Error("Failed to retrieve GCP_PROJECT_ID from metadata, falling back to env var", "error", err)
-			projectID = os.Getenv("GCP_PROJECT_ID")
-		}
-
-		if projectID == "" || location == "" {
-			logger.Error("GCP_PROJECT_ID or GCP_LOCATION environment variables not set.")
-			http.Error(w, `{"error": "Server configuration error."}`, http.StatusInternalServerError)
-			return
-		}
-
 		prompt := fmt.Sprintf(
 			`You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'. Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a valid JSON array of objects, where each object has a "title" and a "summary" field. Do not include any other text or explanations outside of the JSON array.`,
 			req.Topic,
 		)
 
-		client, err := genai.NewClient(ctx, projectID, location)
-		if err != nil {
-			logger.Error("Error creating Vertex AI client", "error", err)
-			http.Error(w, `{"error": "Could not connect to AI service."}`, http.StatusInternalServerError)
-			return
-		}
-		defer client.Close()
-
-		model := client.GenerativeModel("gemini-1.0-pro-001")
-
+		// Using a stable model version. The latest models require a newer client library.
+		model := genaiClient.GenerativeModel("gemini-1.0-pro")
 		resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 		if err != nil {
 			logger.Error("Error generating content from Vertex AI", "error", err)
@@ -99,11 +74,18 @@ func Handler(logger *slog.Logger) http.HandlerFunc {
 		}
 
 		// The response part is of type genai.Text, which is an alias for string.
-		aiResponseText := resp.Candidates[0].Content.Parts[0].(genai.Text)
-		jsonStr := cleanJSONString(string(aiResponseText))
+		part := resp.Candidates[0].Content.Parts[0]
+		aiResponseText, ok := part.(genai.Text)
+		if !ok {
+			logger.Error("AI response part is not of type genai.Text", "type", fmt.Sprintf("%T", part))
+			http.Error(w, `{"error": "Unexpected response format from AI service."}`, http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(jsonStr))
+		// Manually clean the JSON response as older models may wrap it in markdown.
+		jsonStr := cleanJSONString(string(aiResponseText))
+		_, _ = w.Write([]byte(jsonStr))
 	}
 }

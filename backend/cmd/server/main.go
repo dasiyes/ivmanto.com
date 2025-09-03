@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/vertexai/genai"
 	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
@@ -37,21 +38,30 @@ func main() {
 	// 3. Initialize services
 	emailService := email.NewSmtpService(&cfg.Email)
 	ctx := context.Background()
-	gcpCredsPath := "gcp-credentials.json"
+
+	// For GCal, we use a service account key for domain-wide delegation.
+	gcpCredsPath := "gcp-credentials.json" // Local dev default
 	if prodPath := os.Getenv("GCP_CREDENTIALS_PATH"); prodPath != "" {
 		gcpCredsPath = prodPath
 	}
-
 	gcalSvc, err := gcal.NewService(ctx, cfg, gcpCredsPath)
 	if err != nil {
 		slog.Error("Failed to create Google Calendar service", "error", err)
 		os.Exit(1)
 	}
 
+	// Initialize Vertex AI client once.
+	genaiClient, err := genai.NewClient(ctx, cfg.GCP.ProjectID, cfg.GCP.Location)
+	if err != nil {
+		slog.Error("Failed to create Vertex AI client", "error", err)
+		os.Exit(1)
+	}
+	defer genaiClient.Close()
+
 	// 4. Initialize handlers, passing dependencies
 	contactHandler := contact.NewHandler(logger, emailService)
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
-	ideasGenerateHandler := ideas.Handler(logger)
+	ideasGenerateHandler := ideas.Handler(logger, genaiClient)
 	ideasEmailHandler := ideas.EmailHandler(logger, emailService)
 
 	// 5. Register routes
