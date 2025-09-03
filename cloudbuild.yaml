@@ -70,7 +70,6 @@ steps:
       - '--service-account=${_BACKEND_SA_NAME}'
       # The runtime service account needs the "Secret Manager Secret Accessor" role.
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
-      - '--set-secrets=/etc/gcp/gcp-credentials.json=${_GCP_CREDS_SECRET_NAME}:latest'
       - >-
         --set-env-vars=CALENDAR_ID=${_CALENDAR_ID},GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SEND_FROM=${_SEND_FROM},SEND_FROM_ALIAS=${_SEND_FROM_ALIAS},GCP_PROJECT_ID=${_GCP_PROJECT_ID},GCP_LOCATION=${_GCP_LOCATION}
     waitFor: ['backend-push']
