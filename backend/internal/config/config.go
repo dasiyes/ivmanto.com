@@ -13,6 +13,7 @@ type Config struct {
 	Email   EmailConfig
 	GCal    GCalConfig
 	GCP     GCPConfig
+	Ideas   IdeasConfig
 }
 
 // ServiceConfig holds configuration for the HTTP service.
@@ -39,6 +40,11 @@ type GCalConfig struct {
 type GCPConfig struct {
 	ProjectID string
 	Location  string
+}
+
+// Add a new struct for Ideas configuration
+type IdeasConfig struct {
+	GenerateIdeasPromptTemplate string `env:"GENERATE_IDEAS_PROMPT_TEMPLATE"`
 }
 
 // Load reads configuration from environment variables.

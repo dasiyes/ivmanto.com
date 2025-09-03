@@ -2,6 +2,7 @@ package ideas
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -17,17 +18,25 @@ const ModelName = "gemini-1.5-pro"
 
 // Handler manages ideas-related HTTP requests.
 type Handler struct {
-	logger      *slog.Logger
-	genaiClient *genai.Client
-	emailSvc    email.Service
+	logger         *slog.Logger
+	genaiClient    *genai.Client
+	emailSvc       email.Service
+	promptTemplate string
 }
 
 // NewHandler creates a new ideas handler.
-func NewHandler(logger *slog.Logger, genaiClient *genai.Client, emailSvc email.Service) *Handler {
+func NewHandler(logger *slog.Logger, genaiClient *genai.Client, emailSvc email.Service, promptTemplate string) *Handler {
+	// Provide a robust default if the prompt isn't configured via environment variables.
+	if promptTemplate == "" {
+		logger.Warn("Generate ideas prompt template is not configured, using default.")
+		promptTemplate = "Generate a concise, numbered list of 5 business ideas for the topic: '%s'. Do not include any introductory or concluding text. Each idea should be on a new line, starting with a number and a period (e.g., '1. The idea.')."
+	}
+
 	return &Handler{
-		logger:      logger,
-		genaiClient: genaiClient,
-		emailSvc:    emailSvc,
+		logger:         logger,
+		genaiClient:    genaiClient,
+		emailSvc:       emailSvc,
+		promptTemplate: promptTemplate,
 	}
 }
 
@@ -80,7 +89,9 @@ func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 	model := h.genaiClient.GenerativeModel(ModelName)
 	model.SetTemperature(0.8)
 
-	prompt := genai.Text("Generate a numbered list of 5 creative and actionable business ideas related to: " + req.Topic)
+	// Use the configured prompt template.
+	promptText := fmt.Sprintf(h.promptTemplate, req.Topic)
+	prompt := genai.Text(promptText)
 
 	resp, err := model.GenerateContent(r.Context(), prompt)
 	if err != nil {
@@ -102,7 +113,25 @@ func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respondJSON(w, http.StatusOK, GenerateIdeasResponse{Ideas: strings.Split(generatedText, "\n")})
+	h.logger.Info("Raw response from Vertex AI", "text", generatedText)
+
+	// Clean the response: split into lines, trim whitespace, and remove empty lines.
+	lines := strings.Split(generatedText, "\n")
+	var ideas []string
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if trimmedLine != "" {
+			ideas = append(ideas, trimmedLine)
+		}
+	}
+
+	if len(ideas) == 0 {
+		h.logger.Warn("AI response resulted in zero ideas after cleaning", "raw_text", generatedText)
+		h.respondError(w, http.StatusInternalServerError, "AI model returned an empty or invalid response.")
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, GenerateIdeasResponse{Ideas: ideas})
 }
 
 // --- Email Ideas Handler Logic ---
