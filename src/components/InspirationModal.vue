@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { ref, computed } from 'vue'
 
 type Idea = {
   title: string
@@ -16,9 +17,30 @@ defineProps<{
 
 const emit = defineEmits(['close'])
 
+const selectedIdea = ref<Idea | null>(null)
+
 function closeModal() {
   emit('close')
+  selectedIdea.value = null // Reset on close
 }
+
+function selectIdea(idea: Idea) {
+  selectedIdea.value = idea
+}
+
+const bookingLink = computed(() => {
+  if (selectedIdea.value) {
+    return {
+      name: 'booking',
+      query: {
+        topic: selectedIdea.value.title,
+        summary: selectedIdea.value.summary,
+      },
+    }
+  }
+  // Default link if no idea is selected
+  return { name: 'booking' }
+})
 </script>
 
 <template>
@@ -64,8 +86,18 @@ function closeModal() {
                 <p class="font-bold">An error occurred</p>
                 <p>{{ error }}</p>
               </div>
-              <div v-else-if="ideas.length > 0" class="space-y-6">
-                <div v-for="(idea, index) in ideas" :key="index">
+              <div v-else-if="ideas.length > 0" class="space-y-4">
+                <div
+                  v-for="(idea, index) in ideas"
+                  :key="index"
+                  @click="selectIdea(idea)"
+                  class="p-4 rounded-lg cursor-pointer transition-all duration-200"
+                  :class="[
+                    selectedIdea?.title === idea.title
+                      ? 'bg-primary/10 border-primary border ring-2 ring-primary/20'
+                      : 'hover:bg-gray-100 border border-transparent',
+                  ]"
+                >
                   <h4 class="text-xl font-semibold text-dark-slate">{{ idea.title }}</h4>
                   <p class="mt-1 text-gray-600">{{ idea.summary }}</p>
                 </div>
@@ -77,8 +109,9 @@ function closeModal() {
               class="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center rounded-b-2xl"
             >
               <RouterLink
-                :to="{ name: 'booking' }"
+                :to="bookingLink"
                 class="bg-accent text-white font-bold py-2 px-5 rounded-lg hover:bg-opacity-90 transition-all text-base"
+                @click="closeModal"
                 >Book a Consultation</RouterLink
               >
               <button

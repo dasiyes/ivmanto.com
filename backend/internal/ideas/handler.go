@@ -1,10 +1,15 @@
 package ideas
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
+	"os"
+	"strings"
+
+	"cloud.google.com/go/vertexai/genai"
 )
 
 // GenerateIdeasRequest is the expected structure of the request body.
@@ -18,10 +23,23 @@ type IdeaResponse struct {
 	Summary string `json:"summary"`
 }
 
+// cleanJSONString removes markdown code blocks if they exist.
+func cleanJSONString(s string) string {
+	if strings.HasPrefix(s, "```json") {
+		s = strings.TrimPrefix(s, "```json")
+		s = strings.TrimSuffix(s, "```")
+	}
+	return strings.TrimSpace(s)
+}
+
 // Handler creates an HTTP handler for generating ideas.
-// For now, it returns mock data to test the frontend-backend connection.
 func Handler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, `{"error": "Only POST method is allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+
 		var req GenerateIdeasRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, `{"error": "Invalid request body"}`, http.StatusBadRequest)
@@ -35,29 +53,50 @@ func Handler(logger *slog.Logger) http.HandlerFunc {
 
 		logger.Info("Received topic for idea generation", "topic", req.Topic)
 
-		// --- Placeholder for Gemini API call ---
-		// Simulate network delay for the AI call
-		time.Sleep(2 * time.Second)
+		ctx := context.Background()
+		projectID := os.Getenv("GCP_PROJECT_ID")
+		location := os.Getenv("GCP_LOCATION")
 
-		// Mock response
-		mockIdeas := []IdeaResponse{
-			{
-				Title:   "Unlocking Retail's Future: How AI is Revolutionizing Customer Experience",
-				Summary: "Explore five practical ways artificial intelligence is personalizing shopping, optimizing supply chains, and driving sales in the retail sector.",
-			},
-			{
-				Title:   "Beyond the Hype: A Realistic Look at Implementing AI in Retail",
-				Summary: "This article cuts through the noise to provide a step-by-step guide for retail businesses looking to adopt AI, from data readiness to measuring ROI.",
-			},
-			{
-				Title:   "The Ethical Checkout: Navigating AI's Role in Retail Privacy and Trust",
-				Summary: "As AI becomes more integrated into retail, we discuss the critical importance of building customer trust through transparent and ethical data practices.",
-			},
+		if projectID == "" || location == "" {
+			logger.Error("GCP_PROJECT_ID or GCP_LOCATION environment variables not set.")
+			http.Error(w, `{"error": "Server configuration error."}`, http.StatusInternalServerError)
+			return
 		}
-		// --- End Placeholder ---
+
+		prompt := fmt.Sprintf(
+			`You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'. Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a valid JSON array of objects, where each object has a "title" and a "summary" field. Do not include any other text or explanations outside of the JSON array.`,
+			req.Topic,
+		)
+
+		client, err := genai.NewClient(ctx, projectID, location)
+		if err != nil {
+			logger.Error("Error creating Vertex AI client", "error", err)
+			http.Error(w, `{"error": "Could not connect to AI service."}`, http.StatusInternalServerError)
+			return
+		}
+		defer client.Close()
+
+		model := client.GenerativeModel("gemini-1.0-pro-001")
+
+		resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+		if err != nil {
+			logger.Error("Error generating content from Vertex AI", "error", err)
+			http.Error(w, `{"error": "Failed to generate ideas from AI service."}`, http.StatusInternalServerError)
+			return
+		}
+
+		if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+			logger.Error("AI service returned empty response")
+			http.Error(w, `{"error": "AI service returned an empty response."}`, http.StatusInternalServerError)
+			return
+		}
+
+		// The response part is of type genai.Text, which is an alias for string.
+		aiResponseText := resp.Candidates[0].Content.Parts[0].(genai.Text)
+		jsonStr := cleanJSONString(string(aiResponseText))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(mockIdeas)
+		w.Write([]byte(jsonStr))
 	}
 }
