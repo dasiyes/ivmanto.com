@@ -1,0 +1,17 @@
+# This file tells Docker which files and directories to ignore when building an image.
+# It's crucial for keeping images small and avoiding build errors.
+
+# CRITICAL: Exclude the backend directory from the frontend's build context.
+# This is the root cause of the current build failure.
+backend/
+
+# Standard ignores for a Node.js project
+node_modules
+dist
+.git
+.gitignore
+.env*
+
+# Documentation and other non-essential files
+docs/
+*.md
