@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'The Visionary Data Architecture',
@@ -6,6 +6,10 @@ export const metadata = {
     "For too long, we've been designing data systems as passive repositories. A warehouse. A lake. These are static, historical metaphors. We need to stop building data museums ...",
   date: '2025-08-15',
 }
+</script>
+
+<script setup lang="ts">
+// Component setup logic goes here.
 </script>
 
 <template>

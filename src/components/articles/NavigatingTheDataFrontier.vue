@@ -1,10 +1,14 @@
-<script setup lang="ts">
+<script lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'Navigating the Data Frontier',
   summary: "A Senior Strategist's Guide to Enterprise Data Management Assessment",
   date: '2025-01-20',
 }
+</script>
+
+<script setup lang="ts">
+// Component setup logic goes here.
 </script>
 
 <template>
