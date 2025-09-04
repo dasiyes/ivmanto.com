@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'Why DAMA Principles Matter for Your Business',
@@ -7,6 +7,11 @@ export const metadata = {
   date: '2024-07-10',
 }
 </script>
+
+<script setup lang="ts">
+// Component setup logic goes here.
+</script>
+
 <template>
   <p>This is a placeholder for the article "Why DAMA Principles Matter for Your Business".</p>
   <p>

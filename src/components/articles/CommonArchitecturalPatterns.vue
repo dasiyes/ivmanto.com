@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'Common Architectural Patterns for Modern Data Platforms',
@@ -6,6 +6,10 @@ export const metadata = {
     'A deep dive into the pros and cons of Data Lakes, Warehouses, and the modern Lakehouse architecture on GCP.',
   date: '2024-07-20',
 }
+</script>
+
+<script setup lang="ts">
+// Component setup logic goes here.
 </script>
 
 <template>

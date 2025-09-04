@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'On Data Management',
@@ -7,6 +7,11 @@ export const metadata = {
   date: '2025-09-04',
 }
 </script>
+
+<script setup lang="ts">
+// Component setup logic goes here.
+</script>
+
 <template>
   <article class="prose lg:prose-l max-w-none">
     <p>
