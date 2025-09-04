@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 // This <script> block is for module-level exports like metadata.
 export const metadata = {
   title: 'From Big Data To ...',
