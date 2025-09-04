@@ -34,6 +34,16 @@
           {{ industry }}
         </button>
       </div>
+
+      <!-- Book Consultation CTA -->
+      <div class="lg:ml-auto pt-2 lg:pt-0">
+        <a
+          href="/contact?subject=Consultation"
+          class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors"
+        >
+          Book a Consultation
+        </a>
+      </div>
     </div>
 
     <!-- Mobile Menu Toggle -->
@@ -42,9 +52,19 @@
         @click="isMobileNavOpen = !isMobileNavOpen"
         class="w-full flex justify-between items-center p-2 bg-gray-50 rounded-md text-left"
       >
-        <span class="font-semibold text-dark-slate">{{
-          selectedService?.title || 'Select a Service'
-        }}</span>
+        <span class="flex items-center gap-x-3 font-semibold text-dark-slate">
+          <svg
+            v-if="selectedService"
+            class="h-5 w-5 flex-shrink-0 text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+            v-html="selectedService.icon"
+          ></svg>
+          <span>{{ selectedService?.menuTitle || 'Select a Service' }}</span>
+        </span>
         <svg
           class="w-5 h-5 text-gray-600 transform transition-transform"
           :class="{ 'rotate-180': isMobileNavOpen }"
@@ -71,21 +91,33 @@
         :class="isMobileNavOpen ? 'block' : 'hidden lg:block'"
       >
         <div class="p-4">
-          <h2 class="text-lg font-bold text-dark-slate mb-4">Services</h2>
+          <h2 class="text-lg font-bold text-dark-slate mb-2">Services</h2>
+          <hr class="border-gray-200 mb-2" />
           <nav class="space-y-1">
             <a
               v-for="service in filteredServices"
               :key="service.id"
               @click.prevent="selectService(service.id)"
               href="#"
-              class="block px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+              class="flex items-center gap-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
               :class="[
                 selectedServiceId === service.id
                   ? 'bg-primary text-white'
                   : 'text-gray-600 hover:bg-gray-100',
               ]"
             >
-              {{ service.title }}
+              <svg
+                class="h-5 w-5 flex-shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+                v-html="service.icon"
+              ></svg>
+              <span>
+                {{ service.menuTitle }}
+              </span>
             </a>
           </nav>
         </div>
