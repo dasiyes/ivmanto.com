@@ -7,7 +7,7 @@ type Idea = {
   summary: string
 }
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean
   isLoading: boolean
   ideas: Idea[]
@@ -22,12 +22,14 @@ const emailForIdeas = ref('')
 const isSendingEmail = ref(false)
 const emailError = ref<string | null>(null)
 const emailSentSuccess = ref(false)
+const isCopied = ref(false)
 
 function closeModal() {
   emit('close')
   selectedIdea.value = null // Reset on close
   emailSentSuccess.value = false
   emailError.value = null
+  isCopied.value = false
 }
 
 function selectIdea(idea: Idea) {
@@ -47,6 +49,54 @@ const bookingLink = computed(() => {
   // Default link if no idea is selected
   return { name: 'booking' }
 })
+
+async function handleSendEmail() {
+  if (!emailForIdeas.value) return
+
+  isSendingEmail.value = true
+  emailError.value = null
+  emailSentSuccess.value = false
+
+  try {
+    const response = await fetch('/api/ideas/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: emailForIdeas.value,
+        topic: props.topic,
+        ideas: props.ideas,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to send email.')
+    }
+
+    emailSentSuccess.value = true
+  } catch (e: any) {
+    emailError.value = e.message || 'An unexpected error occurred. Please try again.'
+  } finally {
+    isSendingEmail.value = false
+  }
+}
+
+async function handleCopyIdea() {
+  if (!selectedIdea.value) return
+
+  const textToCopy = `Title: ${selectedIdea.value.title}\n\nSummary: ${selectedIdea.value.summary}`
+  try {
+    await navigator.clipboard.writeText(textToCopy)
+    isCopied.value = true
+    setTimeout(() => {
+      isCopied.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy idea text:', err)
+  }
+}
 </script>
 
 <template>
@@ -148,20 +198,38 @@ const bookingLink = computed(() => {
 
             <!-- Toolbar -->
             <div
-              class="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center rounded-b-2xl"
+              class="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center gap-4 rounded-b-2xl"
             >
-              <RouterLink
-                :to="bookingLink"
-                class="bg-accent text-white font-bold py-2 px-5 rounded-lg hover:bg-opacity-90 transition-all text-base"
-                @click="closeModal"
-                >Book a Consultation</RouterLink
-              >
               <button
                 @click="closeModal"
-                class="bg-white text-primary font-bold py-2 px-5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all text-base"
+                class="bg-white text-gray-700 font-semibold py-2 px-5 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all text-base"
               >
                 Close
               </button>
+              <div class="flex items-center gap-4">
+                <button
+                  @click="handleCopyIdea"
+                  :disabled="!selectedIdea || isCopied"
+                  class="bg-white text-primary font-bold py-2 px-5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span v-if="!isCopied">Copy Idea</span>
+                  <span v-else class="text-green-600 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      ></path></svg
+                    >Copied!
+                  </span>
+                </button>
+                <RouterLink
+                  :to="bookingLink"
+                  class="bg-accent text-white font-bold py-2 px-5 rounded-lg hover:bg-opacity-90 transition-all text-base"
+                  @click="closeModal"
+                  >Book a Consultation</RouterLink
+                >
+              </div>
             </div>
           </div>
         </transition>

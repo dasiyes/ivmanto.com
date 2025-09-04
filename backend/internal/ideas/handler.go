@@ -74,11 +74,6 @@ type Idea struct {
 	Summary string `json:"summary"`
 }
 
-// GenerateIdeasResponse represents the JSON response containing the generated ideas.
-type GenerateIdeasResponse struct {
-	Ideas []Idea `json:"ideas"`
-}
-
 func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 	var req GenerateIdeasRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -141,7 +136,7 @@ func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respondJSON(w, http.StatusOK, GenerateIdeasResponse{Ideas: ideas})
+	h.respondJSON(w, http.StatusOK, ideas)
 }
 
 // --- Email Ideas Handler Logic ---
