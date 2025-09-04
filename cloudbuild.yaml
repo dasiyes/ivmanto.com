@@ -98,9 +98,7 @@ substitutions:
   _SEND_FROM_ALIAS: 'IVMANTO Accounts'
   _GCP_PROJECT_ID: 'ivmanto-com-prod'
   _GCP_LOCATION: 'europe-west3'
-  _GENERATE_IDEAS_PROMPT_TEMPLATE: >-
-    You are a world-class data strategy consultant. A potential client has provided the following topic: %s.
-    Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a JSON array of objects, each with a title and summary field.
+  _IDEAS_PROMPT_SECRET_NAME: 'ideas-prompt'
 
 # The image created by this build.
 images:
