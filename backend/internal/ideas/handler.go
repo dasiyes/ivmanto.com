@@ -29,7 +29,7 @@ func NewHandler(logger *slog.Logger, genaiClient *genai.Client, emailSvc email.S
 	// Provide a robust default if the prompt isn't configured via environment variables.
 	if promptTemplate == "" {
 		logger.Warn("Generate ideas prompt template is not configured, using default.")
-		promptTemplate = "Generate a concise, numbered list of 5 business ideas for the topic: '%s'. Do not include any introductory or concluding text. Each idea should be on a new line, starting with a number and a period (e.g., '1. The idea.')."
+		promptTemplate = "You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'. Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Respond with ONLY a valid JSON array of objects. Each object must have a 'title' (string) and a 'summary' (string) field. Do not include any other text or markdown formatting outside of the JSON array."
 	}
 
 	return &Handler{
@@ -68,9 +68,15 @@ type GenerateIdeasRequest struct {
 	Topic string `json:"topic"`
 }
 
+// Idea represents a single generated idea with a title and summary.
+type Idea struct {
+	Title   string `json:"title"`
+	Summary string `json:"summary"`
+}
+
 // GenerateIdeasResponse represents the JSON response containing the generated ideas.
 type GenerateIdeasResponse struct {
-	Ideas []string `json:"ideas"`
+	Ideas []Idea `json:"ideas"`
 }
 
 func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
@@ -115,19 +121,23 @@ func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("Raw response from Vertex AI", "text", generatedText)
 
-	// Clean the response: split into lines, trim whitespace, and remove empty lines.
-	lines := strings.Split(generatedText, "\n")
-	var ideas []string
-	for _, line := range lines {
-		trimmedLine := strings.TrimSpace(line)
-		if trimmedLine != "" {
-			ideas = append(ideas, trimmedLine)
-		}
+	// Clean the response: LLMs sometimes wrap JSON in ```json ... ```
+	cleanedJSON := strings.TrimSpace(generatedText)
+	cleanedJSON = strings.TrimPrefix(cleanedJSON, "```json")
+	cleanedJSON = strings.TrimPrefix(cleanedJSON, "```")
+	cleanedJSON = strings.TrimSuffix(cleanedJSON, "```")
+	cleanedJSON = strings.TrimSpace(cleanedJSON)
+
+	var ideas []Idea
+	if err := json.Unmarshal([]byte(cleanedJSON), &ideas); err != nil {
+		h.logger.Error("Failed to unmarshal JSON from Vertex AI", "error", err, "raw_text", generatedText)
+		h.respondError(w, http.StatusInternalServerError, "AI model returned an invalid format.")
+		return
 	}
 
 	if len(ideas) == 0 {
-		h.logger.Warn("AI response resulted in zero ideas after cleaning", "raw_text", generatedText)
-		h.respondError(w, http.StatusInternalServerError, "AI model returned an empty or invalid response.")
+		h.logger.Warn("AI response resulted in zero ideas after parsing", "raw_text", generatedText)
+		h.respondError(w, http.StatusInternalServerError, "AI model returned an empty or invalid response")
 		return
 	}
 
@@ -138,9 +148,9 @@ func (h *Handler) handleGenerateIdeas(w http.ResponseWriter, r *http.Request) {
 
 // EmailIdeasRequest is the structure for the email ideas request.
 type EmailIdeasRequest struct {
-	Email string   `json:"email"`
-	Topic string   `json:"topic"`
-	Ideas []string `json:"ideas"`
+	Email string `json:"email"`
+	Topic string `json:"topic"`
+	Ideas []Idea `json:"ideas"`
 }
 
 func (h *Handler) handleEmailIdeas(w http.ResponseWriter, r *http.Request) {
@@ -158,9 +168,14 @@ func (h *Handler) handleEmailIdeas(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("Received request to email ideas", "email", req.Email, "topic", req.Topic)
 
-	// The email service likely expects a single string for the body, not a slice.
-	// We'll format the ideas into a single string here.
-	emailBody := strings.Join(req.Ideas, "\n")
+	// Format the ideas into a single HTML string for the email body.
+	var bodyBuilder strings.Builder
+	bodyBuilder.WriteString("<ul>")
+	for _, idea := range req.Ideas {
+		bodyBuilder.WriteString(fmt.Sprintf("<li><strong>%s</strong><br>%s</li>", idea.Title, idea.Summary))
+	}
+	bodyBuilder.WriteString("</ul>")
+	emailBody := bodyBuilder.String()
 
 	err := h.emailSvc.SendGeneratedIdeas(req.Email, req.Topic, emailBody)
 	if err != nil {
