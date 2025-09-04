@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import Footer from './components/layout/TheFooter.vue'
 import Header from './components/layout/TheHeader.vue'
+import CookieBanner from './components/CookieBanner.vue'
 </script>
 
 <template>
@@ -12,5 +13,6 @@ import Header from './components/layout/TheHeader.vue'
       <RouterView />
     </main>
     <Footer />
+    <CookieBanner />
   </div>
 </template>

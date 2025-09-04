@@ -39,9 +39,9 @@ Crucially, you now have the email address of a potential client who is actively 
 Phase 3: Evolve into an Automated "Solution Finder"
 This is the ultimate evolution of the tool, turning it from a content-focused gadget into a direct business-qualification engine.
 
-Change the Premise: We'll update the UI text. Instead of "Need Inspiration?", it will become something more direct, like "What's Your Biggest Data Challenge?". The placeholder text would change from "e.g., 'AI in retail'" to "e.g., 'Our sales reports are too slow' or 'We need to predict customer churn'".
+[!] Change the Premise: We'll update the UI text. Instead of "Need Inspiration?", it will become something more direct, like "What's Your Biggest Data Challenge?". The placeholder text would change from "e.g., 'AI in retail'" to "e.g., 'Our sales reports are too slow' or 'We need to predict customer churn'".
 
-Refine the AI Prompt: The backend prompt to Gemini will be completely different. It will be engineered to map problems to your solutions.
+[!] Refine the AI Prompt: The backend prompt to Gemini will be completely different. It will be engineered to map problems to your solutions.
 
 New Prompt Example: "You are an expert GCP data consultant for 'ivmanto.com'. A potential client has described their business challenge: '{user_challenge}'. Analyze their problem and identify which of the following services is the best fit: [List of your services from services.ts]. Respond with a JSON object containing 'recommended_service_id', 'recommendation_title', and a 'personalized_pitch' that explains why that service is a good fit and how it solves their specific problem."
 Dynamic, Personalized Response: The frontend will now display a much more powerful result. Instead of blog titles, the user will see something like:
@@ -50,7 +50,7 @@ Recommendation: Data Warehouse Optimization
 
 "It sounds like your slow sales reports are caused by an inefficient data pipeline. With our Data Warehouse Optimization service, we can analyze your architecture, refactor your queries, and implement caching strategies on BigQuery to deliver the insights you need, faster.
 
-Would you like to explore this service or book a no-obligation call to discuss your situation?"
+[!] Would you like to explore this service or book a no-obligation call to discuss your situation?"
 
 [ View Service Details ] [ Book a Consultation ]
 

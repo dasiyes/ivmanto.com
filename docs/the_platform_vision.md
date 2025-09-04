@@ -24,7 +24,7 @@ To achieve this, we'll need to integrate with several Google Cloud APIs:
 
 This is a significant and exciting evolution of the project. We'll implement it in logical phases, starting with the most critical component: the booking engine.
 
-### **Phase 1: The Automated Booking Engine (The Foundation)**
+[x] ### **Phase 1: The Automated Booking Engine (The Foundation)**
 
 This is the most important flow, as it directly relates to customer acquisition.
 

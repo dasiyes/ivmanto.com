@@ -66,6 +66,12 @@ const router = createRouter({
       name: 'BookingCancellation',
       component: BookingCancellation,
     },
+    {
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      // This uses lazy-loading for better performance
+      component: () => import('../components/PrivacyPolicy.vue'),
+    },
   ],
   scrollBehavior(to) {
     if (to.hash) {
