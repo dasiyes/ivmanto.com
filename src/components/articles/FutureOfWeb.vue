@@ -7,10 +7,6 @@ export const metadata = {
 }
 </script>
 
-<script setup lang="ts">
-// This <script setup> block is for the component's Composition API logic.
-</script>
-
 <template>
   <article class="prose lg:prose-xl max-w-none">
     <!-- 

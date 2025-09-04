@@ -7,11 +7,6 @@ export const metadata = {
   date: '2025-09-04',
 }
 </script>
-
-<script setup lang="ts">
-// This <script setup> block is for the component's Composition API logic.
-</script>
-
 <template>
   <article class="prose lg:prose-l max-w-none">
     <p>
