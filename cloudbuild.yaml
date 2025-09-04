@@ -70,9 +70,16 @@ steps:
       - '--service-account=${_BACKEND_SA_NAME}'
       # The runtime service account needs the "Secret Manager Secret Accessor" role.
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
-      # Set all environment variables in a single flag with a custom delimiter `|` to handle complex values.
-      - >-
-        --set-env-vars=^|=^CALENDAR_ID=${_CALENDAR_ID}|GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}|SMTP_HOST=${_SMTP_HOST}|SMTP_PORT=${_SMTP_PORT}|SEND_FROM=${_SEND_FROM}|SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}|GCP_PROJECT_ID=${_GCP_PROJECT_ID}|GCP_LOCATION=${_GCP_LOCATION}|GENERATE_IDEAS_PROMPT_TEMPLATE=${_GENERATE_IDEAS_PROMPT_TEMPLATE}
+      # Set environment variables one by one for clarity and to avoid parsing issues with complex strings.
+      - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID}'
+      - '--set-env-vars=GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
+      - '--set-env-vars=SMTP_HOST=${_SMTP_HOST}'
+      - '--set-env-vars=SMTP_PORT=${_SMTP_PORT}'
+      - '--set-env-vars=SEND_FROM=${_SEND_FROM}'
+      - '--set-env-vars=SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}'
+      - '--set-env-vars=GCP_PROJECT_ID=${_GCP_PROJECT_ID}'
+      - '--set-env-vars=GCP_LOCATION=${_GCP_LOCATION}'
+      - '--set-env-vars=GENERATE_IDEAS_PROMPT_TEMPLATE=${_GENERATE_IDEAS_PROMPT_TEMPLATE}'
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -83,17 +90,17 @@ substitutions:
   _REPO_NAME: 'ivmanto-com-repo'
   _SMTP_SECRET_NAME: 'smtp-password'
   # These must be configured in the Cloud Build Trigger UI.
-  _CALENDAR_ID: 'c_2950137553d97197f3e7963a9543784e119032ca9cc1b970ea668c6e9d2c9764@group.calendar.google.com'
-  _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB'
-  _SMTP_HOST: 'smtp.example.com'
-  _SMTP_PORT: '587'
-  _SEND_FROM: 'nikolay.tonev@ivmanto.com'
+  _CALENDAR_ID: 'c_2950137553d97197f3e7963a9543784e119032ca9cc1b970ea668c6e9d2c9764@group.calendar.google.com' # Example, but likely correct
+  _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB' # Example, but likely correct
+  _SMTP_HOST: 'smtp.gmail.com' # e.g., 'smtp.gmail.com' - Set in Trigger UI
+  _SMTP_PORT: '587' # e.g., '587' - Set in Trigger UI
+  _SEND_FROM: 'nikolay.tonev@ivmanto.com' # e.g., 'contact@ivmanto.com' - Set in Trigger UI
   _SEND_FROM_ALIAS: 'IVMANTO Accounts'
   _GCP_PROJECT_ID: 'ivmanto-com-prod'
   _GCP_LOCATION: 'europe-west3'
   _GENERATE_IDEAS_PROMPT_TEMPLATE: >-
-    You are a world-class data strategy consultant. A potential client has provided the following topic: '%s'.
-    Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a JSON array of objects, each with a "title" and "summary" field.
+    You are a world-class data strategy consultant. A potential client has provided the following topic: %s.
+    Generate 3 to 5 creative and insightful blog post titles based on this topic. For each title, provide a compelling one-sentence summary. Format the output as a JSON array of objects, each with a title and summary field.
 
 # The image created by this build.
 images:
