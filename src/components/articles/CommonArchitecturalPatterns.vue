@@ -8,10 +8,6 @@ export const metadata = {
 }
 </script>
 
-<script setup lang="ts">
-// This <script setup> block is for the component's Composition API logic.
-</script>
-
 <template>
   <!-- This component now only contains the body of the article. -->
   <!-- The title and summary are handled by the parent ArticleView.vue -->
