@@ -5,6 +5,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],
+        cursive: ['"Brush Script MT"', 'cursive'],
       },
       colors: {
         primary: '#00a896',
@@ -16,5 +17,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 }
