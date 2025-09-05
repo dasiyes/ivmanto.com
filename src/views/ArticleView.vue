@@ -208,6 +208,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { trackEvent } from '@/services/analytics'
 import { articles, getArticleBySlug, type Article } from '@/data/articles'
 
 const props = defineProps<{
@@ -327,6 +328,12 @@ async function handleLike() {
     isLiked.value = true
     likeCount.value++
     localStorage.setItem(`liked-${article.value.slug}`, 'true')
+
+    // Track the 'like' event for analytics, as per our plan.
+    trackEvent('like_insight', {
+      insight_id: article.value.slug,
+      insight_title: article.value.title,
+    })
   }
 
   // Then, attempt to sync this change with the backend.

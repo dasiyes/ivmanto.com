@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
 import ContactForm from '@/components/ContactForm.vue'
+import { trackEvent } from '@/services/analytics'
 import InspirationModal from '@/components/InspirationModal.vue'
 import { RouterLink } from 'vue-router'
 import { articles } from '@/data/articles'
@@ -20,6 +21,11 @@ const isModalOpen = ref(false)
 
 async function handleGenerateIdeas() {
   if (!topic.value.trim()) return
+
+  trackEvent('generate_inspiration_ideas', {
+    // As per our analytics plan, we capture the topic for market intelligence.
+    topic: topic.value,
+  })
 
   isModalOpen.value = true
   isLoading.value = true

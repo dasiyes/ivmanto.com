@@ -30,7 +30,7 @@ To assess the website's value, we need to answer a few key questions:
 
 Here are the specific events we'll track to answer these questions:
 | Event Name | What it Measures | Business Value | Key Parameters |
-| ---------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ---------------------- | -------------------------------------------------- | ---------------------------------------------------| ----------------- |
 | `view_service_details` | A user clicks on a specific service from the list. | Engagement. Shows which services are most popular. | `service_id`, `service_name` |
 | `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. | `topic` |
 | `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
