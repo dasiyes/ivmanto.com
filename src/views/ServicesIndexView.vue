@@ -144,7 +144,7 @@ import ServiceDetail from '@/components/services/ServiceDetail.vue'
 import RightColumnContent from '@/components/services/RightColumnContent.vue'
 
 const isMobileNavOpen = ref(false)
-const industries = ['All', 'Finance', 'Healthcare', 'Retail']
+const industries = ['All', 'Finance', 'Healthcare', 'Retail', 'Public sector']
 const activeIndustry = ref('All')
 
 const filteredServices = computed(() => {
