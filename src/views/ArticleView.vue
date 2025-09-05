@@ -166,7 +166,7 @@
         <div class="mt-12 pt-8 border-t border-gray-200 flex justify-end items-center">
           <button
             @click="handleLike"
-            :disabled="isLiked || isLoadingLikes"
+            :disabled="isLoadingLikes"
             class="flex items-center gap-2 text-gray-500 hover:text-primary disabled:text-primary disabled:cursor-not-allowed transition-colors"
             title="Like this article"
           >
@@ -315,33 +315,37 @@ async function fetchLikes() {
 }
 
 async function handleLike() {
-  if (!article.value || isLiked.value) return
+  if (!article.value) return
 
-  isLiked.value = true // Provide immediate feedback and prevent multiple clicks
-  likeCount.value++ // Optimistic update
-  localStorage.setItem(`liked-${article.value.slug}`, 'true') // Persist liked state for the session
+  // Toggle the like state locally first for an instant UI response.
+  const wasLiked = isLiked.value
+  if (wasLiked) {
+    isLiked.value = false
+    likeCount.value--
+    localStorage.removeItem(`liked-${article.value.slug}`)
+  } else {
+    isLiked.value = true
+    likeCount.value++
+    localStorage.setItem(`liked-${article.value.slug}`, 'true')
+  }
 
+  // Then, attempt to sync this change with the backend.
+  // The UI will not be reverted if this call fails.
   try {
-    const response = await fetch(`/api/articles/${article.value.slug}/like`, {
-      method: 'POST',
-    })
+    // Use DELETE for un-liking and POST for liking.
+    const method = wasLiked ? 'DELETE' : 'POST'
+    const response = await fetch(`/api/articles/${article.value.slug}/like`, { method })
 
-    if (!response.ok) {
-      // If the request fails, revert the optimistic update
-      likeCount.value--
-      isLiked.value = false
-      localStorage.removeItem(`liked-${article.value.slug}`)
-      console.error('Failed to submit like.')
-    } else {
+    if (response.ok) {
+      // If the backend call succeeds, re-sync the count with the server's "source of truth".
       const data = await response.json()
-      likeCount.value = data.likes // Update with the true count from the server
+      likeCount.value = data.likes
+    } else {
+      console.error(`Failed to sync like status. API responded with status: ${response.status}`)
     }
   } catch (error) {
-    // Also revert on network error
-    likeCount.value--
-    isLiked.value = false
-    localStorage.removeItem(`liked-${article.value.slug}`)
-    console.error('Error submitting like:', error)
+    // Also log network errors without reverting the UI state.
+    console.error('Network error while syncing like status:', error)
   }
 }
 
@@ -376,7 +380,7 @@ watch(
 )
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .nav-button {
   @apply h-10 w-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-primary rounded-md transition-all duration-200 hover:scale-110;
 }
