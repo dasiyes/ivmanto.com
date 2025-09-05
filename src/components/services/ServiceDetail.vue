@@ -34,7 +34,7 @@
             :href="consultationLink"
             class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors"
           >
-            Book a Consultation for this Service
+            Contact us for this Service
           </a>
         </div>
       </div>
@@ -59,9 +59,9 @@ defineEmits<{
 
 const consultationLink = computed(() => {
   if (!props.service) {
-    return '/booking'
+    return '/?subject=Consultation#contact'
   }
   const subject = `Consultation about: ${props.service.title}`
-  return `/contact?subject=${encodeURIComponent(subject)}`
+  return `/?subject=${encodeURIComponent(subject)}#contact`
 })
 </script>
