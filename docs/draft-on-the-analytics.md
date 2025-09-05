@@ -29,14 +29,50 @@ To assess the website's value, we need to answer a few key questions:
 - **Conversion:** Are visitors taking the actions we want them to take? (i.e., booking a consultation)
 
 Here are the specific events we'll track to answer these questions:
-| Event Name | What it Measures | Business Value |
-| ---------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `view_service_details` | A user clicks on a specific service from the list. | Engagement. Shows which services are most popular. |
-| `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. |
-| `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. |
-| `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. |
-| `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. |
-| `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. |
+| Event Name | What it Measures | Business Value | Key Parameters |
+| ---------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `view_service_details` | A user clicks on a specific service from the list. | Engagement. Shows which services are most popular. | `service_id`, `service_name` |
+| `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. | `topic` |
+| `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
+| `like_insight` | A user clicks the "like" button on an article in the Insights section. | Direct measure of content value. Identifies what topics resonate most. | `insight_id`, `insight_title` |
+| `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `source` (e.g., 'service_card', 'home_cta'), `service_id` (if applicable) |
+| `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
+| `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
+
+## Fine-Tuning the Strategy
+
+Before we begin implementation, here are a few refinements to make our approach even more robust and maintainable:
+
+### 1. A Centralized Tracking Helper
+
+Instead of calling `window.dataLayer.push()` directly from every component, we'll create a small, reusable analytics service. This provides several advantages:
+
+- **Consistency:** Ensures all events are sent in the same format.
+- **Maintainability:** If we need to change how events are tracked, we only do it in one place.
+- **Developer Experience:** Provides a clean API for sending events, reducing the risk of typos in event names.
+
+This helper would look something like this:
+
+```typescript
+// src/services/analytics.ts
+
+/**
+ * Pushes a custom event to the Google Tag Manager data layer.
+ * @param {string} eventName The name of the event.
+ * @param {Record<string, any>} params Additional data to send with the event.
+ */
+export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({
+    event: eventName,
+    ...params,
+  })
+}
+```
+
+### 2. Basic Health Monitoring
+
+Beyond business metrics, we should also track the technical health of the site. We can easily configure GTM to listen for unhandled JavaScript errors and send them to GA4 as a custom `js_error` event. This gives us a simple, effective way to monitor for bugs affecting users in production.
 
 ## The Implementation Plan (Phased Approach)
 
@@ -53,6 +89,7 @@ This phase gets the basic infrastructure in place with a single, one-time code c
   - Users & Sessions over time.
   - Traffic sources (Where are users coming from?).
   - Top viewed pages (Which services/articles are most popular?).
+  - A simple scorecard for JavaScript errors.
 
 ### Phase 2: Custom Event & Conversion Tracking
 
@@ -60,32 +97,22 @@ This is where we start tracking the actions that truly matter. This requires sma
 
 - **Implement Data Layer:** We'll use the standard dataLayer to push events from our Vue components. For example, in ServiceDetail.vue, when a user clicks the main CTA:
 
-`ServiceDetail.vue`
-<a :href="consultationLink"
-class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors"
-plaintext
-@click="trackConsultationClick" >
-Book a Consultation for this Service
-</a>
-@@ -51,6 +52,14 @@ return /contact?subject=${encodeURIComponent(subject)} })
+  We will use the centralized `trackEvent` helper we defined earlier. This makes the component code cleaner and less error-prone.
 
-function trackConsultationClick() {
+  `Example in a Vue component`
 
-window.dataLayer = window.dataLayer || []
+  ```javascript
+  // In a Vue component's <script> section
+  import { trackEvent } from '@/services/analytics'
 
-window.dataLayer.push({
-
-plaintext
-event: 'click_book_consultation',
-plaintext
-source: 'service_card',
-plaintext
-service_id: props.service?.id,
-})
-
-}
-
-plaintext
+  // ... inside a method or setup function, assuming 'props' are available
+  function handleConsultationClick() {
+    trackEvent('click_book_consultation', {
+      source: 'service_card',
+      service_id: props.service?.id,
+    })
+  }
+  ```
 
 - **Configure GTM Triggers:** In GTM, we'll create triggers that listen for our custom events (like click_book_consultation) and fire GA4 event tags. No new code deployment is needed for this.
 
@@ -101,6 +128,7 @@ plaintext
 This is the most advanced phase, connecting frontend actions to real business outcomes.
 
 - **Backend Event Tracking:** When a user successfully books a meeting (as per the_platform_vision.md), our Go backend will send a secure, server-to-server `booking_confirmed` event directly to GA4 using its Measurement Protocol.
+  - **Crucial Detail for ROI:** To attribute this server-side event to the correct user session, the frontend must capture the GA4 `client_id` from the user's browser cookie (`_ga`) and send it to our backend as part of the booking submission. Our Go backend will then include this `client_id` in the Measurement Protocol request, "stitching" the frontend journey to the backend conversion.
 
 - **Assigning Value:** We can attach a monetary value to this `booking_confirmed` event (e.g., the average value of a new client).
 - **The ROI Dashboard:** The final Looker Studio dashboard will provide you with a clear view of the website's performance:
