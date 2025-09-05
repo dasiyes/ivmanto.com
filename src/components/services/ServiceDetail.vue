@@ -59,7 +59,7 @@ defineEmits<{
 
 const consultationLink = computed(() => {
   if (!props.service) {
-    return '/contact?subject=Consultation'
+    return '/booking'
   }
   const subject = `Consultation about: ${props.service.title}`
   return `/contact?subject=${encodeURIComponent(subject)}`

@@ -173,6 +173,6 @@
       </ul>
     </ul>
     <hr class="border-gray-200 mb-2" />
-    <p class="bold italic lg: text-base">If you want to learn more on the topic - <a href="/contact?subject=Consultation">book a consulation</a>, please. It's free!</p>
+    <p class="bold italic lg: text-base">If you want to learn more on the topic - <a href="/booking">book a consulation</a>, please. It's free!</p>
   </article>
 </template>

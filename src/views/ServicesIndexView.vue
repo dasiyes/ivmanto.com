@@ -38,7 +38,7 @@
       <!-- Book Consultation CTA -->
       <div class="lg:ml-auto pt-2 lg:pt-0">
         <a
-          href="/contact?subject=Consultation"
+          href="/booking"
           class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors"
         >
           Book a Consultation
