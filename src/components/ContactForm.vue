@@ -1,11 +1,31 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 const formData = ref({
   name: '',
   email: '',
   message: '',
   sendCopyToSelf: false,
+})
+
+// 3. Use the onMounted lifecycle hook to read the URL when the component loads.
+onMounted(() => {
+  const subject = route.query.subject
+
+  if (subject && typeof subject === 'string') {
+    // If a subject exists, populate the message field.
+    // Vue Router automatically decodes the value for you.
+    formData.value.message = subject
+
+    // 4. (Recommended) Clean the URL to remove the query parameter.
+    // This prevents the message from being re-filled if the user refreshes the page.
+    // It correctly preserves the #contact anchor.
+    const cleanUrl = window.location.pathname + window.location.hash
+    window.history.replaceState({}, document.title, cleanUrl)
+  }
 })
 
 const formState = ref<'idle' | 'submitting' | 'success' | 'error'>('idle')
