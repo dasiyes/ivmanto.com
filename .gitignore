@@ -36,4 +36,5 @@ coverage
 vendor/
 .env
 docs/protected/
+docs/GA4-GTM/
 /protected/
