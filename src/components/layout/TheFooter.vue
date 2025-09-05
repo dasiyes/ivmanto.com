@@ -26,6 +26,11 @@
           >Google Developer Profile</a
         >
       </div>
+      <div class="mt-4 flex justify-center space-x-6">
+        <p class="italic lg: text-sm">
+          <a href="/privacy-policy" class="hover:text-primary">Privacy Policy</a>
+        </p>
+      </div>
     </div>
   </footer>
 </template>
