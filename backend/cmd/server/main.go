@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/vertexai/genai"
 	"github.com/joho/godotenv"
+	"ivmanto.com/backend/internal/articles"
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
 	"ivmanto.com/backend/internal/contact"
@@ -68,12 +69,14 @@ func main() {
 	contactHandler := contact.NewHandler(logger, emailService)
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
 	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService, cfg.Ideas.GenerateIdeasPromptTemplate)
+	articlesHandler := articles.NewHandler(logger)
 
 	// 5. Register routes
 	mux := http.NewServeMux()
 	contactHandler.RegisterRoutes(mux)
 	bookingHandler.RegisterRoutes(mux)
 	ideasHandler.RegisterRoutes(mux)
+	articlesHandler.RegisterRoutes(mux)
 
 	// 6. Apply middleware
 	var finalHandler http.Handler = mux
