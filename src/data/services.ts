@@ -11,6 +11,20 @@ export type Service = {
   industries: string[]
 }
 
+// [!] Example Service Definition:
+// {
+//   id: '',
+//   menuTitle: '',
+//   title: '',
+//   summary: '',
+//   icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />`,
+//   detailsComponent: defineAsyncComponent(
+//     () => import('@/components/services-content/DataArchitecture.vue'),
+//   ),
+//   tagDetails: {},
+//   industries: ['Finance', 'Healthcare', 'Public sector'],
+// },
+
 export const services: Service[] = [
   {
     id: 'principles',
@@ -27,6 +41,24 @@ export const services: Service[] = [
         'The DAMA-DMBOK (Data Management Body of Knowledge) is a framework of data management best practices, often used as a study guide for data management certification.',
     },
     industries: ['All'],
+  },
+  {
+    id: 'sovereigncloud',
+    menuTitle: 'Sovereign Cloud',
+    title:
+      'Sovereignty Cloud in Germany: Navigating Control, Compliance, and Innovation in the Cloud Era',
+    summary: 'An Architectural Perspective on Data, Operations, and AI Sovereignty',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />`,
+    detailsComponent: defineAsyncComponent(
+      () => import('@/components/services-content/SovereignCloudDE.vue'),
+    ),
+    tagDetails: {
+      Cloud:
+        "Build what\’s next. Better software. Faster. 1) Use Google\'s core infrastructure, data analytics, and machine learning. 2) Protect your data and apps with the same security technology Google uses. 3) Avoid vendor lock-in and run your apps on open source solutions",
+      DataAct:
+        'The Data Act is a comprehensive initiative to address the challenges and unleash the opportunities presented by data in the European Union, emphasising fair access and user rights, while ensuring the protection of personal data.',
+    },
+    industries: ['Finance', 'Healthcare', 'Public sector'],
   },
   {
     id: 'data-architecture',
