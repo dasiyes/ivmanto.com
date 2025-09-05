@@ -32,6 +32,7 @@ func NewHandler(logger *slog.Logger) *Handler {
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/articles/{slug}/likes", h.handleGetLikes)
 	mux.HandleFunc("POST /api/articles/{slug}/like", h.handleIncrementLike)
+	mux.HandleFunc("DELETE /api/articles/{slug}/like", h.handleDecrementLike)
 }
 
 // handleGetLikes retrieves the current like count for a specific article.
@@ -57,12 +58,6 @@ func (h *Handler) handleGetLikes(w http.ResponseWriter, r *http.Request) {
 
 // handleIncrementLike increments the like count for a specific article.
 func (h *Handler) handleIncrementLike(w http.ResponseWriter, r *http.Request) {
-	// The router should handle the method check, but it's good practice to be defensive.
-	if r.Method != http.MethodPost {
-		h.respondError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
 	slug := r.PathValue("slug")
 	if slug == "" {
 		h.respondError(w, http.StatusBadRequest, "Article slug is required")
@@ -75,6 +70,31 @@ func (h *Handler) handleIncrementLike(w http.ResponseWriter, r *http.Request) {
 	h.likesMutex.Unlock()
 
 	h.logger.Info("Like incremented", "slug", slug, "new_count", newLikes)
+
+	response := map[string]interface{}{
+		"likes": newLikes,
+	}
+
+	h.respondJSON(w, http.StatusOK, response)
+}
+
+// handleDecrementLike decrements the like count for a specific article.
+func (h *Handler) handleDecrementLike(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+	if slug == "" {
+		h.respondError(w, http.StatusBadRequest, "Article slug is required")
+		return
+	}
+
+	h.likesMutex.Lock()
+	// Prevent the count from going below zero.
+	if h.likes[slug] > 0 {
+		h.likes[slug]--
+	}
+	newLikes := h.likes[slug]
+	h.likesMutex.Unlock()
+
+	h.logger.Info("Like decremented", "slug", slug, "new_count", newLikes)
 
 	response := map[string]interface{}{
 		"likes": newLikes,
