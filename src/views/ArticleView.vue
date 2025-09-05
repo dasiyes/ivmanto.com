@@ -161,6 +161,36 @@
         <div class="prose prose-lg max-w-none">
           <component :is="article.component" />
         </div>
+
+        <!-- Like button section -->
+        <div class="mt-12 pt-8 border-t border-gray-200 flex justify-end items-center">
+          <button
+            @click="handleLike"
+            :disabled="isLiked || isLoadingLikes"
+            class="flex items-center gap-2 text-gray-500 hover:text-primary disabled:text-primary disabled:cursor-not-allowed transition-colors"
+            title="Like this article"
+          >
+            <svg
+              class="h-6 w-6"
+              :class="{ 'text-red-500 fill-current': isLiked }"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"
+              />
+            </svg>
+            <span v-if="!isLoadingLikes" class="font-semibold text-lg tabular-nums">{{
+              likeCount
+            }}</span>
+            <span v-else class="font-semibold text-lg">...</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -176,7 +206,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { articles, getArticleBySlug, type Article } from '@/data/articles'
 
@@ -188,6 +218,9 @@ const router = useRouter()
 
 const isDropdownOpen = ref(false)
 const copied = ref(false)
+const likeCount = ref(0)
+const isLiked = ref(false)
+const isLoadingLikes = ref(true)
 
 const article = computed<Article | undefined>(() => getArticleBySlug(props.slug))
 
@@ -260,6 +293,58 @@ async function shareArticle() {
   }
 }
 
+async function fetchLikes() {
+  if (!article.value) return
+  isLoadingLikes.value = true
+  try {
+    // This endpoint will need to be created in the backend.
+    const response = await fetch(`/api/articles/${article.value.slug}/likes`)
+    if (response.ok) {
+      const data = await response.json()
+      likeCount.value = data.likes || 0
+    } else {
+      console.warn(`Could not fetch likes for ${article.value.slug}. Defaulting to 0.`)
+      likeCount.value = 0
+    }
+  } catch (error) {
+    console.error('Error fetching likes:', error)
+    likeCount.value = 0 // Default to 0 on error
+  } finally {
+    isLoadingLikes.value = false
+  }
+}
+
+async function handleLike() {
+  if (!article.value || isLiked.value) return
+
+  isLiked.value = true // Provide immediate feedback and prevent multiple clicks
+  likeCount.value++ // Optimistic update
+  localStorage.setItem(`liked-${article.value.slug}`, 'true') // Persist liked state for the session
+
+  try {
+    const response = await fetch(`/api/articles/${article.value.slug}/like`, {
+      method: 'POST',
+    })
+
+    if (!response.ok) {
+      // If the request fails, revert the optimistic update
+      likeCount.value--
+      isLiked.value = false
+      localStorage.removeItem(`liked-${article.value.slug}`)
+      console.error('Failed to submit like.')
+    } else {
+      const data = await response.json()
+      likeCount.value = data.likes // Update with the true count from the server
+    }
+  } catch (error) {
+    // Also revert on network error
+    likeCount.value--
+    isLiked.value = false
+    localStorage.removeItem(`liked-${article.value.slug}`)
+    console.error('Error submitting like:', error)
+  }
+}
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -268,11 +353,25 @@ function formatDate(dateString: string) {
   })
 }
 
+onMounted(() => {
+  fetchLikes()
+  if (localStorage.getItem(`liked-${props.slug}`)) {
+    isLiked.value = true
+  }
+})
+
 // Close dropdown on route change
 watch(
   () => props.slug,
   () => {
     closeDropdown()
+    // Reset likes for new article
+    likeCount.value = 0
+    isLiked.value = false
+    if (localStorage.getItem(`liked-${props.slug}`)) {
+      isLiked.value = true
+    }
+    fetchLikes()
   },
 )
 </script>
@@ -289,5 +388,8 @@ watch(
 }
 .dropdown-item {
   @apply block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 </style>

@@ -104,6 +104,17 @@ The Go backend will expose the following RESTful endpoints under the `/api` path
   - **Payload:** `{ "name": string, "email": string, "message": string }`
   - **Response:** `200 OK` on success.
 
+### Articles API
+
+- **`GET /api/articles/{slug}/likes`**
+  - **Description:** Retrieves the current like count for a specific article.
+  - **Response:** `200 OK` with a JSON object: `{ "slug": string, "likes": number }`
+
+- **`POST /api/articles/{slug}/like`**
+  - **Description:** Increments the like count for a specific article. This should be rate-limited to prevent abuse.
+  - **Payload:** (None)
+  - **Response:** `200 OK` with the new like count: `{ "likes": number }`
+
 ### Booking API (NEW)
 
 - **`GET /api/booking/availability`**
