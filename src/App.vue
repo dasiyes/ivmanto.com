@@ -13,8 +13,9 @@
 import Header from '@/components/layout/AppHeader.vue'
 import Footer from '@/components/layout/AppFooter.vue'
 import CookieConsentBanner from '@/components/CookieBanner.vue'
+import { trackEvent } from '@/services/analytics'
 import { useHead } from '@vueuse/head'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -88,6 +89,22 @@ const defaultDescription =
 // Dynamically computed metadata based on the current route
 const pageTitle = computed(() => routeMetadata[route.path]?.title ?? defaultTitle)
 const pageDescription = computed(() => routeMetadata[route.path]?.description ?? defaultDescription)
+
+// Watch for route changes to manually trigger a page_view event for GTM/GA4.
+// While GA4's Enhanced Measurement for SPAs can be brittle, manual tracking is more robust.
+// This ensures every route change is captured as a page view. The initial page view
+// is handled by the GTM's GA4 config tag, so this watcher only handles subsequent navigations.
+watch(
+  () => route.path,
+  (path) => {
+    trackEvent('page_view', {
+      // By passing the computed title directly, we avoid race conditions
+      // with document.title updates.
+      page_title: pageTitle.value,
+      page_path: path,
+    })
+  },
+)
 
 useHead({
   title: pageTitle,
