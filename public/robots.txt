@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ivmanto.com/sitemap.xml

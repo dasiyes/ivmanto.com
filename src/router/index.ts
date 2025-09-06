@@ -5,8 +5,9 @@ import AboutView from '@/views/AboutView.vue'
 import BlogView from '@/views/BlogView.vue'
 import ArticleListView from '@/views/ArticleListView.vue'
 import ArticleView from '@/views/ArticleView.vue'
-import ServiceView from '@/views/ServiceView.vue'
+import ServiceView from '@/views/ServiceView.vue' // This will be our new dynamic view
 import BookingCalendar from '@/views/BookingCalendar.vue'
+import { services } from '@/data/services'
 import BookingCancellation from '@/views/BookingCancellation.vue'
 
 const router = createRouter({
@@ -36,15 +37,24 @@ const router = createRouter({
       ],
     },
     {
+      // This route handles the generic '/services' path.
+      // It restores the `name: 'services'` route used by the "Learn More" button on the Home page.
+      // It then redirects to the first available service page.
       path: '/services',
+      name: 'services',
+      redirect: () => {
+        // Redirect to the first service in the list as a default landing page.
+        const firstServiceId = services[0]?.id
+        return firstServiceId ? { name: 'service-detail', params: { id: firstServiceId } } : '/'
+      },
+    },
+    {
+      // This single dynamic route handles all service pages.
+      // e.g., /services/data-architecture
+      path: '/services/:id',
+      name: 'service-detail',
       component: ServiceView,
-      children: [
-        {
-          path: '',
-          name: 'services',
-          component: () => import('@/views/ServicesIndexView.vue'),
-        },
-      ],
+      props: true, // Passes the :id from the URL as a prop to ServiceView
     },
     {
       path: '/about',

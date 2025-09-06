@@ -58,8 +58,8 @@ async function handleGenerateIdeas() {
 
 <template>
   <div>
+    <!-- Infographic is now first, centered, and scaled down -->
     <section class="py-16 md:py-24 bg-light-gray hero-bg-pattern overflow-hidden">
-      <!-- Infographic is now first, centered, and scaled down -->
       <div
         class="flex justify-center transform scale-50 origin-top transition-transform duration-300 md:scale-75 -mb-56 md:-mb-28"
       >
@@ -91,7 +91,7 @@ async function handleGenerateIdeas() {
         </div>
       </div>
     </section>
-
+    <!-- Articles Section -->
     <section id="articles" class="py-20 md:py-28">
       <div class="container mx-auto px-6">
         <div class="text-center mb-16">
@@ -135,6 +135,7 @@ async function handleGenerateIdeas() {
             >View All Articles</RouterLink
           >
         </div>
+        <!-- Need Inspiration Section -->
         <div class="mt-24 bg-light-gray p-8 md:p-12 rounded-xl text-center">
           <h3 class="text-2xl md:text-3xl font-bold text-dark-slate">Need Inspiration?</h3>
           <p class="text-lg text-gray-600 mt-3 max-w-xl mx-auto">
@@ -162,7 +163,7 @@ async function handleGenerateIdeas() {
         </div>
       </div>
     </section>
-
+    <!-- Contact Section -->
     <section id="contact" class="py-20 md:py-28 bg-dark-slate text-white">
       <div class="container mx-auto px-6">
         <div class="text-center mb-12">

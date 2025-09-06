@@ -1,5 +1,19 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+const title = ref('Our Guiding Principles for Data Management & Architecture')
+</script>
+
 <template>
   <article class="prose prose-sm lg:prose-base max-w-none p-6">
+    <h2>{{ title }}</h2>
+    <p class="italic lg:text-l">
+      Our approach is grounded in the globally recognized standards of DAMA and its Data Management
+      Body of Knowledge (DMBOK), ensuring we turn your information into your most reliable and
+      valuable asset.
+    </p>
+    <p class="italic lg:text-sm">(A 3-minute read)</p>
+    <hr class="border-gray-200 my-2" />
+
     <p>
       At <strong>IVMANTO</strong>, we believe that successful data strategy isn't about chasing the
       latest tech trend; it's about building a solid foundation. Our approach is grounded in the
@@ -42,7 +56,7 @@
       <li>
         <strong>Data Architecture is the Enterprise Blueprint</strong>
         <p>
-          Your <stronh>Data Architecture</stronh> is the master plan for how your data is collected,
+          Your <strong>Data Architecture</strong> is the master plan for how your data is collected,
           stored, integrated, and used across the entire organization. A well-designed architecture
           prevents data silos and ensures that your systems can scale and adapt to future needs,
           including the demands of AI.

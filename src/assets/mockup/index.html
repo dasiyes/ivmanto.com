@@ -1031,15 +1031,87 @@ Constrain images and videos to the parent width and preserve their intrinsic asp
   <body>
     <div id="app" data-v-app="">
       <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center relative">
           <a href="#"><img src="./logo.svg" alt="IVMANTO Logo" class="h-16 w-auto" /></a>
           <div class="hidden md:flex items-center space-x-8">
-            <a href="#services" class="text-gray-600 hover:text-primary transition-colors"
-              >Services</a
-            ><a href="#about" class="text-gray-600 hover:text-primary transition-colors">About</a
-            ><a href="#articles" class="text-gray-600 hover:text-primary transition-colors"
+            <!-- Services Menu with Dropdown -->
+            <div class="group">
+              <a
+                href="#services"
+                class="text-gray-600 hover:text-primary transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span>Services</span>
+                <svg
+                  class="w-4 h-4 text-gray-500 group-hover:text-primary transition-transform duration-300 group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </a>
+
+              <!-- Mega Menu -->
+              <div
+                class="absolute top-full left-1/2 -translate-x-1/2 w-[80%] max-w-5xl bg-white shadow-lg rounded-lg p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible mt-2 border border-gray-100"
+              >
+                <div class="grid grid-cols-2 gap-x-10 gap-y-6">
+                  <!-- Dummy Service 1 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">Cloud Data Architecture</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Designing scalable and robust data platforms on GCP.
+                    </p>
+                  </a>
+                  <!-- Dummy Service 2 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">ML Engineering & MLOps</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Operationalizing models from prototype to production.
+                    </p>
+                  </a>
+                  <!-- Dummy Service 3 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">Data Governance & Strategy</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Implementing DAMA-aligned principles for data quality.
+                    </p>
+                  </a>
+                  <!-- Dummy Service 4 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">Sovereign Cloud (DE)</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Navigating data sovereignty, compliance, and innovation.
+                    </p>
+                  </a>
+                  <!-- Dummy Service 5 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">Guiding Principles</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Our DMBOK-based approach to data management.
+                    </p>
+                  </a>
+                  <!-- Dummy Service 6 -->
+                  <a href="#" class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="font-bold text-dark-slate">Analytics & BI</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      Turning raw data into actionable business intelligence.
+                    </p>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <a href="#about" class="text-gray-600 hover:text-primary transition-colors">About</a>
+            <a href="#articles" class="text-gray-600 hover:text-primary transition-colors"
               >Articles</a
-            ><a href="#contact" class="text-gray-600 hover:text-primary transition-colors"
+            >
+            <a href="#contact" class="text-gray-600 hover:text-primary transition-colors"
               >Contact</a
             >
           </div>
