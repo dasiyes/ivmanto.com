@@ -6,7 +6,7 @@
     >
       <!-- Header Section -->
       <div class="p-6 border-b border-gray-200 flex-shrink-0">
-        <h3 class="text-xl font-bold text-dark-slate">{{ service.title }}</h3>
+        <h3 class="text-xl font-bold text-dark-slate">{{ service.menuTitle }}</h3>
         <p class="mt-2 italic text text-gray-600">{{ service.summary }}</p>
       </div>
 
@@ -61,7 +61,7 @@ const consultationLink = computed(() => {
   if (!props.service) {
     return '/?subject=Consultation#contact'
   }
-  const subject = `Consultation about: ${props.service.title}`
+  const subject = `Consultation about: ${props.service.menuTitle}`
   return `/?subject=${encodeURIComponent(subject)}#contact`
 })
 </script>
