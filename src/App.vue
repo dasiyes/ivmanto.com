@@ -23,17 +23,61 @@ const siteUrl = 'https://ivmanto.com'
 
 // SEO metadata mapping for specific routes
 const routeMetadata: Record<string, { title: string; description: string }> = {
-  '/services/our-principles': {
-    title: 'Guiding Principles | ivmanto.com',
+  '/': {
+    title: 'ivmanto.com | Data & AI Consultancy',
     description:
-      'Our DAMA-aligned principles for data strategy, governance, and architecture ensure your data becomes a reliable, valuable asset.',
+      'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.',
+  },
+  '/services': {
+    title: 'Services | ivmanto.com',
+    description:
+      'Explore our Data & AI services. From data strategy and GCP architecture to custom AI/ML solutions and Go backend development, we empower your business with data.',
+  },
+  '/services/data-strategy-and-governance': {
+    title: 'Data Strategy & Governance | ivmanto.com',
+    description:
+      'Develop a clear data strategy and robust governance framework. We align your data initiatives with business goals for maximum impact and compliance.',
   },
   '/services/data-architecture-on-gcp': {
     title: 'Data Architecture on GCP | ivmanto.com',
     description:
-      'We design robust, scalable data architectures on Google Cloud (GCP) using BigQuery, GCS, and more, turning your AI strategy into reality.',
+      'Design and build scalable, secure data architectures on Google Cloud Platform (GCP). We leverage BigQuery, Cloud Storage, and modern data engineering practices.',
   },
-  // We can add more routes here later
+  '/services/ai-ml-solutions': {
+    title: 'AI & ML Solutions | ivmanto.com',
+    description:
+      'Leverage the power of AI and Machine Learning on GCP. We build custom solutions, from predictive analytics to generative AI, to solve your toughest challenges.',
+  },
+  '/services/go-backend-development': {
+    title: 'Go Backend Development | ivmanto.com',
+    description:
+      'High-performance Go (Golang) backend development for data-intensive applications. We build scalable, concurrent, and efficient cloud-native services.',
+  },
+  '/services/our-principles': {
+    title: 'Guiding Principles | ivmanto.com',
+    description:
+      'Our DAMA-aligned principles for data strategy, governance, and architecture ensure your data becomes a reliable, valuable asset for decision-making and AI.',
+  },
+  '/insights': {
+    title: 'Insights & Articles | ivmanto.com',
+    description:
+      'Read our latest articles and insights on data strategy, cloud architecture, AI/ML, and software engineering. Stay ahead of the curve with expert analysis.',
+  },
+  '/about': {
+    title: 'About | ivmanto.com',
+    description:
+      'Learn about IVMANTO and our mission to help businesses harness the power of data. Meet the experts behind our innovative data and AI solutions.',
+  },
+  '/contact': {
+    title: 'Contact Us | ivmanto.com',
+    description:
+      'Get in touch with IVMANTO to discuss your data and AI challenges. Book a free consultation or send us a message to start your data transformation journey.',
+  },
+  '/privacy-policy': {
+    title: 'Privacy Policy | ivmanto.com',
+    description:
+      'Read the IVMANTO Privacy Policy to understand how we collect, use, and protect your personal data in accordance with GDPR and other regulations.',
+  },
 }
 
 // Default metadata for other pages
