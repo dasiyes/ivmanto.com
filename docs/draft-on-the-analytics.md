@@ -30,14 +30,14 @@ To assess the website's value, we need to answer a few key questions:
 
 Here are the specific events we'll track to answer these questions:
 | Event Name | What it Measures | Business Value | Key Parameters |
-| ---------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `view_service_details` | A user clicks on a specific service from the list. | Engagement. Shows which services are most popular. | `service_id`, `service_name` |
-| `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. | `topic` |
-| `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
-| `like_insight` | A user clicks the "like" button on an article in the Insights section. | Direct measure of content value. Identifies what topics resonate most. | `insight_id`, `insight_title` |
-| `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `source` (e.g., 'service_card', 'home_cta'), `service_id` (if applicable) |
-| `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
-| `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
+| ---------------------- | -------------------------------------------------- | ---------------------------------------------------| ----------------- |
+| [x] `view_service_details` | A user clicks on a specific service from the list. | Engagement. Shows which services are most popular. | `service_id`, `service_name` |
+| [x] `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. | `topic` |
+| [ ] `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
+| [x] `like_insight` | A user clicks the "like" button on an article in the Insights section. | Direct measure of content value. Identifies what topics resonate most. | `insight_id`, `insight_title` |
+| [ ] `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `source` (e.g., 'service_card', 'home_cta'), `service_id` (if applicable) |
+| [ ] `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
+| [ ] `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
 
 ## Fine-Tuning the Strategy
 
@@ -84,7 +84,19 @@ This phase gets the basic infrastructure in place with a single, one-time code c
 
 - **Setup Tools:** Create accounts for Google Analytics 4 and Google Tag Manager.
 - **Install GTM:** Add the GTM code snippet to the main index.html of the Vue application. This is the only code change needed for this phase.
-- **Configure GA4 in GTM:** Set up a GA4 Configuration Tag in GTM. This will immediately start tracking basic metrics like page views, sessions, and traffic sources.
+- **Configure GA4 in GTM:** This is the crucial step that links GTM to GA4, enabling basic page view tracking.
+  1.  **Find Your GA4 Measurement ID:** Your Measurement ID (e.g., `G-XXXXXXXXXX`) is what tells GTM where to send data.
+      - **If you just created your Data Stream:** You should be on the "Web stream details" page. The Measurement ID is displayed in the top-right corner. Copy it.
+      - **If you are returning later:** Navigate to the **Admin** section in Google Analytics (look for the gear icon ⚙️ in the bottom-left). In the "Property" column, click **Data Streams**, select your web stream, and you will find the Measurement ID there. Copy it.
+  2.  **Create the GA4 Configuration Tag in GTM:**
+      - In your Google Tag Manager workspace, go to **Tags** > **New**.
+      - Name the tag `GA4 Configuration`.
+      - For "Tag Configuration", choose **Google Analytics: GA4 Configuration**.
+      - Paste your `G-XXXXXXXXXX` Measurement ID into the "Measurement ID" field.
+      - For **Triggering**, choose the **Initialization - All Pages** trigger.
+      - **SPA Page Views:** Leave the "Send a page view event when this configuration loads" box checked. In conjunction with GA4's "Enhanced Measurement" (which is on by default and tracks browser history changes), this will automatically track page views as users navigate through the Single Page Application.
+      - **Save** the tag.
+  3.  **Publish Your GTM Container:** Click the **Submit** button in GTM, give your version a name (e.g., "Initial GA4 Setup"), and click **Publish**. This makes your changes live.
 - **Build Dashboard v1:** Create a simple Looker Studio dashboard showing:
   - Users & Sessions over time.
   - Traffic sources (Where are users coming from?).

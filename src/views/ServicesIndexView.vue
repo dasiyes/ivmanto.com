@@ -140,6 +140,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { services, getServiceById } from '@/data/services'
+import { trackEvent } from '@/services/analytics'
 import ServiceDetail from '@/components/services/ServiceDetail.vue'
 import RightColumnContent from '@/components/services/RightColumnContent.vue'
 
@@ -164,6 +165,18 @@ function selectService(id: string) {
   isMobileNavOpen.value = false // Close nav on selection
 }
 
+// Watch for service selection changes to track analytics events.
+watch(selectedService, (newService, oldService) => {
+  // Fire event only when a new, different service is selected.
+  // This covers both direct clicks and changes from industry filtering.
+  if (newService && newService.id !== oldService?.id) {
+    trackEvent('view_service_details', {
+      service_id: newService.id,
+      service_name: newService.menuTitle, // As defined in the analytics plan
+    })
+  }
+})
+
 function setActiveIndustry(industry: string) {
   activeIndustry.value = industry
 }
@@ -184,7 +197,7 @@ watch(filteredServices, (newServices) => {
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scopedscoped>
 .pattern-bg {
   background-color: #ffffff;
   /* A subtle grid pattern */
