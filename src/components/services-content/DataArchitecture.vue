@@ -1,6 +1,12 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+const title = ref('Cloud Data Architecture')
+</script>
+
 <template>
   <p class="italic p-6">(A 4-minute read)</p>
   <article class="prose lg:prose-l max-w-none p-6">
+    <h1>{{ title }}</h1>
     <p>
       In the modern enterprise, the directive from the top is clear: leverage the cloud, deploy AI,
       and transform data into a strategic asset. Leaders are investing heavily in powerful cloud
