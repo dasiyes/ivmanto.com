@@ -4,9 +4,13 @@ const title = ref('Cloud Data Architecture')
 </script>
 
 <template>
-  <p class="italic p-6">(A 4-minute read)</p>
   <article class="prose lg:prose-l max-w-none p-6">
-    <h1>{{ title }}</h1>
+    <h2>{{ title }}</h2>
+    <p class="italic lg:text-l">
+      Designing scalable, secure, and cost-effective data platforms on GCP.
+    </p>
+    <p class="italic lg:text-sm">(A 4-minute read)</p>
+    <hr class="border-gray-200 my-2" />
     <p>
       In the modern enterprise, the directive from the top is clear: leverage the cloud, deploy AI,
       and transform data into a strategic asset. Leaders are investing heavily in powerful cloud
