@@ -2,7 +2,7 @@
   <div class="privacy-policy-container">
     <h1>Privacy Policy</h1>
 
-    <p>Last updated: February 19, 2020</p>
+    <p>Last updated: September 6, 2025</p>
 
     <p>
       This Privacy Policy describes Our policies and procedures on the collection, use and
@@ -43,7 +43,7 @@
       <li>
         <p>
           <strong>Company</strong> (referred to as either "the Company", "We", "Us" or "Our" in this
-          Agreement) refers to Money Planner.
+          Agreement) refers to ivmanto.com.
         </p>
         <p>For the purpose of the GDPR, the Company is the Data Controller.</p>
       </li>
@@ -58,11 +58,10 @@
         parts of our Service.
       </li>
       <li>
-        <strong>Website</strong> refers to Money Planner, accessible from
-        https://app.moneyplanner.me
+        <strong>Website</strong> refers to ivmanto.com, accessible from https://www.ivmanto.com
       </li>
       <li><strong>Service</strong> refers to the Website.</li>
-      <li><strong>Country</strong> refers to: Bavaria, Germany</li>
+      <li><strong>Country</strong> refers to: Germany</li>
       <li>
         <p>
           <strong>Service Provider</strong> means any natural or legal person who processes the data
@@ -78,9 +77,8 @@
         network website through which a User can log in or create an account to use the Service.
       </li>
       <li>
-        <strong>Facebook Fan Page</strong> is a public profile named Money Planner specifically
-        created by the Company on the Facebook social network, accessible from
-        https://www.facebook.com/Money-Planner-108068424117347
+        <strong>Facebook Fan Page</strong> is a public profile named ivmanto.com specifically
+        created by the Company on the Facebook social network, if applicable.
       </li>
       <li>
         <p>
@@ -479,9 +477,9 @@
     <h1>Facebook Fan Page</h1>
     <h2>Data Controller for the Facebook Fan Page</h2>
     <p>
-      The Company is the Data Controller of Your Personal Data collected while using the Service. As
-      operator of the Facebook Fan Page (https://www.facebook.com/Money-Planner-108068424117347),
-      the Company and the operator of the social network Facebook are Joint Controllers.
+      The Company is the Data Controller of Your Personal Data collected while using the Service. If
+      the Company operates a Facebook Fan Page, the Company and the operator of the social network
+      Facebook are Joint Controllers.
     </p>
     <p>
       The Company has entered into agreements with Facebook that define the terms for use of the

@@ -1,16 +1,16 @@
-import './style.css'
 import { createApp } from 'vue'
+import { createHead } from '@vueuse/head'
 import App from './App.vue'
-import router from './router' // This line must be correct
+import router from './router'
+import { initGtm } from './services/analytics'
+import './style.css'
 
 const COOKIE_CONSENT_KEY = 'cookie_consent'
 const consent: string | null = localStorage.getItem(COOKIE_CONSENT_KEY)
 
 if (consent === 'accepted') {
-  // User has accepted cookies.
-  // This is where you would initialize analytics, tracking scripts, etc.
-  console.log('Cookie consent is "accepted". Initializing analytics...')
-  // e.g., initializeGoogleAnalytics();
+  console.log('Cookie consent is "accepted". Initializing Google Tag Manager...')
+  initGtm()
 } else {
   // User has either declined or not made a choice yet.
   // Do not run any non-essential, cookie-setting scripts.
@@ -18,9 +18,8 @@ if (consent === 'accepted') {
 }
 
 const app = createApp(App)
+const head = createHead()
 app.use(router)
+app.use(head)
 
-// Wait for the router to be ready before mounting the app
-router.isReady().then(() => {
-  app.mount('#app')
-})
+app.mount('#app')

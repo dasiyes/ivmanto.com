@@ -42,7 +42,7 @@
       <li>
         <strong>Data Architecture is the Enterprise Blueprint</strong>
         <p>
-          Your <stronh>Data Architecture</stronh> is the master plan for how your data is collected,
+          Your <strong>Data Architecture</strong> is the master plan for how your data is collected,
           stored, integrated, and used across the entire organization. A well-designed architecture
           prevents data silos and ensures that your systems can scale and adapt to future needs,
           including the demands of AI.

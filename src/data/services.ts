@@ -62,9 +62,10 @@ export const services: Service[] = [
   },
   {
     id: 'data-architecture',
-    menuTitle: 'Cloud Data Architecture',
+    menuTitle: 'Data Architecture',
     title: 'Cloud Data Architecture',
-    summary: 'Designing scalable, secure, and cost-effective data platforms on GCP.',
+    summary:
+      'Beyond the Blueprint: Why Your Data Architecture is the True Engine of Your AI Strategy',
     icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />`,
     detailsComponent: defineAsyncComponent(
       () => import('@/components/services-content/DataArchitecture.vue'),
