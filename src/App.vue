@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import Header from '@/components/layout/TheHeader.vue'
-import Footer from '@/components/layout/TheFooter.vue'
+import Header from '@/components/layout/AppHeader.vue'
+import Footer from '@/components/layout/AppFooter.vue'
 import CookieConsentBanner from '@/components/CookieBanner.vue'
 import { useHead } from '@vueuse/head'
 import { computed } from 'vue'
