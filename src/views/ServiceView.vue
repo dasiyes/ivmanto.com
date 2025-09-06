@@ -7,33 +7,84 @@
         <nav class="space-y-2">
           <!-- The sidebar is dynamically generated from services.ts -->
           <RouterLink
-            v-for="service in allServices"
-            :key="service.id"
-            :to="`/services/${service.id}`"
+            v-for="s in allServices"
+            :key="s.id"
+            :to="`/services/${s.id}`"
             class="block p-3 -m-3 rounded-lg transition-colors"
             :class="{
-              'bg-light-gray text-primary': service.id === id,
-              'hover:bg-gray-50': service.id !== id,
+              'bg-light-gray text-primary': s.id === id,
+              'hover:bg-gray-50': s.id !== id,
             }"
           >
-            <p class="font-semibold text-dark-slate">{{ service.menuTitle }}</p>
-            <p class="text-sm text-gray-600 mt-1">{{ service.summary }}</p>
+            <p class="font-semibold text-dark-slate">{{ s.menuTitle }}</p>
+            <p class="text-sm text-gray-600 mt-1">{{ s.summary }}</p>
           </RouterLink>
         </nav>
       </aside>
 
-      <!-- Right Column: Dynamic Service Content -->
-      <main class="w-full md:w-2/3 lg:w-3/4">
-        <div v-if="serviceComponent" class="bg-white border border-gray-200 rounded-xl shadow-sm">
-          <!-- This renders the correct component, e.g., DataArchitecture.vue -->
-          <component :is="serviceComponent" />
+      <!-- Right Column: Main content area -->
+      <div class="w-full md:w-2/3 lg:w-3/4">
+        <div v-if="service" class="space-y-8">
+          <!-- Top Bar: Industries -->
+          <div class="p-4 bg-light-gray rounded-lg">
+            <h3 class="font-semibold text-dark-slate mb-2">Relevant Industries</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="industry in service.industries"
+                :key="industry"
+                class="bg-white text-primary text-sm font-medium px-3 py-1 rounded-full border border-gray-200"
+              >
+                {{ industry }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Main content with right sidebar for keywords -->
+          <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Core Service Article -->
+            <main
+              class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
+            >
+              <component :is="service.detailsComponent" />
+            </main>
+
+            <!-- Right Sidebar: Keywords -->
+            <aside
+              v-if="service.tagDetails && Object.keys(service.tagDetails).length"
+              class="w-full lg:w-1/3"
+            >
+              <div class="p-4 bg-light-gray rounded-lg sticky top-24">
+                <h3 class="font-bold text-dark-slate mb-4">Key Concepts</h3>
+                <div class="space-y-4">
+                  <div v-for="(desc, tag) in service.tagDetails" :key="tag">
+                    <p class="font-semibold text-primary">{{ tag }}</p>
+                    <p class="text-sm text-gray-600">{{ desc }}</p>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <!-- Bottom Bar: CTA -->
+          <div class="p-6 bg-primary text-white rounded-lg flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-xl">Ready to build your data foundation?</h3>
+              <p>Let's discuss how these services can be tailored to your business.</p>
+            </div>
+            <router-link
+              :to="{ name: 'booking' }"
+              class="bg-white text-primary font-bold py-2 px-5 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+            >
+              Book a Consultation
+            </router-link>
+          </div>
         </div>
         <div v-else class="text-center p-12">
           <h1 class="text-2xl font-bold">Service Not Found</h1>
           <p class="mt-4">The service you are looking for does not exist.</p>
           <RouterLink to="/" class="text-primary mt-6 inline-block">Go back to Home</RouterLink>
         </div>
-      </main>
+      </div>
     </div>
   </div>
 </template>
@@ -48,14 +99,7 @@ const props = defineProps<{
   id: string
 }>()
 
-/**
- * Finds the specific service to display based on the ID from the URL.
- * Its `detailsComponent` will be rendered in the main content area.
- */
-const serviceComponent = computed(() => {
-  const service = getServiceById(props.id)
-  return service ? service.detailsComponent : null
-})
+const service = computed(() => getServiceById(props.id))
 </script>
 
 <style scoped>

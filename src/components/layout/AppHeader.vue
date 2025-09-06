@@ -6,14 +6,20 @@
       /></router-link>
       <div class="hidden md:flex items-center space-x-8">
         <!-- Services Menu with Dropdown -->
-        <div class="group py-4 -my-4">
+        <!-- The py-4 -my-4 trick creates an invisible vertical padding area to bridge the gap between the link and the submenu, preventing it from closing prematurely. -->
+        <div :class="{ group: !isServicesPage }" class="py-4 -my-4">
           <router-link
             :to="{ name: 'services' }"
-            class="text-gray-600 hover:text-primary transition-colors flex items-center gap-1 cursor-pointer"
+            class="text-gray-600 transition-colors flex items-center gap-1 cursor-pointer"
+            :class="{
+              'hover:text-primary': !isServicesPage,
+              'text-primary font-semibold': isServicesPage,
+            }"
           >
             <span>Services</span>
             <svg
-              class="w-4 h-4 text-gray-500 group-hover:text-primary transition-transform duration-300 group-hover:rotate-180"
+              class="w-4 h-4 text-gray-500 transition-transform duration-300"
+              :class="{ 'group-hover:text-primary group-hover:rotate-180': !isServicesPage }"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -30,6 +36,7 @@
 
           <!-- Mega Menu -->
           <div
+            v-if="!isServicesPage"
             class="absolute top-full left-1/2 -translate-x-1/2 w-[80%] max-w-5xl opacity-0 invisible group-hover:opacity-100 group-hover:visible pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300"
           >
             <div class="bg-white shadow-lg rounded-lg p-8 border border-gray-100 mt-2">
@@ -87,5 +94,9 @@
 
 <script setup lang="ts">
 import { services } from '@/data/services'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
+import { computed } from 'vue'
+
+const route = useRoute()
+const isServicesPage = computed(() => route.path.startsWith('/services'))
 </script>
