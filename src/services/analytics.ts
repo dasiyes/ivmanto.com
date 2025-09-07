@@ -10,6 +10,10 @@ declare global {
  * @param {Record<string, any>} params Additional data to send with the event.
  */
 export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
+  // Ensure this only runs in the browser where window.dataLayer exists.
+  if (typeof window === 'undefined') {
+    return
+  }
   window.dataLayer = window.dataLayer || []
   window.dataLayer.push({
     event: eventName,
@@ -29,6 +33,11 @@ type GaSessionInfo = {
  * @returns {GaSessionInfo} An object containing the clientId and sessionId.
  */
 export const getGaSessionInfo = (measurementId: string): GaSessionInfo => {
+  // Ensure this only runs in the browser where document.cookie exists.
+  if (typeof document === 'undefined' || typeof document.cookie === 'undefined') {
+    return { clientId: null, sessionId: null }
+  }
+
   let clientId: string | null = null
   let sessionId: string | null = null
   const measurementCookieName = `_ga_${measurementId.replace('G-', '')}`

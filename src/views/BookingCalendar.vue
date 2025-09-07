@@ -61,6 +61,9 @@ const isNextDayDisabled = computed(() => {
 })
 
 const timezone = computed(() => {
+  if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat === 'undefined') {
+    return 'Unknown' // Fallback for environments without Intl API (e.g., during build or SSR)
+  }
   return Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ')
 })
 
