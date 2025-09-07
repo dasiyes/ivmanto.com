@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { trackEvent, getGaClientId } from '@/services/analytics'
+import { trackEvent, getGaSessionInfo } from '@/services/analytics'
 
 const props = defineProps<{
   // The source prop helps us identify where the form was submitted from,
@@ -43,7 +43,8 @@ async function handleSubmit() {
   errorMessage.value = ''
 
   // As per the analytics plan, capture the GA Client ID for server-side tracking.
-  const clientId = getGaClientId()
+  const measurementId = 'G-W1TJ3KMZ6V' // This should match your GA4 Measurement ID
+  const { clientId } = getGaSessionInfo(measurementId)
 
   try {
     const response = await fetch('/api/contact', {
