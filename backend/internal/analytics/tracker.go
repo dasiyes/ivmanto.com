@@ -40,6 +40,7 @@ func NewTracker(apiSecret, measurementID string, logger *slog.Logger) (*Tracker,
 // BookingConfirmedEvent represents the data for a confirmed booking.
 type BookingConfirmedEvent struct {
 	ClientID      string
+	SessionID     string
 	TransactionID string
 	Value         float64
 	Currency      string
@@ -48,24 +49,31 @@ type BookingConfirmedEvent struct {
 // TrackBookingConfirmed sends the highest-value conversion event to GA4.
 func (t *Tracker) TrackBookingConfirmed(ctx context.Context, eventDetails BookingConfirmedEvent) {
 	if eventDetails.ClientID == "" {
-		t.logger.Warn("Cannot track booking confirmation: clientID is missing.")
+		t.logger.Warn("Cannot track booking confirmation: ClientID is missing. The event will not be sent.")
 		return
 	}
 
 	url := fmt.Sprintf("%s?api_secret=%s&measurement_id=%s", measurementProtocolURL, t.apiSecret, t.measurementID)
 
+	eventParams := map[string]interface{}{
+		"currency":       eventDetails.Currency,
+		"value":          eventDetails.Value,
+		"transaction_id": eventDetails.TransactionID,
+	}
+
+	// If a session ID is available, include it for better attribution.
+	if eventDetails.SessionID != "" {
+		eventParams["session_id"] = eventDetails.SessionID
+		// engagement_time_msec is required if session_id is provided.
+		eventParams["engagement_time_msec"] = "1"
+	}
+
 	payload := map[string]interface{}{
 		"client_id": eventDetails.ClientID,
 		"events": []map[string]interface{}{
 			{
-				"name": "booking_confirmed",
-				"params": map[string]interface{}{
-					"currency":             eventDetails.Currency,
-					"value":                eventDetails.Value,
-					"transaction_id":       eventDetails.TransactionID,
-					"session_id":           "12345", // You can enhance this later if you capture session_id
-					"engagement_time_msec": 1,
-				},
+				"name":   "booking_confirmed",
+				"params": eventParams,
 			},
 		},
 	}
@@ -92,7 +100,11 @@ func (t *Tracker) TrackBookingConfirmed(ctx context.Context, eventDetails Bookin
 
 	// A 204 No Content response is a success.
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		t.logger.Info("Successfully sent 'booking_confirmed' event to Google Analytics", "client_id_suffix", eventDetails.ClientID[len(eventDetails.ClientID)-4:], "transaction_id", eventDetails.TransactionID)
+		logClientID := "N/A"
+		if len(eventDetails.ClientID) > 4 {
+			logClientID = "..." + eventDetails.ClientID[len(eventDetails.ClientID)-4:]
+		}
+		t.logger.Info("Successfully sent 'booking_confirmed' event to Google Analytics", "client_id_suffix", logClientID, "transaction_id", eventDetails.TransactionID)
 	} else {
 		t.logger.Error("Google Analytics API returned a non-success status", "status_code", resp.StatusCode)
 	}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
+import { getGaSessionInfo } from '@/services/analytics'
 import { ref, onMounted, computed, watch } from 'vue'
 
 type TimeSlot = {
@@ -138,12 +139,17 @@ async function handleBookingSubmit() {
   isLoading.value = true
   error.value = null
   try {
+    // Fetch both Client ID and Session ID for robust server-side tracking
+    const measurementId = 'G-W1TJ3KMZ6V' // This should match your GA4 Measurement ID
+    const { clientId, sessionId } = getGaSessionInfo(measurementId)
     const response = await fetch('/api/booking/book', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        ga_client_id: clientId,
+        ga_session_id: sessionId,
         eventId: selectedSlot.value.id,
         ...bookingDetails.value,
       }),

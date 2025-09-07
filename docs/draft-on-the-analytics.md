@@ -35,7 +35,7 @@ Here are the specific events we'll track to answer these questions:
 | [x] `generate_inspiration_ideas` | A user interacts with the "Inspiration" tool on the home page. | Engagement with your lead magnet. Shows the tool is being used. | `topic` |
 | [ ] `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
 | [x] `like_insight` | A user clicks the "like" button on an article in the Insights section. | Direct measure of content value. Identifies what topics resonate most. | `insight_id`, `insight_title` |
-| [ ] `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `source` (e.g., 'service_card', 'home_cta'), `service_id` (if applicable) |
+| [x] `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `cbc_source` (e.g., 'service_card', 'home_cta'), `cbc_service_id` (if applicable) |
 | [ ] `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
 | [ ] `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
 
@@ -67,6 +67,41 @@ export const trackEvent = (eventName: string, params: Record<string, any> = {}) 
     event: eventName,
     ...params,
   })
+}
+
+type GaSessionInfo = {
+  clientId: string | null
+  sessionId: string | null
+}
+
+/**
+ * Retrieves the Google Analytics Client ID and Session ID from browser cookies.
+ * This is crucial for stitching frontend user sessions with backend (server-to-server) events.
+ * @param {string} measurementId The GA4 Measurement ID (e.g., 'G-XXXXXXXXXX').
+ * @returns {GaSessionInfo} An object containing the clientId and sessionId.
+ */
+export const getGaSessionInfo = (measurementId: string): GaSessionInfo => {
+  let clientId: string | null = null
+  let sessionId: string | null = null
+  const measurementCookieName = `_ga_${measurementId.replace('G-', '')}`
+
+  const cookies = document.cookie.split(';')
+  for (const cookie of cookies) {
+    const cookieStr = cookie.trim()
+
+    if (cookieStr.startsWith('_ga=')) {
+      const value = cookieStr.substring(4) // length of '_ga='
+      clientId = value.split('.').slice(2).join('.')
+    }
+
+    if (cookieStr.startsWith(measurementCookieName + '=')) {
+      const value = cookieStr.substring(measurementCookieName.length + 1)
+      const parts = value.split('.')
+      if (parts.length >= 3) sessionId = parts[2]
+    }
+  }
+
+  return { clientId, sessionId }
 }
 ```
 

@@ -183,7 +183,8 @@ type createBookingRequest struct {
 	Email   string `json:"email"`
 	Notes   string `json:"notes"`
 	// GaClientID captures the Google Analytics Client ID for server-side conversion tracking.
-	GaClientID string `json:"ga_client_id,omitempty"`
+	GaClientID  string `json:"ga_client_id,omitempty"`
+	GaSessionID string `json:"ga_session_id,omitempty"`
 }
 
 // handleCreateBooking handles a new booking request.
@@ -230,6 +231,7 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 
 		h.trackerSvc.TrackBookingConfirmed(r.Context(), analytics.BookingConfirmedEvent{
 			ClientID:      req.GaClientID,
+			SessionID:     req.GaSessionID,
 			TransactionID: event.Id, // The unique calendar event ID is a perfect transaction ID.
 			Value:         bookingValue,
 			Currency:      currency,
