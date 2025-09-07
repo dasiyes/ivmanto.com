@@ -86,7 +86,7 @@ async function handleGenerateIdeas() {
           <RouterLink
             :to="{ name: 'services' }"
             class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
-            >Learn More</RouterLink
+            >More About our Services</RouterLink
           >
         </div>
       </div>

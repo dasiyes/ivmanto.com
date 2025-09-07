@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-const title = ref('Data Governance & Strategy')
+const title = ref('Data Strategy & Governance')
 </script>
 
 <template>

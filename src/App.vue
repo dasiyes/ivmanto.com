@@ -22,6 +22,12 @@ const route = useRoute()
 
 const siteUrl = 'https://ivmanto.com'
 
+//   '/services/go-backend-development': {
+//   title: 'Go Backend Development | ivmanto.com',
+//   description:
+//     'High-performance Go (Golang) backend development for data-intensive applications. We build scalable, concurrent, and efficient cloud-native services.',
+// },
+
 // SEO metadata mapping for specific routes
 const routeMetadata: Record<string, { title: string; description: string }> = {
   '/': {
@@ -39,27 +45,22 @@ const routeMetadata: Record<string, { title: string; description: string }> = {
     description:
       'Develop a clear data strategy and robust governance framework. We align your data initiatives with business goals for maximum impact and compliance.',
   },
-  '/services/data-architecture-on-gcp': {
+  '/services/data-architecture': {
     title: 'Data Architecture on GCP | ivmanto.com',
     description:
       'Design and build scalable, secure data architectures on Google Cloud Platform (GCP). We leverage BigQuery, Cloud Storage, and modern data engineering practices.',
   },
-  '/services/ai-ml-solutions': {
+  '/services/ml-engineering': {
     title: 'AI & ML Solutions | ivmanto.com',
     description:
       'Leverage the power of AI and Machine Learning on GCP. We build custom solutions, from predictive analytics to generative AI, to solve your toughest challenges.',
   },
-  '/services/go-backend-development': {
-    title: 'Go Backend Development | ivmanto.com',
-    description:
-      'High-performance Go (Golang) backend development for data-intensive applications. We build scalable, concurrent, and efficient cloud-native services.',
-  },
-  '/services/our-principles': {
+  '/services/principles': {
     title: 'Guiding Principles | ivmanto.com',
     description:
       'Our DAMA-aligned principles for data strategy, governance, and architecture ensure your data becomes a reliable, valuable asset for decision-making and AI.',
   },
-  '/insights': {
+  '/blog': {
     title: 'Insights & Articles | ivmanto.com',
     description:
       'Read our latest articles and insights on data strategy, cloud architecture, AI/ML, and software engineering. Stay ahead of the curve with expert analysis.',
@@ -69,8 +70,8 @@ const routeMetadata: Record<string, { title: string; description: string }> = {
     description:
       'Learn about IVMANTO and our mission to help businesses harness the power of data. Meet the experts behind our innovative data and AI solutions.',
   },
-  '/contact': {
-    title: 'Contact Us | ivmanto.com',
+  '/booking': {
+    title: 'Contact us | ivmanto.com',
     description:
       'Get in touch with IVMANTO to discuss your data and AI challenges. Book a free consultation or send us a message to start your data transformation journey.',
   },
@@ -115,14 +116,52 @@ useHead({
     { property: 'og:title', content: pageTitle },
     { property: 'og:description', content: pageDescription },
     { property: 'og:url', content: computed(() => `${siteUrl}${route.path}`) },
-    { property: 'og:image', content: `${siteUrl}/social-sharing-card.png` },
+    { property: 'og:image', content: `${siteUrl}/social-sharing-card.webp` },
     // Twitter Card
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: pageTitle },
     { name: 'twitter:description', content: pageDescription },
-    { name: 'twitter:image', content: `${siteUrl}/social-sharing-card.png` },
+    { name: 'twitter:image', content: `${siteUrl}/social-sharing-card.webp` },
   ],
   link: [{ rel: 'canonical', href: computed(() => `${siteUrl}${route.path}`) }],
+  script: [
+    {
+      id: 'organization-schema',
+      type: 'application/ld+json',
+      children: JSON.stringify(
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          '@id': `${siteUrl}/#organization`,
+          name: 'ivmanto.com | Data & AI Consultancy',
+          url: siteUrl,
+          logo: `${siteUrl}/logo.webp`, // Make sure you have a logo.png in your /public directory
+          contactPoint: {
+            '@type': 'ContactPoint',
+            email: 'nikolay.tonev@ivmanto.com',
+            contactType: 'customer service',
+          },
+          sameAs: ['https://linkedin.com/in/nikolaytonev', 'https://github.com/dasiyes'],
+        },
+        null,
+        2,
+      ),
+    },
+    {
+      id: 'website-schema',
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        url: siteUrl,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}/search?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      }),
+    },
+  ],
 })
 </script>
 
