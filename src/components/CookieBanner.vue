@@ -15,6 +15,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { ref, onMounted } from 'vue'
+import { initGtm } from '@/services/analytics'
 
 const showBanner = ref(false)
 
@@ -30,6 +31,8 @@ onMounted(() => {
 const acceptCookies = () => {
   localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted')
   showBanner.value = false
+  // Initialize GTM immediately after consent is given.
+  initGtm()
 }
 
 const declineCookies = () => {

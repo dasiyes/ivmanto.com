@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { trackEvent, getGaClientId } from '@/services/analytics'
+
+const props = defineProps<{
+  // The source prop helps us identify where the form was submitted from,
+  // as per the analytics plan (e.g., 'home_page_form', 'contact_page_form').
+  source: string
+}>()
 
 const route = useRoute()
 
@@ -35,13 +42,19 @@ async function handleSubmit() {
   formState.value = 'submitting'
   errorMessage.value = ''
 
+  // As per the analytics plan, capture the GA Client ID for server-side tracking.
+  const clientId = getGaClientId()
+
   try {
     const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formData.value),
+      body: JSON.stringify({
+        ...formData.value,
+        ga_client_id: clientId, // Send the client ID to the backend.
+      }),
     })
 
     if (!response.ok) {
@@ -50,6 +63,12 @@ async function handleSubmit() {
     }
 
     formState.value = 'success'
+    // As per the analytics plan, track this secondary conversion goal.
+    trackEvent('contact_form_submit', {
+      // Use the source prop to provide context on where the submission happened.
+      source: props.source,
+    })
+
     // Optionally reset form after a delay
     setTimeout(() => {
       formData.value = { name: '', email: '', message: '', sendCopyToSelf: false }

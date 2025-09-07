@@ -34,6 +34,30 @@ export const initGtm = () => {
   console.log('Google Tag Manager initialized.')
 }
 
+/**
+ * Retrieves the Google Analytics Client ID from the _ga cookie.
+ * This is essential for server-side event tracking via the Measurement Protocol,
+ * allowing us to link a backend conversion (like a confirmed booking) to the
+ * user's original frontend session.
+ * @returns {string | undefined} The client ID, or undefined if not found.
+ */
+export const getGaClientId = (): string | undefined => {
+  if (typeof document === 'undefined') {
+    return undefined
+  }
+  const gaCookie = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('_ga='))
+    ?.split('=')[1]
+
+  if (!gaCookie) {
+    return undefined
+  }
+
+  const parts = gaCookie.split('.')
+  return parts.length > 2 ? parts.slice(-2).join('.') : undefined
+}
+
 export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
   if (typeof window.dataLayer === 'undefined') {
     console.warn('DataLayer not available. Event not tracked:', eventName, params)

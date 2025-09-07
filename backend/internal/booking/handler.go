@@ -9,23 +9,26 @@ import (
 	"time"
 
 	"google.golang.org/api/calendar/v3"
+	"ivmanto.com/backend/internal/analytics"
 	"ivmanto.com/backend/internal/email"
 	"ivmanto.com/backend/internal/gcal"
 )
 
 // Handler manages booking-related HTTP requests.
 type Handler struct {
-	logger   *slog.Logger
-	gcalSvc  gcal.Service
-	emailSvc email.Service
+	logger     *slog.Logger
+	gcalSvc    gcal.Service
+	emailSvc   email.Service
+	trackerSvc *analytics.Tracker
 }
 
 // NewHandler creates a new booking handler.
-func NewHandler(logger *slog.Logger, gcalSvc gcal.Service, emailSvc email.Service) *Handler {
+func NewHandler(logger *slog.Logger, gcalSvc gcal.Service, emailSvc email.Service, trackerSvc *analytics.Tracker) *Handler {
 	return &Handler{
-		logger:   logger,
-		gcalSvc:  gcalSvc,
-		emailSvc: emailSvc,
+		logger:     logger,
+		gcalSvc:    gcalSvc,
+		emailSvc:   emailSvc,
+		trackerSvc: trackerSvc,
 	}
 }
 
@@ -179,6 +182,8 @@ type createBookingRequest struct {
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Notes   string `json:"notes"`
+	// GaClientID captures the Google Analytics Client ID for server-side conversion tracking.
+	GaClientID string `json:"ga_client_id,omitempty"`
 }
 
 // handleCreateBooking handles a new booking request.
@@ -216,6 +221,20 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info("Booking created successfully", "event_id", event.Id)
+
+	// Fire the server-side analytics event in a goroutine so it doesn't block the response.
+	go func() {
+		// These values should ideally be configurable.
+		const bookingValue = 250.0 // Example value for a consultation
+		const currency = "USD"
+
+		h.trackerSvc.TrackBookingConfirmed(r.Context(), analytics.BookingConfirmedEvent{
+			ClientID:      req.GaClientID,
+			TransactionID: event.Id, // The unique calendar event ID is a perfect transaction ID.
+			Value:         bookingValue,
+			Currency:      currency,
+		})
+	}()
 
 	// Send confirmation emails in the background
 	go func() {

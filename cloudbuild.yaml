@@ -68,9 +68,11 @@ steps:
       - '--allow-unauthenticated'
       # Set the runtime service account for the new revision. This is critical.
       - '--service-account=${_BACKEND_SA_NAME}'
-      # The runtime service account needs the "Secret Manager Secret Accessor" role.
+      # The runtime service account needs the "Secret Manager Secret Accessor" role for these secrets.
       - '--set-secrets=SMTP_PASS=${_SMTP_SECRET_NAME}:latest'
       - '--set-secrets=IDEAS_PROMPT=${_IDEAS_PROMPT_SECRET_NAME}:latest'
+      # Add the new secret for Google Analytics
+      - '--set-secrets=GA_API_SECRET=${_GA_API_SECRET_NAME}:latest'
       # Set environment variables one by one for clarity and to avoid parsing issues with complex strings.
       - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID}'
       - '--set-env-vars=GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
@@ -80,6 +82,8 @@ steps:
       - '--set-env-vars=SEND_FROM_ALIAS=${_SEND_FROM_ALIAS}'
       - '--set-env-vars=GCP_PROJECT_ID=${_GCP_PROJECT_ID}'
       - '--set-env-vars=GCP_LOCATION=${_GCP_LOCATION}'
+      # Add the new environment variable for Google Analytics
+      - '--set-env-vars=GA_MEASUREMENT_ID=${_GA_MEASUREMENT_ID}'
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -99,6 +103,9 @@ substitutions:
   _GCP_PROJECT_ID: 'ivmanto-com-prod'
   _GCP_LOCATION: 'europe-west3'
   _IDEAS_PROMPT_SECRET_NAME: 'ideas-prompt'
+  # Add new substitutions for analytics
+  _GA_API_SECRET_NAME: 'ga-api-secret' # The name of the secret in Secret Manager
+  _GA_MEASUREMENT_ID: 'G-W1TJ3KMZ6V' # Your GA4 Measurement ID - Set in Trigger UI
 
 # The image created by this build.
 images:
