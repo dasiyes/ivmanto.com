@@ -16,6 +16,9 @@ export async function generateInspirationIdeas(topic: string): Promise<Idea[]> {
     const response = await axios.post<Idea[]>('/api/generate-ideas', { topic })
     return response.data
   } catch (error) {
+    console.error('API Error in generateInspirationIdeas:', error)
+    // Re-throw a new, more generic error to be handled by the calling component.
+    // This prevents the function from implicitly returning `undefined` and causing a type error.
     throw new Error('Failed to generate ideas. Please try again later.')
   }
 }
