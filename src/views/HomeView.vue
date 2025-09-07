@@ -42,6 +42,13 @@ async function handleGenerateIdeas() {
     isLoading.value = false
   }
 }
+
+function trackBookConsultationClick() {
+  // As per the analytics plan, track this primary conversion goal.
+  trackEvent('click_book_consultation', {
+    source: 'home_hero_cta',
+  })
+}
 </script>
 
 <template>
@@ -68,6 +75,7 @@ async function handleGenerateIdeas() {
         <div class="mt-10 flex justify-center gap-4">
           <RouterLink
             :to="{ name: 'booking' }"
+            @click="trackBookConsultationClick"
             class="bg-primary text-white font-bold py-3 px-8 rounded-lg hover:bg-opacity-90 transition-all text-lg"
             >Book a Consultation</RouterLink
           >
@@ -160,7 +168,7 @@ async function handleGenerateIdeas() {
             Have a project in mind? Let me know the details and I'll draft your inquiry.
           </p>
         </div>
-        <ContactForm />
+        <ContactForm source="home_page_form" />
       </div>
     </section>
 

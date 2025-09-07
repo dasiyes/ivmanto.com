@@ -10,6 +10,7 @@
             v-for="s in allServices"
             :key="s.id"
             :to="`/services/${s.id}`"
+            @click="trackServiceClick(s)"
             class="block p-3 -m-3 rounded-lg transition-colors"
             :class="{
               'bg-light-gray text-primary': s.id === id,
@@ -73,6 +74,7 @@
             </div>
             <router-link
               :to="{ name: 'booking' }"
+              @click="trackBookConsultationClick"
               class="bg-white text-primary font-bold py-2 px-5 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
             >
               Book a Consultation
@@ -91,9 +93,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, type RouteLocationRaw } from 'vue-router'
 import { useHead } from '@vueuse/head'
-import { services as allServices, getServiceById } from '@/data/services'
+import { services as allServices, getServiceById, type Service } from '@/data/services'
+import { trackEvent } from '@/services/analytics'
 
 const props = defineProps<{
   // This `id` is passed automatically by the router because of `props: true`
@@ -102,6 +105,21 @@ const props = defineProps<{
 
 const route = useRoute()
 const service = computed(() => getServiceById(props.id))
+
+function trackServiceClick(service: Service) {
+  // As per the analytics plan, track when a user clicks to view a service.
+  trackEvent('view_service_details', {
+    service_id: service.id,
+    service_name: service.menuTitle,
+  })
+}
+
+function trackBookConsultationClick() {
+  trackEvent('click_book_consultation', {
+    source: 'service_page_cta',
+    service_id: props.id, // Include the current service ID for context
+  })
+}
 
 const serviceSchema = computed(() => {
   if (!service.value) {

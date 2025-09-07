@@ -324,6 +324,12 @@ async function handleLike() {
     isLiked.value = false
     likeCount.value--
     localStorage.removeItem(`liked-${article.value.slug}`)
+    // Track the 'unlike' action for more detailed engagement analysis.
+    trackEvent('like_insight', {
+      insight_id: article.value.slug,
+      insight_title: article.value.title,
+      like_status: 'unliked', // Add status parameter
+    })
   } else {
     isLiked.value = true
     likeCount.value++
@@ -333,6 +339,7 @@ async function handleLike() {
     trackEvent('like_insight', {
       insight_id: article.value.slug,
       insight_title: article.value.title,
+      like_status: 'liked', // Add status parameter
     })
   }
 

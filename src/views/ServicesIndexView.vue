@@ -38,12 +38,13 @@
 
       <!-- Book Consultation CTA -->
       <div class="lg:ml-auto pt-2 lg:pt-0">
-        <a
-          href="/booking"
+        <RouterLink
+          :to="{ name: 'booking' }"
+          @click="trackBookConsultationClick('services_header_cta')"
           class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors"
         >
           Book a Consultation
-        </a>
+        </RouterLink>
       </div>
     </div>
 
@@ -140,6 +141,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { RouterLink } from 'vue-router'
 import { services, getServiceById } from '@/data/services'
 import { trackEvent } from '@/services/analytics'
 import ServiceDetail from '@/components/services/ServiceDetail.vue'
@@ -192,6 +194,13 @@ watch(selectedService, (newService, oldService) => {
 
 function setActiveIndustry(industry: string) {
   activeIndustry.value = industry
+}
+
+function trackBookConsultationClick(source: string) {
+  trackEvent('click_book_consultation', {
+    source: source,
+    service_id: selectedServiceId.value, // Include the currently viewed service ID
+  })
 }
 
 function updateRightColumn(content: string | undefined) {

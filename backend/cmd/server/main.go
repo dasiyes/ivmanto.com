@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/vertexai/genai"
 	"github.com/joho/godotenv"
+	"ivmanto.com/backend/internal/analytics"
 	"ivmanto.com/backend/internal/articles"
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
@@ -65,9 +66,16 @@ func main() {
 	}
 	defer genaiClient.Close()
 
+	// Initialize Analytics Tracker. This requires GA_API_SECRET and GA_MEASUREMENT_ID env vars.
+	trackerSvc, err := analytics.NewTracker(cfg.Analytics.ApiSecret, cfg.Analytics.MeasurementID, logger)
+	if err != nil {
+		slog.Error("Failed to create analytics tracker", "error", err)
+		os.Exit(1)
+	}
+
 	// 4. Initialize handlers, passing dependencies
 	contactHandler := contact.NewHandler(logger, emailService)
-	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService)
+	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService, trackerSvc)
 	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService, cfg.Ideas.GenerateIdeasPromptTemplate)
 	articlesHandler := articles.NewHandler(logger)
 
