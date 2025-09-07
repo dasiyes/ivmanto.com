@@ -2,27 +2,27 @@
 const certificates = [
   {
     name: 'Professional Cloud Architect',
-    imgSrc: '/certs/cert_ca.png',
+    imgSrc: '/certs/cert_ca.webp',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Professional Data Engineer',
-    imgSrc: '/certs/cert_de.png',
+    imgSrc: '/certs/cert_de.webp',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Professional Developer',
-    imgSrc: '/certs/cert_dev.png',
+    imgSrc: '/certs/cert_dev.webp',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Extend Google Agentspace assistant capabilities',
-    imgSrc: '/certs/badge.png',
+    imgSrc: '/certs/badge.webp',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   {
     name: 'Develop Advanced Enterprise Search and Conversation Applications Skill Badge',
-    imgSrc: '/certs/badge2.png',
+    imgSrc: '/certs/badge2.webp',
     credlyUrl: 'https://www.credly.com/users/nikolay-tonev.a60be769/badges',
   },
   // You can add more certificates here by duplicating the object above
@@ -53,6 +53,8 @@ const certificates = [
             :src="cert.imgSrc"
             :alt="`Google Cloud Certified - ${cert.name}`"
             class="h-36 w-36 md:h-40 md:w-40 object-contain transition-transform duration-300 group-hover:scale-105"
+            width="263"
+            height="263"
           />
         </a>
       </div>

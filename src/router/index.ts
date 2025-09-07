@@ -38,7 +38,7 @@ const router = createRouter({
     },
     {
       // This route handles the generic '/services' path.
-      // It restores the `name: 'services'` route used by the "Learn More" button on the Home page.
+      // It restores the `name: 'services'` route used by the "More About our Services" button on the Home page.
       // It then redirects to the first available service page.
       path: '/services',
       name: 'services',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-const title = ref('ML Engineering & MLOps')
+const title = ref('AI & ML Solutions')
 </script>
 
 <template>

@@ -91,7 +91,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
+import { useHead } from '@vueuse/head'
 import { services as allServices, getServiceById } from '@/data/services'
 
 const props = defineProps<{
@@ -99,7 +100,43 @@ const props = defineProps<{
   id: string
 }>()
 
+const route = useRoute()
 const service = computed(() => getServiceById(props.id))
+
+const serviceSchema = computed(() => {
+  if (!service.value) {
+    return null
+  }
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    serviceType: service.value.menuTitle,
+    name: service.value.menuTitle,
+    description: service.value.summary,
+    provider: {
+      '@id': 'https://ivmanto.com/#organization',
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'Global', // You can change this if you serve specific regions
+    },
+    url: `https://ivmanto.com${route.path}`,
+  }
+})
+
+useHead({
+  script: [
+    {
+      id: 'service-schema',
+      type: 'application/ld+json',
+      children: computed(() =>
+        serviceSchema.value ? JSON.stringify(serviceSchema.value, null, 2) : '',
+      ),
+      // Use a key to ensure the script tag is updated when the route changes
+      key: () => `service-schema-${props.id}`,
+    },
+  ],
+})
 </script>
 
 <style scoped>

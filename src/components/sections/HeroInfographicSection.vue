@@ -6,12 +6,20 @@
     >
       <!-- Blurred background -->
       <img
-        src="@/assets/cloud-pic-2.png"
-        alt=""
+        src="/cloud-pic-2.webp"
+        alt="blured-frame"
         class="absolute inset-0 h-full w-full scale-125 object-cover blur-2xl"
+        width="263"
+        height="263"
       />
       <!-- Foreground image -->
-      <img src="@/assets/cloud-pic-2.png" alt="" class="relative w-[350px] drop-shadow-lg" />
+      <img
+        src="/cloud-pic-2.webp"
+        alt="front-pic"
+        class="relative w-[350px] drop-shadow-lg"
+        width="413"
+        height="413"
+      />
     </div>
   </div>
 </template>

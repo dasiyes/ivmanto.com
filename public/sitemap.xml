@@ -11,44 +11,44 @@
     <priority>0.90</priority>
   </url>
   <url>
+    <loc>https://ivmanto.com/services/principles</loc>
+    <lastmod>2025-09-06</lastmod>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://ivmanto.com/services/sovereigncloud</loc>
+    <lastmod>2025-09-06</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://ivmanto.com/services/data-architecture</loc>
+    <lastmod>2025-09-06</lastmod>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://ivmanto.com/services/ml-engineering</loc>
+    <lastmod>2025-09-06</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://ivmanto.com/services/data-strategy-and-governance</loc>
     <lastmod>2025-09-06</lastmod>
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://ivmanto.com/services/data-architecture-on-gcp</loc>
-    <lastmod>2025-09-06</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://ivmanto.com/services/ai-ml-solutions</loc>
-    <lastmod>2025-09-06</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://ivmanto.com/services/go-backend-development</loc>
-    <lastmod>2025-09-06</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://ivmanto.com/services/our-principles</loc>
-    <lastmod>2025-09-06</lastmod>
-    <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://ivmanto.com/insights</loc>
-    <lastmod>2025-09-06</lastmod>
-    <priority>0.70</priority>
-  </url>
-  <url>
     <loc>https://ivmanto.com/about</loc>
     <lastmod>2025-09-06</lastmod>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://ivmanto.com/blog</loc>
+    <lastmod>2025-09-06</lastmod>
     <priority>0.70</priority>
   </url>
   <url>
-    <loc>https://ivmanto.com/contact</loc>
+    <loc>https://ivmanto.com/booking</loc>
     <lastmod>2025-09-06</lastmod>
-    <priority>0.70</priority>
+    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://ivmanto.com/privacy-policy</loc>

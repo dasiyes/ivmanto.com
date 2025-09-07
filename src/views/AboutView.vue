@@ -1,8 +1,33 @@
 <script setup lang="ts">
+import { useHead } from '@vueuse/head'
 import { RouterLink } from 'vue-router'
 import ExpertiseSection from '@/components/about/ExpertiseSection.vue'
 import ApproachSection from '@/components/about/ApproachSection.vue'
 import CertificatesSection from '@/components/about/CertificatesSection.vue'
+
+useHead({
+  script: [
+    {
+      id: 'person-schema',
+      type: 'application/ld+json',
+      children: JSON.stringify(
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          '@id': 'https://ivmanto.com/about#person',
+          name: 'Nikolay Tonev',
+          url: 'https://ivmanto.com/about',
+          image: 'https://ivmanto.com/nt.jpg', // Make sure nt.jpg is in the /public directory
+          jobTitle: 'Cloud Data Architect',
+          worksFor: { '@id': 'https://ivmanto.com/#organization' },
+          sameAs: ['https://linkedin.com/in/nikolaytonev', 'https://github.com/dasiyes'],
+        },
+        null,
+        2,
+      ),
+    },
+  ],
+})
 </script>
 
 <template>

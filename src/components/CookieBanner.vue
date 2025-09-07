@@ -3,7 +3,7 @@
     <p class="cookie-text">
       This website uses cookies to enhance your browsing experience and analyze site traffic. By
       clicking "Accept", you agree to our use of cookies.
-      <router-link to="/privacy-policy">Learn more</router-link>.
+      <router-link to="/privacy-policy">Full Privacy Policy</router-link>.
     </p>
     <div class="cookie-actions">
       <button @click="declineCookies" class="btn btn-secondary">Decline</button>

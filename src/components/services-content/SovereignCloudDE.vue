@@ -13,9 +13,11 @@ const title = ref('Sovereignty Cloud in Germany: Navigating Control, Compliance,
     <hr class="border-gray-200 mb-4" />
 
     <img
-      src="/sovereign-cloud-eu.png"
+      src="/sovereign-cloud-eu.webp"
       alt="Sovereign Cloud in Europe"
       class="float-left mr-4 mb-2 w-1/3 rounded-lg shadow-md"
+      width="250"
+      height="250"
     />
     <p>
       In an era defined by data, the concept of <strong>digital sovereignty</strong> has become
