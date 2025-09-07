@@ -82,7 +82,7 @@ const declineCookies = () => {
 }
 
 .btn-primary {
-  background-color: #4299e1; /* A primary blue, adjust to your theme */
+  background-color: #2b6cb0; /* A primary blue, adjust to your theme */
   color: white;
 }
 

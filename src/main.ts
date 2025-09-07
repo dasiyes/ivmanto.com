@@ -1,3 +1,7 @@
+// Initialize the dataLayer for Google Tag Manager/Analytics.
+// This should be one of the very first things your app does to prevent race conditions.
+window.dataLayer = window.dataLayer || []
+
 import { createApp } from 'vue'
 import { createHead } from '@vueuse/head'
 import App from './App.vue'

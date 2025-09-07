@@ -28,7 +28,9 @@ Organization Schema: On all pages, to define the business entity ivmanto.com.
 Person Schema: On the "About" page, to establish you as the expert behind the brand.
 Service Schema: On each individual service page. This is critical. It describes the service, its category, and the provider, making you eligible for service-specific search features.
 Article Schema: For every post in the "Insights & Articles" section.
-Pillar 2: On-Page SEO Assessment
+
+## Pillar 2: On-Page SEO Assessment
+
 The service refactoring directly impacts this pillar. We must review every page to ensure its content is optimized for the new structure.
 
 Status Checklist & Required Actions:
@@ -37,7 +39,9 @@ Status Checklist & Required Actions:
 [❗] Heading Structure (H1, H2, etc.): We need to audit every page to ensure a logical heading hierarchy. There should be one—and only one—<h1> per page that clearly states the page's topic, followed by <h2>, <h3>, etc. to structure the content.
 [ ] Internal Linking Strategy: The refactor gives us a perfect opportunity to build a strong internal linking structure. We should strategically link from service pages to relevant "Insights" articles and vice-versa. This distributes "link juice" and helps users discover more content.
 [ ] Image Alt Text: A quick audit to ensure all images have descriptive alt attributes for accessibility and image search SEO.
-Pillar 3: Content & Engagement Strategy
+
+## Pillar 3: Content & Engagement Strategy
+
 This is our long-term plan for attracting and converting customers.
 
 Status Checklist & Required Actions:
