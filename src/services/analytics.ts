@@ -1,6 +1,7 @@
 declare global {
   interface Window {
     dataLayer: Record<string, any>[]
+    gtmInitialized?: boolean
   }
 }
 
@@ -19,6 +20,34 @@ export const trackEvent = (eventName: string, params: Record<string, any> = {}) 
     event: eventName,
     ...params,
   })
+}
+
+/**
+ * Injects the Google Tag Manager script into the page.
+ * This should be called once, after cookie consent is given.
+ */
+export const initGtm = () => {
+  // IMPORTANT: Replace with your actual GTM ID, which starts with "GTM-".
+  const gtmId = 'GTM-XXXXXXX'
+
+  // Ensure this only runs in the browser and hasn't been run before.
+  if (typeof window === 'undefined' || window.gtmInitialized) {
+    return
+  }
+  window.gtmInitialized = true
+
+  // This is the standard GTM script, made TypeScript-friendly.
+  // The original uses an IIFE with implicit 'any' types, which can cause compiler errors.
+  ;(function (w: Window, d: Document, s: string, l: string, i: string) {
+    w.dataLayer = w.dataLayer || []
+    w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+    const f = d.getElementsByTagName(s)[0]
+    const j = d.createElement(s) as HTMLScriptElement
+    const dl = l !== 'dataLayer' ? '&l=' + l : ''
+    j.async = true
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
+    f.parentNode?.insertBefore(j, f)
+  })(window, document, 'script', 'dataLayer', gtmId)
 }
 
 type GaSessionInfo = {
