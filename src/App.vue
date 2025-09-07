@@ -50,6 +50,11 @@ const routeMetadata: Record<string, { title: string; description: string }> = {
     description:
       'Design and build scalable, secure data architectures on Google Cloud Platform (GCP). We leverage BigQuery, Cloud Storage, and modern data engineering practices.',
   },
+  '/services/sovereigncloud': {
+    title: 'Sovereign Cloud Solutions | ivmanto.com',
+    description:
+      'Explore architectural perspectives on Data, Operations, and AI Sovereignty to meet your compliance and security needs in the cloud.',
+  },
   '/services/ml-engineering': {
     title: 'AI & ML Solutions | ivmanto.com',
     description:

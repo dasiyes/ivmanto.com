@@ -15,8 +15,8 @@
       to the collection and use of information in accordance with this Privacy Policy.
     </p>
 
-    <h1>Interpretation and Definitions</h1>
-    <h2>Interpretation</h2>
+    <h2>Interpretation and Definitions</h2>
+    <h3>Interpretation</h3>
     <p>
       The words of which the initial letter is capitalized have meanings defined under the following
       conditions.
@@ -26,7 +26,7 @@
       singular or in plural.
     </p>
 
-    <h2>Definitions</h2>
+    <h3>Definitions</h3>
     <p>For the purposes of this Privacy Policy:</p>
     <ul>
       <li>
@@ -109,8 +109,8 @@
       </li>
     </ul>
 
-    <h1>Collecting and Using Your Personal Data</h1>
-    <h2>Types of Data Collected</h2>
+    <h2>Collecting and Using Your Personal Data</h2>
+    <h3>Types of Data Collected</h3>
 
     <h3>Personal Data</h3>
     <p>
@@ -211,7 +211,7 @@
       our Cookies Policy.
     </p>
 
-    <h2>Use of Your Personal Data</h2>
+    <h3>Use of Your Personal Data</h3>
     <p>The Company may use Personal Data for the following purposes:</p>
     <ul>
       <li>
@@ -278,7 +278,7 @@
       </li>
     </ul>
 
-    <h2>Retention of Your Personal Data</h2>
+    <h3>Retention of Your Personal Data</h3>
     <p>
       The Company will retain Your Personal Data only for as long as is necessary for the purposes
       set out in this Privacy Policy. We will retain and use Your Personal Data to the extent
@@ -293,7 +293,7 @@
       retain this data for longer time periods.
     </p>
 
-    <h2>Transfer of Your Personal Data</h2>
+    <h3>Transfer of Your Personal Data</h3>
     <p>
       Your information, including Personal Data, is processed at the Company's operating offices and
       in any other places where the parties involved in the processing are located. It means that
@@ -312,7 +312,7 @@
       including the security of Your data and other personal information.
     </p>
 
-    <h2>Disclosure of Your Personal Data</h2>
+    <h3>Disclosure of Your Personal Data</h3>
     <h3>Business Transactions</h3>
     <p>
       If the Company is involved in a merger, acquisition or asset sale, Your Personal Data may be
@@ -338,7 +338,7 @@
       <li>Protect against legal liability</li>
     </ul>
 
-    <h2>Security of Your Personal Data</h2>
+    <h3>Security of Your Personal Data</h3>
     <p>
       The security of Your Personal Data is important to Us, but remember that no method of
       transmission over the Internet, or method of electronic storage is 100% secure. While We
@@ -346,13 +346,13 @@
       its absolute security.
     </p>
 
-    <h1>Detailed Information on the Processing of Your Personal Data</h1>
+    <h2>Detailed Information on the Processing of Your Personal Data</h2>
     <p>
       Service Providers have access to Your Personal Data only to perform their tasks on Our behalf
       and are obligated not to disclose or use it for any other purpose.
     </p>
 
-    <h2>Analytics</h2>
+    <h3>Analytics</h3>
     <p>We may use third-party Service providers to monitor and analyze the use of our Service.</p>
     <ul>
       <li>
@@ -379,8 +379,8 @@
       </li>
     </ul>
 
-    <h1>GDPR Privacy</h1>
-    <h2>Legal Basis for Processing Personal Data under GDPR</h2>
+    <h2>GDPR Privacy</h2>
+    <h3>Legal Basis for Processing Personal Data under GDPR</h3>
     <p>We may process Personal Data under the following conditions:</p>
 
     <ul>
@@ -416,7 +416,7 @@
       contractual requirement, or a requirement necessary to enter into a contract.
     </p>
 
-    <h2>Your Rights under the GDPR</h2>
+    <h3>Your Rights under the GDPR</h3>
     <p>
       The Company undertakes to respect the confidentiality of Your Personal Data and to guarantee
       You can exercise Your rights.
@@ -461,7 +461,7 @@
       </li>
     </ul>
 
-    <h2>Exercising of Your GDPR Data Protection Rights</h2>
+    <h3>Exercising of Your GDPR Data Protection Rights</h3>
     <p>
       You may exercise Your rights of access, rectification, cancellation and opposition by
       contacting Us. Please note that we may ask You to verify Your identity before responding to
@@ -474,8 +474,8 @@
       please contact Your local data protection authority in the EEA.
     </p>
 
-    <h1>Facebook Fan Page</h1>
-    <h2>Data Controller for the Facebook Fan Page</h2>
+    <h2>Facebook Fan Page</h2>
+    <h3>Data Controller for the Facebook Fan Page</h3>
     <p>
       The Company is the Data Controller of Your Personal Data collected while using the Service. If
       the Company operates a Facebook Fan Page, the Company and the operator of the social network
@@ -494,7 +494,7 @@
       States.
     </p>
 
-    <h2>Facebook Insights</h2>
+    <h3>Facebook Insights</h3>
     <p>
       We use the Facebook Insights function in connection with the operation of the Facebook Fan
       Page and on the basis of the GDPR, in order to obtain anonymized statistical data about Our
@@ -518,7 +518,7 @@
       >
     </p>
 
-    <h1>Children's Privacy</h1>
+    <h2>Children's Privacy</h2>
     <p>
       Our Service does not address anyone under the age of 13. We do not knowingly collect
       personally identifiable information from anyone under the age of 13. If You are a parent or
@@ -538,7 +538,7 @@
       and use that information.
     </p>
 
-    <h1>Links to Other Websites</h1>
+    <h2>Links to Other Websites</h2>
     <p>
       Our Service may contain links to other websites that are not operated by Us. If You click on a
       third party link, You will be directed to that third party's site. We strongly advise You to
@@ -549,7 +549,7 @@
       practices of any third party sites or services.
     </p>
 
-    <h1>Changes to this Privacy Policy</h1>
+    <h2>Changes to this Privacy Policy</h2>
     <p>
       We may update our Privacy Policy from time to time. We will notify You of any changes by
       posting the new Privacy Policy on this page.
@@ -563,7 +563,7 @@
       Privacy Policy are effective when they are posted on this page.
     </p>
 
-    <h1>Contact Us</h1>
+    <h2>Contact Us</h2>
     <p>If you have any questions about this Privacy Policy, You can contact us:</p>
     <ul>
       <li>By email: nikolay.tonev@ivmanto.com</li>

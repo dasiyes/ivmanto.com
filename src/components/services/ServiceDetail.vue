@@ -6,7 +6,7 @@
     >
       <!-- Header Section -->
       <div class="p-6 border-b border-gray-200 flex-shrink-0">
-        <h3 class="text-xl font-bold text-dark-slate">{{ service.menuTitle }}</h3>
+        <h1 class="text-xl font-bold text-dark-slate">{{ service.menuTitle }}</h1>
         <p class="mt-2 italic text text-gray-600">{{ service.summary }}</p>
       </div>
 

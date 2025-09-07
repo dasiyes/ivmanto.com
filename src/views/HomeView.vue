@@ -6,6 +6,7 @@ import InspirationModal from '@/components/InspirationModal.vue'
 import { RouterLink } from 'vue-router'
 import { articles } from '@/data/articles'
 import { computed, ref } from 'vue'
+import { generateInspirationIdeas, type Idea } from '@/services/api'
 
 // Sort articles by date to ensure the latest are featured, then take the top 3.
 const featuredArticles = computed(() =>
@@ -15,7 +16,7 @@ const featuredArticles = computed(() =>
 // State for the "Need Inspiration" feature
 const topic = ref('')
 const isLoading = ref(false)
-const generatedIdeas = ref<{ title: string; summary: string }[]>([])
+const generatedIdeas = ref<Idea[]>([])
 const error = ref<string | null>(null)
 const isModalOpen = ref(false)
 
@@ -33,20 +34,7 @@ async function handleGenerateIdeas() {
   generatedIdeas.value = []
 
   try {
-    const response = await fetch('/api/generate-ideas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ topic: topic.value }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || 'Failed to generate ideas.')
-    }
-
-    generatedIdeas.value = await response.json()
+    generatedIdeas.value = await generateInspirationIdeas(topic.value)
   } catch (e: any) {
     console.error('Failed to generate ideas:', e)
     error.value = e.message || 'An unexpected error occurred. Please try again later.'

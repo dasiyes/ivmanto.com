@@ -1,8 +1,13 @@
 <template>
-  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
+  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200 shadow-sm">
     <nav class="container mx-auto px-6 py-3 flex justify-between items-center relative">
       <router-link to="/"
-        ><img src="@/assets/mockup/logo.svg" alt="IVMANTO Logo" class="h-16 w-auto"
+        ><img
+          src="@/assets/mockup/logo.svg"
+          alt="IVMANTO Logo"
+          class="h-16 w-auto"
+          width="64"
+          height="64"
       /></router-link>
       <div class="hidden md:flex items-center space-x-8">
         <!-- Services Menu with Dropdown -->
@@ -77,9 +82,20 @@
           >Client Login</router-link
         >
       </div>
-      <button class="md:hidden">
-        <!-- Mobile menu icon -->
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Mobile Menu Button -->
+      <button
+        @click="isMobileMenuOpen = !isMobileMenuOpen"
+        class="md:hidden"
+        aria-label="Toggle menu"
+      >
+        <!-- Hamburger Icon -->
+        <svg
+          v-if="!isMobileMenuOpen"
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -87,16 +103,72 @@
             d="M4 6h16M4 12h16m-7 6h7"
           ></path>
         </svg>
+        <!-- Close Icon -->
+        <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
       </button>
     </nav>
+
+    <!-- Mobile Menu Panel -->
+    <div v-if="isMobileMenuOpen" class="md:hidden bg-white border-t border-gray-200">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <router-link
+          to="/services"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+          >Services</router-link
+        >
+        <router-link
+          to="/about"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+          >About</router-link
+        >
+        <router-link
+          to="/blog"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+          >Articles</router-link
+        >
+        <router-link
+          to="/#contact"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+          >Contact</router-link
+        >
+      </div>
+      <div class="pt-4 pb-3 border-t border-gray-200">
+        <div class="px-5 flex items-center gap-4">
+          <router-link
+            to="/#contact"
+            @click="isMobileMenuOpen = false"
+            class="flex-1 bg-primary text-white font-medium py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all text-center"
+            >Get In Touch</router-link
+          >
+          <router-link
+            :to="{ name: 'login' }"
+            @click="isMobileMenuOpen = false"
+            class="flex-1 bg-light-gray text-primary font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-all text-center"
+            >Client Login</router-link
+          >
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { services } from '@/data/services'
 import { RouterLink, useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
+const isMobileMenuOpen = ref(false)
 const route = useRoute()
 const isServicesPage = computed(() => route.path.startsWith('/services'))
 </script>

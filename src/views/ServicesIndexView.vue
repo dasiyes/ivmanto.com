@@ -1,6 +1,7 @@
 <template>
   <div
-    class="w-full md:w-4/5 max-w-7xl bg-white shadow-lg rounded-xl flex flex-col overflow-hidden h-full"
+    ref="servicesViewContainer"
+    class="w-full md:w-4/5 max-w-7xl bg-white shadow-lg rounded-xl flex flex-col lg:overflow-hidden"
   >
     <!-- Top Filter Bar -->
     <div
@@ -84,10 +85,10 @@
     </div>
 
     <!-- Main Content Area (3 columns) -->
-    <div class="flex flex-col lg:flex-row flex-grow overflow-hidden min-h-0">
+    <div class="lg:flex lg:flex-row lg:flex-grow lg:overflow-hidden lg:min-h-0">
       <!-- Left Column: Service List -->
       <div
-        class="flex-shrink-0 w-full lg:w-[20%] bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300"
+        class="flex-shrink-0 w-full lg:w-[20%] bg-white lg:border-r border-gray-200 lg:overflow-y-auto transition-all duration-300"
         :class="isMobileNavOpen ? 'block' : 'hidden lg:block'"
       >
         <div class="p-4">
@@ -123,13 +124,13 @@
         </div>
       </div>
       <!-- Middle Column: Patterned Background -->
-      <div class="flex-grow pattern-bg order-first lg:order-none">
+      <div ref="serviceDetailContainer" class="flex-grow pattern-bg lg:overflow-y-auto">
         <ServiceDetail :service="selectedService" @update-right-column="updateRightColumn" />
       </div>
 
       <!-- Right Column: Empty -->
       <div
-        class="flex-shrink-0 w-full lg:w-[20%] bg-white border-l border-gray-200 overflow-y-auto"
+        class="flex-shrink-0 w-full lg:w-[20%] bg-white lg:border-l border-gray-200 lg:overflow-y-auto"
       >
         <RightColumnContent :content="rightColumnContent" />
       </div>
@@ -138,11 +139,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { services, getServiceById } from '@/data/services'
 import { trackEvent } from '@/services/analytics'
 import ServiceDetail from '@/components/services/ServiceDetail.vue'
 import RightColumnContent from '@/components/services/RightColumnContent.vue'
+
+const servicesViewContainer = ref<HTMLElement | null>(null)
+const serviceDetailContainer = ref<HTMLElement | null>(null)
 
 const isMobileNavOpen = ref(false)
 const industries = ['All', 'Finance', 'Healthcare', 'Retail', 'Public sector']
@@ -163,6 +167,15 @@ const selectedService = computed(() => getServiceById(selectedServiceId.value))
 function selectService(id: string) {
   selectedServiceId.value = id
   isMobileNavOpen.value = false // Close nav on selection
+
+  // On mobile, the layout changes and the page scrolls. We need to scroll the user
+  // back to the top of the component to show them the updated content.
+  if (window.innerWidth < 1024) {
+    nextTick(() => {
+      // With the layout fixed, we can now reliably scroll the component to the top.
+      servicesViewContainer.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
 }
 
 // Watch for service selection changes to track analytics events.
