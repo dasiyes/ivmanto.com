@@ -36,8 +36,8 @@ Here are the specific events we'll track to answer these questions:
 | [ ] `click_technology_tag` | A user clicks on a technology tag (e.g., BigQuery, DAMA). | Deeper insight into the specific technical interests of your audience. | `tag_name` |
 | [x] `like_insight` | A user clicks the "like" button on an article in the Insights section. | Direct measure of content value. Identifies what topics resonate most. | `insight_id`, `insight_title` |
 | [x] `click_book_consultation` | (Conversion) A user clicks any "Book a Consultation" button. | Primary Goal. Measures high-intent users ready to engage. | `cbc_source` (e.g., 'service_card', 'home_cta'), `cbc_service_id` (if applicable) |
-| [ ] `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
-| [ ] `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
+| [x] `contact_form_submit` | (Conversion) A user successfully submits the contact form. | Secondary Goal. Measures direct inquiries. | `source` (e.g., 'contact_page', 'footer_form') |
+| [x] `booking_confirmed` | (ROI) A user successfully completes the booking process on the backend. | The Ultimate Goal. This is a real lead, not just a click. | `value`, `currency`, `transaction_id` |
 
 ## Fine-Tuning the Strategy
 
