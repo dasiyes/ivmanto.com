@@ -6,6 +6,7 @@ import BlogView from '@/views/BlogView.vue'
 import ArticleListView from '@/views/ArticleListView.vue'
 import ArticleView from '@/views/ArticleView.vue'
 import ServiceView from '@/views/ServiceView.vue' // This will be our new dynamic view
+import ServicesLanding from '@/views/ServicesLAnding.vue'
 import BookingCalendar from '@/views/BookingCalendar.vue'
 import { services } from '@/data/services'
 import BookingCancellation from '@/views/BookingCancellation.vue'
@@ -42,18 +43,14 @@ const router = createRouter({
       // It then redirects to the first available service page.
       path: '/services',
       name: 'services',
-      redirect: () => {
-        // Redirect to the first service in the list as a default landing page.
-        const firstServiceId = services[0]?.id
-        return firstServiceId ? { name: 'service-detail', params: { id: firstServiceId } } : '/'
-      },
+      component: ServicesLanding,
     },
     {
       // This single dynamic route handles all service pages.
       // e.g., /services/data-architecture
       path: '/services/:id',
       name: 'service-detail',
-      component: ServiceView,
+      component: () => import('@/views/ServiceView.vue'),
       props: true, // Passes the :id from the URL as a prop to ServiceView
     },
     {
