@@ -6,7 +6,7 @@ import BlogView from '@/views/BlogView.vue'
 import ArticleListView from '@/views/ArticleListView.vue'
 import ArticleView from '@/views/ArticleView.vue'
 import ServiceView from '@/views/ServiceView.vue' // This will be our new dynamic view
-import ServicesLanding from '@/views/ServicesLAnding.vue'
+import ServicesLanding from '@/views/ServicesLanding.vue'
 import BookingCalendar from '@/views/BookingCalendar.vue'
 import { services } from '@/data/services'
 import BookingCancellation from '@/views/BookingCancellation.vue'
