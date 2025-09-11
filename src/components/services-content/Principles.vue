@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-const title = ref('Our Guiding Principles for Data Management & Architecture')
+// 1. Import your composable
+import { usePageMetadata } from '@/composables/usePageMetadata'
+// 2. Get the reactive title
+const { cleanTitle } = usePageMetadata()
 </script>
 
 <template>
   <article class="prose prose-sm lg:prose-base max-w-none p-6">
-    <h2>{{ title }}</h2>
+    <h2>{{ cleanTitle }}</h2>
     <p class="italic lg:text-l">
       Our approach is grounded in the globally recognized standards of DAMA and its Data Management
       Body of Knowledge (DMBOK), ensuring we turn your information into your most reliable and

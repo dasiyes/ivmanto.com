@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-const title = ref('AI & ML Solutions')
+// 1. Import your composable
+import { usePageMetadata } from '@/composables/usePageMetadata'
+// 2. Get the reactive title
+const { cleanTitle } = usePageMetadata()
 </script>
 
 <template>
   <article class="prose prose-sm lg:prose-base max-w-none p-6">
-    <h2>{{ title }}</h2>
+    <h2>{{ cleanTitle }}</h2>
     <p class="italic lg:text-l">
       Operationalizing machine learning models from prototype to production.
     </p>
