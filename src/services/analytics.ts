@@ -28,7 +28,7 @@ export const trackEvent = (eventName: string, params: Record<string, any> = {}) 
  */
 export const initGtm = () => {
   // IMPORTANT: Replace with your actual GTM ID, which starts with "GTM-".
-  const gtmId = 'G-W1TJ3KMZ6V'
+  const gtmId = 'GTM-PXRF8FPQ'
 
   // Ensure this only runs in the browser and hasn't been run before.
   if (typeof window === 'undefined' || window.gtmInitialized) {
