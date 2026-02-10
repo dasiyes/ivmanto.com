@@ -4,14 +4,17 @@ import ContactForm from '@/components/ContactForm.vue'
 import { trackEvent } from '@/services/analytics'
 import InspirationModal from '@/components/InspirationModal.vue'
 import { RouterLink } from 'vue-router'
-import { articles } from '@/data/articles'
-import { computed, ref } from 'vue'
+import { useArticles } from '@/composables/useArticles'
+import { computed, ref, onMounted } from 'vue'
 import { generateInspirationIdeas, type Idea } from '@/services/api'
 
-// Sort articles by date to ensure the latest are featured, then take the top 3.
-const featuredArticles = computed(() =>
-  [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
-)
+const { sortedArticles, fetchArticles } = useArticles()
+
+onMounted(() => {
+  fetchArticles()
+})
+
+const featuredArticles = computed(() => sortedArticles.value.slice(0, 3))
 
 // State for the "Need Inspiration" feature
 const topic = ref('')

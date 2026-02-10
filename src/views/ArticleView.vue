@@ -158,9 +158,7 @@
           </h1>
           <p class="mt-6 text-xl leading-8 text-gray-700">{{ article.summary }}</p>
         </div>
-        <div class="prose prose-lg max-w-none">
-          <component :is="article.component" />
-        </div>
+        <div class="prose prose-lg max-w-none" v-html="sanitizedContent"></div>
 
         <!-- Like button section -->
         <div class="mt-12 pt-8 border-t border-gray-200 flex justify-end items-center">
@@ -209,40 +207,44 @@
 import { computed, ref, watch, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { trackEvent } from '@/services/analytics'
-import { articles, getArticleBySlug, type Article } from '@/data/articles'
+import { useArticles } from '@/composables/useArticles'
+import DOMPurify from 'dompurify'
+import type { Article } from '@/types/article'
 
 const props = defineProps<{
   slug: string
 }>()
 
 const router = useRouter()
+const { sortedArticles, fetchArticles, fetchArticle } = useArticles()
 
 const isDropdownOpen = ref(false)
 const copied = ref(false)
 const likeCount = ref(0)
 const isLiked = ref(false)
 const isLoadingLikes = ref(true)
+const isLoadingContent = ref(true)
 
-const article = computed<Article | undefined>(() => getArticleBySlug(props.slug))
+const article = ref<Article | null>(null)
 
-// Sort articles by date (newest first) to determine previous/next
-const sortedArticles = computed(() =>
-  [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-)
+const sanitizedContent = computed(() => {
+  if (!article.value?.content) return ''
+  return DOMPurify.sanitize(article.value.content)
+})
 
 const currentArticleIndex = computed(() => {
   if (!article.value) return -1
   return sortedArticles.value.findIndex((a) => a.slug === article.value?.slug)
 })
 
-const previousArticle = computed<Article | undefined>(() => {
+const previousArticle = computed(() => {
   if (currentArticleIndex.value > 0) {
     return sortedArticles.value[currentArticleIndex.value - 1]
   }
   return undefined
 })
 
-const nextArticle = computed<Article | undefined>(() => {
+const nextArticle = computed(() => {
   if (
     currentArticleIndex.value < sortedArticles.value.length - 1 &&
     currentArticleIndex.value !== -1
@@ -371,22 +373,31 @@ function formatDate(dateString: string) {
   })
 }
 
-onMounted(() => {
+async function loadArticle(slug: string) {
+  isLoadingContent.value = true
+  article.value = await fetchArticle(slug)
+  isLoadingContent.value = false
+}
+
+onMounted(async () => {
+  await fetchArticles()
+  await loadArticle(props.slug)
   fetchLikes()
   if (localStorage.getItem(`liked-${props.slug}`)) {
     isLiked.value = true
   }
 })
 
-// Close dropdown on route change
+// Close dropdown on route change and load new article
 watch(
   () => props.slug,
-  () => {
+  async (newSlug) => {
     closeDropdown()
-    // Reset likes for new article
     likeCount.value = 0
     isLiked.value = false
-    if (localStorage.getItem(`liked-${props.slug}`)) {
+    isLoadingLikes.value = true
+    await loadArticle(newSlug)
+    if (localStorage.getItem(`liked-${newSlug}`)) {
       isLiked.value = true
     }
     fetchLikes()

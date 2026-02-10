@@ -16,6 +16,7 @@ type Config struct {
 	GCP       GCPConfig
 	Ideas     IdeasConfig
 	Analytics AnalyticsConfig
+	Blog      BlogConfig
 }
 
 // ServiceConfig holds configuration for the HTTP service.
@@ -49,7 +50,12 @@ type IdeasConfig struct {
 	GenerateIdeasPromptTemplate string `env:"GENERATE_IDEAS_PROMPT_TEMPLATE"`
 }
 
-// Add this struct
+// BlogConfig holds configuration for the GCS-backed blog system.
+type BlogConfig struct {
+	GCSBucket string
+}
+
+// AnalyticsConfig holds configuration for Google Analytics.
 type AnalyticsConfig struct {
 	ApiSecret     string `env:"GA_API_SECRET,required"`
 	MeasurementID string `env:"GA_MEASUREMENT_ID,required"`
@@ -106,6 +112,12 @@ func Load() (*Config, error) {
 
 	generateIdeasPromptTemplate := os.Getenv("GENERATE_IDEAS_PROMPT_TEMPLATE")
 
+	// Load Blog config
+	gcsBlogBucket := os.Getenv("GCS_BLOG_BUCKET")
+	if gcsBlogBucket == "" {
+		missingVars = append(missingVars, "GCS_BLOG_BUCKET")
+	}
+
 	// Load Analytics config
 	gaApiSecret := os.Getenv("GA_API_SECRET")
 	if gaApiSecret == "" {
@@ -130,5 +142,6 @@ func Load() (*Config, error) {
 			ApiSecret:     gaApiSecret,
 			MeasurementID: gaMeasurementID,
 		},
+		Blog: BlogConfig{GCSBucket: gcsBlogBucket},
 	}, nil
 }

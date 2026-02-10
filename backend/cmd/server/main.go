@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/storage"
 	"cloud.google.com/go/vertexai/genai"
 	"github.com/joho/godotenv"
 	"ivmanto.com/backend/internal/analytics"
 	"ivmanto.com/backend/internal/articles"
+	"ivmanto.com/backend/internal/blog"
 	"ivmanto.com/backend/internal/booking"
 	"ivmanto.com/backend/internal/config"
 	"ivmanto.com/backend/internal/contact"
@@ -66,6 +68,24 @@ func main() {
 	}
 	defer genaiClient.Close()
 
+	// Initialize GCS client for blog storage.
+	storageClient, err := storage.NewClient(ctx)
+	if err != nil {
+		slog.Error("Failed to create GCS storage client", "error", err)
+		os.Exit(1)
+	}
+	defer storageClient.Close()
+
+	// Initialize blog pipeline: GCS storage -> markdown parser -> in-memory cache.
+	blogStorage := blog.NewStorage(storageClient, cfg.Blog.GCSBucket, logger)
+	blogParser := blog.NewParser()
+	blogCache, err := blog.NewCache(ctx, blogStorage, blogParser, logger)
+	if err != nil {
+		slog.Error("Failed to initialize blog cache", "error", err)
+		os.Exit(1)
+	}
+	defer blogCache.Stop()
+
 	// Initialize Analytics Tracker. This requires GA_API_SECRET and GA_MEASUREMENT_ID env vars.
 	trackerSvc, err := analytics.NewTracker(cfg.Analytics.ApiSecret, cfg.Analytics.MeasurementID, logger)
 	if err != nil {
@@ -78,6 +98,7 @@ func main() {
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService, trackerSvc)
 	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService, cfg.Ideas.GenerateIdeasPromptTemplate)
 	articlesHandler := articles.NewHandler(logger)
+	blogHandler := blog.NewHandler(logger, blogCache)
 
 	// 5. Register routes
 	mux := http.NewServeMux()
@@ -85,6 +106,7 @@ func main() {
 	bookingHandler.RegisterRoutes(mux)
 	ideasHandler.RegisterRoutes(mux)
 	articlesHandler.RegisterRoutes(mux)
+	blogHandler.RegisterRoutes(mux)
 
 	// 6. Apply middleware
 	var finalHandler http.Handler = mux

@@ -20,7 +20,18 @@
     </div>
 
     <main class="max-w-7xl mx-auto">
-      <div v-if="filteredArticles.length > 0">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-16">
+        <p class="text-xl text-gray-500">Loading articles...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="text-center py-16">
+        <h3 class="text-2xl font-semibold text-red-600">Failed to load articles</h3>
+        <p class="text-gray-500 mt-2">{{ error }}</p>
+      </div>
+
+      <div v-else-if="filteredArticles.length > 0">
         <!-- Featured Articles -->
         <section v-if="featuredArticles.length > 0">
           <h2 class="text-3xl font-bold tracking-tight text-gray-900 mb-8">Featured Articles</h2>
@@ -72,16 +83,17 @@
 </template>
 
 <script setup lang="ts">
-import { articles } from '@/data/articles'
+import { useArticles } from '@/composables/useArticles'
 import { RouterLink } from 'vue-router'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+
+const { sortedArticles, isLoading, error, fetchArticles } = useArticles()
+
+onMounted(() => {
+  fetchArticles()
+})
 
 const searchQuery = ref('')
-
-// Sort articles by date, newest first
-const sortedArticles = computed(() =>
-  [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-)
 
 // Filter articles based on search query
 const filteredArticles = computed(() => {

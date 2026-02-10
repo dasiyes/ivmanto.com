@@ -10,6 +10,7 @@ import ServicesLanding from '@/views/ServicesLanding.vue'
 import BookingCalendar from '@/views/BookingCalendar.vue'
 import { services } from '@/data/services'
 import BookingCancellation from '@/views/BookingCancellation.vue'
+import BookingGoogleDemo from '@/views/BookingGoogleDemo.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -72,6 +73,11 @@ const router = createRouter({
       path: '/booking/cancel',
       name: 'BookingCancellation',
       component: BookingCancellation,
+    },
+    {
+      path: '/booking-demo',
+      name: 'booking-demo',
+      component: BookingGoogleDemo,
     },
     {
       path: '/privacy-policy',

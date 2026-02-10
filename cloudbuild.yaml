@@ -84,6 +84,7 @@ steps:
       - '--set-env-vars=GCP_LOCATION=${_GCP_LOCATION}'
       # Add the new environment variable for Google Analytics
       - '--set-env-vars=GA_MEASUREMENT_ID=${_GA_MEASUREMENT_ID}'
+      - '--set-env-vars=GCS_BLOG_BUCKET=${_GCS_BLOG_BUCKET}'
     waitFor: ['backend-push']
 
 # Substitution variables to be configured in the Cloud Build trigger.
@@ -106,6 +107,7 @@ substitutions:
   # Add new substitutions for analytics
   _GA_API_SECRET_NAME: 'ga-api-secret' # The name of the secret in Secret Manager
   _GA_MEASUREMENT_ID: 'G-W1TJ3KMZ6V' # Your GA4 Measurement ID - Set in Trigger UI
+  _GCS_BLOG_BUCKET: 'ivmanto_com_blog_articles' # GCS bucket for blog markdown files
 
 # The image created by this build.
 images:
