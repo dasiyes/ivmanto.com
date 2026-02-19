@@ -1,6 +1,19 @@
 <template>
   <div class="bg-light-gray py-12 sm:py-16" @click="closeDropdown">
-    <div v-if="article" class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <!-- Loading State -->
+    <div v-if="isLoadingContent" class="text-center py-16">
+      <div
+        class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+        role="status"
+      >
+        <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+          >Loading...</span
+        >
+      </div>
+    </div>
+
+    <!-- Article Content -->
+    <div v-else-if="article" class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
       <!-- Top Navigation Bar -->
       <div
         class="mb-8 p-2 bg-white rounded-lg shadow-sm flex items-center justify-between gap-2 text-sm font-medium"
@@ -209,6 +222,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { trackEvent } from '@/services/analytics'
 import { useArticles } from '@/composables/useArticles'
 import DOMPurify from 'dompurify'
+import { useHead } from '@vueuse/head'
 import type { Article } from '@/types/article'
 
 const props = defineProps<{
@@ -226,6 +240,17 @@ const isLoadingLikes = ref(true)
 const isLoadingContent = ref(true)
 
 const article = ref<Article | null>(null)
+
+// Head Management for SEO (Fix Soft 404)
+useHead({
+  meta: computed(() => {
+    // If not loading AND article is null => NoIndex
+    if (!isLoadingContent.value && !article.value) {
+      return [{ name: 'robots', content: 'noindex' }]
+    }
+    return []
+  }),
+})
 
 const sanitizedContent = computed(() => {
   if (!article.value?.content) return ''

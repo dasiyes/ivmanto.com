@@ -11,6 +11,7 @@ import BookingCalendar from '@/views/BookingCalendar.vue'
 import { services } from '@/data/services'
 import BookingCancellation from '@/views/BookingCancellation.vue'
 import BookingGoogleDemo from '@/views/BookingGoogleDemo.vue'
+import NotFoundView from '@/views/NotFoundView.vue' // Import 404 View
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -84,6 +85,12 @@ const router = createRouter({
       name: 'privacy-policy',
       // This uses lazy-loading for better performance
       component: () => import('../components/PrivacyPolicy.vue'),
+    },
+    // Catch-All 404 Route
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView,
     },
   ],
   scrollBehavior(to) {
