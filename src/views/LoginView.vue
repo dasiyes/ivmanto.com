@@ -15,4 +15,15 @@
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Client Login - Ivmanto',
+  meta: [
+    {
+      name: 'robots',
+      content: 'noindex',
+    },
+  ],
+})
 </script>
