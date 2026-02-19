@@ -36,6 +36,15 @@ const router = createRouter({
           name: 'article-detail',
           component: ArticleView,
           props: true, // This passes the ':slug' as a prop to ArticleView
+          beforeEnter: (to, from, next) => {
+            // Check if slug starts with an underscore (e.g. _DamaPrinciples)
+            if (to.params.slug && typeof to.params.slug === 'string' && to.params.slug.startsWith('_')) {
+              // Redirect to the clean slug (remove leading underscore)
+              next({ name: 'article-detail', params: { slug: to.params.slug.substring(1) }, replace: true });
+            } else {
+              next();
+            }
+          }
         },
       ],
     },
