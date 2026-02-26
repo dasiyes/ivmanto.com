@@ -15,8 +15,11 @@ useHead({
       href: computed(() => {
         // Base URL is strictly non-www HTTPS
         const baseUrl = 'https://ivmanto.com'
-        // Get the current path from the router (e.g., /services/principles)
-        const path = route.path === '/' ? '' : route.path
+        // Get the current path from the router, ensuring no trailing slash for consistency
+        let path = route.path === '/' ? '' : route.path
+        if (path.endsWith('/') && path.length > 1) {
+          path = path.slice(0, -1)
+        }
         // Construct the full canonical URL
         return `${baseUrl}${path}`
       }),
