@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import HeroInfographic from '@/components/sections/HeroInfographicSection.vue'
 import ContactForm from '@/components/ContactForm.vue'
+import ProcessSection from '@/components/sections/ProcessSection.vue'
+import FAQSection from '@/components/sections/FAQSection.vue'
 import { trackEvent } from '@/services/analytics'
 import InspirationModal from '@/components/InspirationModal.vue'
 import { RouterLink } from 'vue-router'
@@ -90,6 +92,10 @@ function trackBookConsultationClick() {
         </div>
       </div>
     </section>
+
+    <!-- Process Section -->
+    <ProcessSection />
+
     <!-- Articles Section -->
     <section id="articles" class="py-20 md:py-28">
       <div class="container mx-auto px-6">
@@ -162,6 +168,10 @@ function trackBookConsultationClick() {
         </div>
       </div>
     </section>
+
+    <!-- FAQ Section -->
+    <FAQSection />
+
     <!-- Contact Section -->
     <section id="contact" class="py-20 md:py-28 bg-dark-slate text-white">
       <div class="container mx-auto px-6">

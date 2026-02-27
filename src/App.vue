@@ -9,6 +9,29 @@ const route = useRoute()
 // Forces all URLs to be treated as https://ivmanto.com/path
 // Strips www, query params, and trailing slashes if needed (though Google usually handles trailing slashes fine)
 useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        '@id': 'https://ivmanto.com/#organization',
+        name: 'IVMANTO',
+        url: 'https://ivmanto.com',
+        logo: 'https://ivmanto.com/logo.png',
+        image: 'https://ivmanto.com/social-sharing-card.webp',
+        description:
+          'Expert Cloud Data Architecture & AI Solutions built on Google Cloud Platform.',
+        address: {
+          '@type': 'PostalAddress',
+          addressCountry: 'Germany',
+        },
+        founder: {
+          '@id': 'https://ivmanto.com/about#person',
+        },
+      }),
+    },
+  ],
   link: [
     {
       rel: 'canonical',
