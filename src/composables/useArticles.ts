@@ -12,7 +12,7 @@ export function useArticles() {
     isLoading.value = true
     error.value = null
     try {
-      const res = await fetch('/api/articles')
+      const res = await fetch('/api/articles?t=' + Date.now())
       if (!res.ok) throw new Error(`Failed to fetch articles: ${res.status}`)
       articlesCache.value = await res.json()
       hasFetched = true
@@ -25,7 +25,7 @@ export function useArticles() {
 
   async function fetchArticle(slug: string): Promise<Article | null> {
     try {
-      const res = await fetch(`/api/articles/${slug}`)
+      const res = await fetch(`/api/articles/${slug}?t=` + Date.now())
       if (!res.ok) {
         if (res.status === 404) return null
         throw new Error(`Failed to fetch article: ${res.status}`)
