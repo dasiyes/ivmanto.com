@@ -2,13 +2,20 @@
 import { useHead } from '@vueuse/head'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { usePageMetadata } from '@/composables/usePageMetadata'
 
 const route = useRoute()
+const { pageTitle, pageDescription } = usePageMetadata()
 
-// Global Canonical Tag
-// Forces all URLs to be treated as https://ivmanto.com/path
-// Strips www, query params, and trailing slashes if needed (though Google usually handles trailing slashes fine)
+// Global SEO and Schema
 useHead({
+  title: pageTitle,
+  meta: [
+    {
+      name: 'description',
+      content: pageDescription,
+    },
+  ],
   script: [
     {
       type: 'application/ld+json',
