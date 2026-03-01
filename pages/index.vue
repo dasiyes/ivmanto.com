@@ -6,6 +6,12 @@ useSeoMeta({
   title: 'ivmanto.com | Data & AI Consultancy',
   description:
     'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.',
+  ogTitle: 'ivmanto.com | Expert Data & AI Consultancy',
+  ogDescription:
+    'Transform your data into a strategic asset with expert GCP data architecture, AI solutions, and governance consulting.',
+  twitterTitle: 'ivmanto.com | Expert Data & AI Consultancy',
+  twitterDescription:
+    'Transform your data into a strategic asset with expert GCP data architecture and AI solutions.',
 })
 
 // FAQPage schema for SEO

@@ -3,6 +3,12 @@ useSeoMeta({
   title: 'About | ivmanto.com',
   description:
     'Learn about IVMANTO and our mission to help businesses harness the power of data. Meet the experts behind our innovative data and AI solutions.',
+  ogTitle: 'About | ivmanto.com',
+  ogDescription:
+    'Meet the expert behind IVMANTO — specializing in GCP data architecture, AI solutions, and cloud governance.',
+  twitterTitle: 'About | ivmanto.com',
+  twitterDescription:
+    'Meet the expert behind IVMANTO — specializing in GCP data architecture, AI solutions, and cloud governance.',
 })
 
 useHead({

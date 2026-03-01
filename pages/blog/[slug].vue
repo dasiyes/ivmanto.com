@@ -162,6 +162,18 @@ const isLoadingContent = ref(true)
 
 const article = ref<Article | null>(null)
 
+// Dynamic OG/Twitter meta for shared blog posts
+useSeoMeta({
+  title: computed(() => article.value ? `${article.value.title} | ivmanto.com` : 'Blog | ivmanto.com'),
+  description: computed(() => article.value?.summary ?? ''),
+  ogTitle: computed(() => article.value?.title ?? 'Blog | ivmanto.com'),
+  ogDescription: computed(() => article.value?.summary ?? ''),
+  ogType: 'article',
+  ogUrl: computed(() => `https://ivmanto.com/blog/${route.params.slug}`),
+  twitterTitle: computed(() => article.value?.title ?? 'Blog | ivmanto.com'),
+  twitterDescription: computed(() => article.value?.summary ?? ''),
+})
+
 // Head Management for SEO (Fix Soft 404)
 useHead({
   meta: computed(() => {
