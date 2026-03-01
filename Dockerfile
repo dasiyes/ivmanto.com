@@ -18,8 +18,8 @@ RUN npm install
 # Copy the rest of the application's source code
 COPY . .
 
-# Build the Nuxt application for production
-RUN npm run build
+# Generate the static site (pre-renders all routes defined in routeRules)
+RUN npx nuxi generate
 
 # Stage 2: Create the final, lightweight production image
 FROM node:20-bookworm-slim
@@ -33,11 +33,14 @@ RUN npm install -g serve
 
 WORKDIR /app
 
-# Copy the standalone, built application from the 'build' stage
-COPY --from=build /app/dist .
+# Copy the generated static files from the build stage.
+# Nuxt SSG outputs to .output/public (not dist).
+COPY --from=build /app/.output/public .
 
 # Expose the port Cloud Run will listen on. 'serve' automatically uses the PORT env var.
 EXPOSE 8080
 
-# Start the server. The '-s' flag is crucial for Single-Page Applications.
+# Start the static file server.
+# The '-s' flag rewrites missing routes to index.html, which is needed for
+# client-rendered pages (blog, booking) that don't have pre-rendered HTML.
 CMD ["serve", "-s", "."]

@@ -12,6 +12,18 @@ dist
 .gitignore
 .env*
 
+# Nuxt build artifacts (will be regenerated in Docker)
+.nuxt/
+.output/
+
+# Old SPA source (to be removed after migration is verified)
+src/
+
 # Documentation and other non-essential files
 docs/
+tasks/
 *.md
+
+# Claude Code session data
+.claude/
+.agents/
