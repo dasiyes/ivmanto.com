@@ -3,6 +3,12 @@ useSeoMeta({
   title: 'Insights & Articles | ivmanto.com',
   description:
     'Read our latest articles and insights on data strategy, cloud architecture, AI/ML, and software engineering. Stay ahead of the curve with expert analysis.',
+  ogTitle: 'Insights & Articles | ivmanto.com',
+  ogDescription:
+    'Expert articles on data strategy, cloud architecture, AI/ML, and software engineering.',
+  twitterTitle: 'Insights & Articles | ivmanto.com',
+  twitterDescription:
+    'Expert articles on data strategy, cloud architecture, AI/ML, and software engineering.',
 })
 
 const { sortedArticles, isLoading, error, fetchArticles } = useArticles()

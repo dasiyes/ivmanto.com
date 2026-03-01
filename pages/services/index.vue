@@ -5,6 +5,12 @@ useSeoMeta({
   title: 'Services | ivmanto.com',
   description:
     'Explore our Data & AI services. From data strategy and GCP architecture to custom AI/ML solutions and Go backend development, we empower your business with data.',
+  ogTitle: 'Services | ivmanto.com',
+  ogDescription:
+    'Data strategy, GCP architecture, AI/ML solutions, and Go backend development — explore our full service offering.',
+  twitterTitle: 'Services | ivmanto.com',
+  twitterDescription:
+    'Data strategy, GCP architecture, AI/ML solutions, and Go backend development — explore our full service offering.',
 })
 </script>
 

@@ -1,14 +1,39 @@
 <script setup lang="ts">
 const route = useRoute()
 
+const siteTitle = 'ivmanto.com | Data & AI Consultancy'
+const siteDescription =
+  'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.'
+const siteUrl = 'https://ivmanto.com'
+const ogImage = `${siteUrl}/social-sharing-card.webp`
+
+// Global Open Graph & Twitter Card defaults
+// Pages can override these via their own useSeoMeta() calls
+useSeoMeta({
+  ogType: 'website',
+  ogSiteName: 'ivmanto.com',
+  ogLocale: 'en_US',
+  ogTitle: siteTitle,
+  ogDescription: siteDescription,
+  ogUrl: computed(() => {
+    let path = route.path === '/' ? '' : route.path
+    if (path.endsWith('/') && path.length > 1) path = path.slice(0, -1)
+    return `${siteUrl}${path}`
+  }),
+  ogImage: ogImage,
+  twitterCard: 'summary_large_image',
+  twitterTitle: siteTitle,
+  twitterDescription: siteDescription,
+  twitterImage: ogImage,
+})
+
 // Global SEO and Schema
 useHead({
-  title: 'ivmanto.com | Data & AI Consultancy',
+  title: siteTitle,
   meta: [
     {
       name: 'description',
-      content:
-        'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.',
+      content: siteDescription,
     },
   ],
   script: [
