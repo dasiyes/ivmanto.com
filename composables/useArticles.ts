@@ -1,5 +1,4 @@
-import { ref, computed } from 'vue'
-import type { ArticleMeta, Article } from '@/types/article'
+import type { ArticleMeta, Article } from '~/types/article'
 
 const articlesCache = ref<ArticleMeta[]>([])
 const isLoading = ref(false)

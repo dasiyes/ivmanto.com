@@ -46,8 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Service } from '@/data/services'
+import type { Service } from '~/data/services'
 
 const props = defineProps<{
   service: Service | undefined
