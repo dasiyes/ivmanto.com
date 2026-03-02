@@ -52,7 +52,8 @@ type IdeasConfig struct {
 
 // BlogConfig holds configuration for the GCS-backed blog system.
 type BlogConfig struct {
-	GCSBucket string
+	GCSBucket       string
+	PubSubPushToken string // Optional shared secret for Pub/Sub push validation
 }
 
 // AnalyticsConfig holds configuration for Google Analytics.
@@ -118,6 +119,9 @@ func Load() (*Config, error) {
 		missingVars = append(missingVars, "GCS_BLOG_BUCKET")
 	}
 
+	// Load optional Pub/Sub push token (empty = skip token validation in local dev)
+	pubsubPushToken := os.Getenv("PUBSUB_PUSH_TOKEN")
+
 	// Load Analytics config
 	gaApiSecret := os.Getenv("GA_API_SECRET")
 	if gaApiSecret == "" {
@@ -142,6 +146,6 @@ func Load() (*Config, error) {
 			ApiSecret:     gaApiSecret,
 			MeasurementID: gaMeasurementID,
 		},
-		Blog: BlogConfig{GCSBucket: gcsBlogBucket},
+		Blog: BlogConfig{GCSBucket: gcsBlogBucket, PubSubPushToken: pubsubPushToken},
 	}, nil
 }
