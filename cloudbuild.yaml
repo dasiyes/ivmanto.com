@@ -73,6 +73,8 @@ steps:
       - '--set-secrets=IDEAS_PROMPT=${_IDEAS_PROMPT_SECRET_NAME}:latest'
       # Add the new secret for Google Analytics
       - '--set-secrets=GA_API_SECRET=${_GA_API_SECRET_NAME}:latest'
+      # Pub/Sub push token for blog cache refresh notifications
+      - '--set-secrets=PUBSUB_PUSH_TOKEN=${_PUBSUB_PUSH_TOKEN_SECRET_NAME}:latest'
       # Set environment variables one by one for clarity and to avoid parsing issues with complex strings.
       - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID}'
       - '--set-env-vars=GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
@@ -108,6 +110,8 @@ substitutions:
   _GA_API_SECRET_NAME: 'ga-api-secret' # The name of the secret in Secret Manager
   _GA_MEASUREMENT_ID: 'G-W1TJ3KMZ6V' # Your GA4 Measurement ID - Set in Trigger UI
   _GCS_BLOG_BUCKET: 'ivmanto_com_blog_articles' # GCS bucket for blog markdown files
+  # Pub/Sub push token for blog cache refresh (secret name in Secret Manager)
+  _PUBSUB_PUSH_TOKEN_SECRET_NAME: 'pubsub-push-token'
 
 # The image created by this build.
 images:

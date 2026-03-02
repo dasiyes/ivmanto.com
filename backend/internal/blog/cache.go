@@ -12,6 +12,8 @@ import (
 
 const defaultRefreshInterval = 5 * time.Minute
 
+const defaultDebounceDuration = 5 * time.Second
+
 // Cache holds the in-memory article cache with periodic refresh from GCS.
 type Cache struct {
 	storage Storage
@@ -23,17 +25,23 @@ type Cache struct {
 	metaList []ArticleMeta       // published only, sorted by date desc
 
 	stopCh chan struct{}
+
+	// Debounce: coalesce multiple rapid Refresh() calls into one.
+	debounceMu    sync.Mutex
+	debounceTimer *time.Timer
+	debounceDur   time.Duration
 }
 
 // NewCache creates a new blog cache, performs the initial load, and starts
 // a background goroutine that refreshes the cache periodically.
 func NewCache(ctx context.Context, storage Storage, parser *Parser, logger *slog.Logger) (*Cache, error) {
 	c := &Cache{
-		storage:  storage,
-		parser:   parser,
-		logger:   logger.With("service", "blog_cache"),
-		articles: make(map[string]*Article),
-		stopCh:   make(chan struct{}),
+		storage:     storage,
+		parser:      parser,
+		logger:      logger.With("service", "blog_cache"),
+		articles:    make(map[string]*Article),
+		stopCh:      make(chan struct{}),
+		debounceDur: defaultDebounceDuration,
 	}
 
 	if err := c.refresh(ctx); err != nil {
@@ -117,6 +125,28 @@ func (c *Cache) refresh(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// Refresh schedules a cache refresh with debouncing. Multiple calls within
+// the debounce window (5s) are coalesced into a single GCS read. This is the
+// public entry point for Pub/Sub push notifications.
+func (c *Cache) Refresh() {
+	c.debounceMu.Lock()
+	defer c.debounceMu.Unlock()
+
+	if c.debounceTimer != nil {
+		c.debounceTimer.Stop()
+	}
+
+	c.debounceTimer = time.AfterFunc(c.debounceDur, func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := c.refresh(ctx); err != nil {
+			c.logger.Error("pubsub-triggered cache refresh failed", "error", err)
+		}
+	})
+
+	c.logger.Debug("cache refresh debounced/scheduled")
 }
 
 // backgroundRefresh runs refresh on a ticker until Stop is called.
