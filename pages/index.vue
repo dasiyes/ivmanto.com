@@ -5,13 +5,13 @@ import { generateInspirationIdeas, type Idea } from '~/services/api'
 useSeoMeta({
   title: 'ivmanto.com | Data & AI Consultancy',
   description:
-    'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.',
-  ogTitle: 'ivmanto.com | Expert Data & AI Consultancy',
+    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions that turn your data into a strategic asset.',
+  ogTitle: 'ivmanto.com | Data & AI Consultancy',
   ogDescription:
-    'Transform your data into a strategic asset with expert GCP data architecture, AI solutions, and governance consulting.',
-  twitterTitle: 'ivmanto.com | Expert Data & AI Consultancy',
+    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions that turn your data into a strategic asset.',
+  twitterTitle: 'ivmanto.com | Data & AI Consultancy',
   twitterDescription:
-    'Transform your data into a strategic asset with expert GCP data architecture and AI solutions.',
+    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions.',
 })
 
 // FAQPage schema for SEO
@@ -120,7 +120,7 @@ function trackBookConsultationClick() {
           >GOOGLE CLOUD PLATFORM SPECIALIST</span
         >
         <h1 class="text-4xl md:text-6xl font-bold mt-4 text-dark-slate leading-tight">
-          Expert Cloud Data Architecture & AI Solutions
+          Data & AI Consultancy — Expert Cloud Architecture & Solutions
         </h1>
         <p class="text-lg md:text-xl text-gray-600 mt-6 max-w-3xl mx-auto">
           Transforming your data into actionable insights with robust, scalable, and intelligent
@@ -138,6 +138,30 @@ function trackBookConsultationClick() {
             class="bg-white text-primary font-bold py-3 px-8 rounded-lg border border-gray-200 hover:bg-gray-50 transition-all text-lg"
             >More About our Services</NuxtLink
           >
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Facts & Figures -->
+    <section class="py-12 bg-white border-b border-gray-100">
+      <div class="container mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div>
+            <p class="text-4xl font-bold text-primary">20+</p>
+            <p class="text-sm text-gray-600 mt-1">Years in Enterprise Data</p>
+          </div>
+          <div>
+            <p class="text-4xl font-bold text-primary">5</p>
+            <p class="text-sm text-gray-600 mt-1">GCP Certifications</p>
+          </div>
+          <div>
+            <p class="text-4xl font-bold text-primary">6+</p>
+            <p class="text-sm text-gray-600 mt-1">Industries Served</p>
+          </div>
+          <div>
+            <p class="text-4xl font-bold text-primary">DAMA</p>
+            <p class="text-sm text-gray-600 mt-1">DMBOK Aligned</p>
+          </div>
         </div>
       </div>
     </section>

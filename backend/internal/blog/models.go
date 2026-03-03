@@ -18,6 +18,15 @@ type Article struct {
 	Content string `json:"content"`
 }
 
+// SkippedArticle records why an article was not published.
+type SkippedArticle struct {
+	Slug       string `json:"slug"`
+	Reason     string `json:"reason"`
+	HasTitle   bool   `json:"has_title"`
+	HasSummary bool   `json:"has_summary"`
+	HasDate    bool   `json:"has_date"`
+}
+
 // MetadataCache is the structure persisted to metadata.json in GCS.
 type MetadataCache struct {
 	GeneratedAt time.Time     `json:"generated_at"`
