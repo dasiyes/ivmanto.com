@@ -4,13 +4,34 @@ import { services as allServices } from '~/data/services'
 useSeoMeta({
   title: 'Services | ivmanto.com',
   description:
-    'Explore our Data & AI services. From data strategy and GCP architecture to custom AI/ML solutions and Go backend development, we empower your business with data.',
+    'Data & AI consulting services on GCP: data architecture, governance, AI/ML solutions, and sovereign cloud. Turn your data into a strategic asset.',
   ogTitle: 'Services | ivmanto.com',
   ogDescription:
     'Data strategy, GCP architecture, AI/ML solutions, and Go backend development — explore our full service offering.',
   twitterTitle: 'Services | ivmanto.com',
   twitterDescription:
     'Data strategy, GCP architecture, AI/ML solutions, and Go backend development — explore our full service offering.',
+})
+
+// ItemList schema for structured service listing
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Data & AI Consulting Services',
+        itemListElement: allServices.map((s, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: s.menuTitle,
+          description: s.summary,
+          url: `https://ivmanto.com/services/${s.id}`,
+        })),
+      }),
+    },
+  ],
 })
 </script>
 

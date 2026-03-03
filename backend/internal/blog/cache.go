@@ -20,9 +20,11 @@ type Cache struct {
 	parser  *Parser
 	logger  *slog.Logger
 
-	mu       sync.RWMutex
-	articles map[string]*Article // keyed by slug
-	metaList []ArticleMeta       // published only, sorted by date desc
+	mu         sync.RWMutex
+	articles   map[string]*Article // keyed by slug
+	metaList   []ArticleMeta       // published only, sorted by date desc
+	skipped    []SkippedArticle     // articles skipped during last refresh
+	totalFiles int                  // total .md files found in last refresh
 
 	stopCh chan struct{}
 
@@ -63,6 +65,29 @@ func (c *Cache) GetAllPublished() []ArticleMeta {
 	return result
 }
 
+// CacheStatus holds diagnostic information about the article cache.
+type CacheStatus struct {
+	TotalFiles int              `json:"total_files"`
+	Published  int              `json:"published"`
+	Skipped    []SkippedArticle `json:"skipped"`
+}
+
+// GetCacheStatus returns diagnostic information about all articles,
+// including those that were skipped during the last refresh.
+func (c *Cache) GetCacheStatus() CacheStatus {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	skipped := make([]SkippedArticle, len(c.skipped))
+	copy(skipped, c.skipped)
+
+	return CacheStatus{
+		TotalFiles: c.totalFiles,
+		Published:  len(c.metaList),
+		Skipped:    skipped,
+	}
+}
+
 // GetBySlug returns a full article (metadata + HTML) by slug, or nil if not found.
 func (c *Cache) GetBySlug(slug string) *Article {
 	c.mu.RLock()
@@ -79,6 +104,7 @@ func (c *Cache) refresh(ctx context.Context) error {
 
 	newArticles := make(map[string]*Article, len(files))
 	var newMeta []ArticleMeta
+	var newSkipped []SkippedArticle
 
 	for _, filename := range files {
 		data, err := c.storage.ReadFile(ctx, filename)
@@ -91,11 +117,33 @@ func (c *Cache) refresh(ctx context.Context) error {
 		article, err := c.parser.Parse(data, slug)
 		if err != nil {
 			c.logger.Error("failed to parse article", "file", filename, "error", err)
+			newSkipped = append(newSkipped, SkippedArticle{
+				Slug:   slug,
+				Reason: "parse error: " + err.Error(),
+			})
 			continue
 		}
 
+		// Warn about missing required fields for debugging.
+		if article.Title == "" {
+			c.logger.Warn("article missing title", "slug", slug, "file", filename)
+		}
+		if article.Summary == "" {
+			c.logger.Warn("article missing summary", "slug", slug, "file", filename)
+		}
+		if article.Date == "" {
+			c.logger.Warn("article missing date", "slug", slug, "file", filename)
+		}
+
 		if !article.Published {
-			c.logger.Debug("skipping unpublished article", "slug", slug)
+			c.logger.Info("skipping unpublished article (published != true)", "slug", slug)
+			newSkipped = append(newSkipped, SkippedArticle{
+				Slug:       slug,
+				Reason:     "published field is false or missing",
+				HasTitle:   article.Title != "",
+				HasSummary: article.Summary != "",
+				HasDate:    article.Date != "",
+			})
 			continue
 		}
 
@@ -111,6 +159,8 @@ func (c *Cache) refresh(ctx context.Context) error {
 	c.mu.Lock()
 	c.articles = newArticles
 	c.metaList = newMeta
+	c.skipped = newSkipped
+	c.totalFiles = len(files)
 	c.mu.Unlock()
 
 	c.logger.Info("blog cache refreshed", "article_count", len(newMeta))

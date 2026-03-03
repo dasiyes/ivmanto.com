@@ -1,6 +1,6 @@
 {
   "name": "ivmanto.com",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "type": "module",
   "engines": {
@@ -21,6 +21,8 @@
     "vue": "^3.4.31"
   },
   "devDependencies": {
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@nuxtjs/sitemap": "^7.6.0",
     "@nuxtjs/tailwindcss": "^6.13.2",
     "@rushstack/eslint-patch": "^1.10.3",
     "@tailwindcss/typography": "^0.5.16",

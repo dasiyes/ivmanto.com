@@ -3,13 +3,14 @@ const route = useRoute()
 
 const siteTitle = 'ivmanto.com | Data & AI Consultancy'
 const siteDescription =
-  'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.'
+  'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions that turn your data into a strategic asset.'
 const siteUrl = 'https://ivmanto.com'
 const ogImage = `${siteUrl}/social-sharing-card.webp`
 
 // Global Open Graph & Twitter Card defaults
 // Pages can override these via their own useSeoMeta() calls
 useSeoMeta({
+  author: 'Nikolay Tonev',
   ogType: 'website',
   ogSiteName: 'ivmanto.com',
   ogLocale: 'en_US',
@@ -41,9 +42,10 @@ useHead({
       type: 'application/ld+json',
       children: JSON.stringify({
         '@context': 'https://schema.org',
-        '@type': 'ProfessionalService',
+        '@type': ['Organization', 'ProfessionalService'],
         '@id': 'https://ivmanto.com/#organization',
         name: 'IVMANTO',
+        alternateName: 'IVMANTO - Nikolay Tonev Data & Cloud Solutions',
         url: 'https://ivmanto.com',
         logo: 'https://ivmanto.com/logo.png',
         image: 'https://ivmanto.com/social-sharing-card.webp',
@@ -51,11 +53,16 @@ useHead({
           'Expert Cloud Data Architecture & AI Solutions built on Google Cloud Platform.',
         address: {
           '@type': 'PostalAddress',
-          addressCountry: 'Germany',
+          addressCountry: 'DE',
         },
         founder: {
           '@id': 'https://ivmanto.com/about#person',
         },
+        sameAs: [
+          'https://linkedin.com/in/nikolaytonev',
+          'https://github.com/dasiyes',
+          'https://g.dev/ivmanto-nikolaytonev',
+        ],
       }),
     },
     {

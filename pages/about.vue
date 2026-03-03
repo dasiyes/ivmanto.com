@@ -2,7 +2,7 @@
 useSeoMeta({
   title: 'About | ivmanto.com',
   description:
-    'Learn about IVMANTO and our mission to help businesses harness the power of data. Meet the experts behind our innovative data and AI solutions.',
+    'Meet Nikolay Tonev, Cloud Data Architect & AI Consultant. 20+ years in enterprise data, GCP specialist, DAMA-aligned governance expert.',
   ogTitle: 'About | ivmanto.com',
   ogDescription:
     'Meet the expert behind IVMANTO — specializing in GCP data architecture, AI solutions, and cloud governance.',
@@ -24,9 +24,20 @@ useHead({
           name: 'Nikolay Tonev',
           url: 'https://ivmanto.com/about',
           image: 'https://ivmanto.com/nt.jpg',
-          jobTitle: 'Cloud Data Architect',
+          jobTitle: 'Cloud Data Architect & AI Consultant',
           worksFor: { '@id': 'https://ivmanto.com/#organization' },
-          sameAs: ['https://linkedin.com/in/nikolaytonev', 'https://github.com/dasiyes'],
+          sameAs: [
+            'https://linkedin.com/in/nikolaytonev',
+            'https://github.com/dasiyes',
+            'https://g.dev/ivmanto-nikolaytonev',
+          ],
+          knowsAbout: [
+            'Google Cloud Platform',
+            'Data Architecture',
+            'AI & Machine Learning',
+            'Data Governance',
+            'DAMA-DMBOK',
+          ],
         },
         null,
         2,
@@ -43,8 +54,11 @@ useHead({
         <div>
           <img
             src="/nt.jpg"
-            alt="IVMANTO"
+            alt="Nikolay Tonev - Cloud Data Architect and AI Consultant"
             class="rounded-xl shadow-lg w-full max-w-md mx-auto"
+            width="448"
+            height="448"
+            loading="lazy"
           />
         </div>
         <div>

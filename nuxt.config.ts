@@ -2,7 +2,25 @@
 export default defineNuxtConfig({
   ssr: true,
 
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap', '@nuxtjs/google-fonts'],
+
+  googleFonts: {
+    families: {
+      Montserrat: [400, 700],
+    },
+    display: 'swap',
+    download: true,
+    preload: true,
+  },
+
+  site: {
+    url: 'https://ivmanto.com',
+  },
+
+  sitemap: {
+    sources: ['/api/__sitemap__/blog'],
+    exclude: ['/login', '/booking-demo'],
+  },
 
   css: ['~/assets/css/main.css'],
 
@@ -42,21 +60,6 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
       link: [
         { rel: 'icon', href: '/favicon.ico' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        {
-          rel: 'preconnect',
-          href: 'https://fonts.gstatic.com',
-          crossorigin: '',
-        },
-        {
-          rel: 'preload',
-          as: 'style',
-          href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap',
-        },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap',
-        },
       ],
     },
   },
