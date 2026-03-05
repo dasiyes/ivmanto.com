@@ -142,29 +142,6 @@ function trackBookConsultationClick() {
       </div>
     </section>
 
-    <!-- Key Facts & Figures -->
-    <section class="py-12 bg-white border-b border-gray-100">
-      <div class="container mx-auto px-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <p class="text-4xl font-bold text-primary">20+</p>
-            <p class="text-sm text-gray-600 mt-1">Years in Enterprise Data</p>
-          </div>
-          <div>
-            <p class="text-4xl font-bold text-primary">5</p>
-            <p class="text-sm text-gray-600 mt-1">GCP Certifications</p>
-          </div>
-          <div>
-            <p class="text-4xl font-bold text-primary">6+</p>
-            <p class="text-sm text-gray-600 mt-1">Industries Served</p>
-          </div>
-          <div>
-            <p class="text-4xl font-bold text-primary">DAMA</p>
-            <p class="text-sm text-gray-600 mt-1">DMBOK Aligned</p>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- Process Section -->
     <SectionsProcessSection />
