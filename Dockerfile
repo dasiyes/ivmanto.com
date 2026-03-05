@@ -18,6 +18,11 @@ RUN npm install
 # Copy the rest of the application's source code
 COPY . .
 
+# Set the backend API URL for pre-rendering blog content at build time
+ARG NUXT_API_BASE_URL=https://ivmanto.com
+ENV NUXT_API_BASE_URL=${NUXT_API_BASE_URL}
+ENV BACKEND_URL=${NUXT_API_BASE_URL}
+
 # Generate the static site (pre-renders all routes defined in routeRules)
 RUN npx nuxi generate
 
