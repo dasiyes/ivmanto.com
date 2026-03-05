@@ -26,10 +26,12 @@
           >Google Developer Profile</a
         >
       </div>
-      <div class="mt-4 flex justify-center space-x-6">
-        <p class="italic lg: text-sm">
-          <a href="/privacy-policy" class="hover:text-primary">Privacy Policy</a>
-        </p>
+      <div class="mt-4 flex justify-center space-x-6 text-sm">
+        <NuxtLink to="/about" class="hover:text-primary">About</NuxtLink>
+        <NuxtLink to="/services" class="hover:text-primary">Services</NuxtLink>
+        <NuxtLink to="/#contact" class="hover:text-primary">Contact</NuxtLink>
+        <NuxtLink to="/privacy-policy" class="hover:text-primary">Privacy Policy</NuxtLink>
+        <NuxtLink to="/terms" class="hover:text-primary">Terms of Service</NuxtLink>
       </div>
     </div>
   </footer>

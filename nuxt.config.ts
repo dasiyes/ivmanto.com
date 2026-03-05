@@ -25,6 +25,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    apiBaseUrl: process.env.NUXT_API_BASE_URL || 'https://ivmanto.com',
     public: {
       geminiApiKey: '',
     },
@@ -33,6 +34,10 @@ export default defineNuxtConfig({
   nitro: {
     devProxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+    prerender: {
+      // Crawl links to discover blog pages from the sitemap source
+      crawlLinks: true,
     },
   },
 
@@ -45,12 +50,13 @@ export default defineNuxtConfig({
     '/booking-demo': { prerender: true },
     '/login': { prerender: true },
     '/privacy-policy': { prerender: true },
+    '/terms': { prerender: true },
     // Client-only for dynamic pages
     '/booking': { ssr: false },
     '/booking/cancel': { ssr: false },
-    // Blog: client-rendered (articles come from runtime API)
-    '/blog': { ssr: false },
-    '/blog/**': { ssr: false },
+    // Blog: pre-rendered at generate time for SEO
+    '/blog': { prerender: true },
+    '/blog/**': { prerender: true },
   },
 
   app: {
@@ -66,6 +72,26 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
+  },
+
+  hooks: {
+    async 'prerender:routes'(ctx)
+    {
+      const backendUrl =
+        process.env.NUXT_API_BASE_URL || 'https://ivmanto.com'
+      try
+      {
+        const articles = await (await fetch(`${backendUrl}/api/articles`)).json()
+        for (const article of articles)
+        {
+          ctx.routes.add(`/blog/${article.slug}`)
+        }
+        console.log(`[prerender] Discovered ${articles.length} blog routes`)
+      } catch (e)
+      {
+        console.warn('[prerender] Could not fetch blog routes:', e)
+      }
+    },
   },
 
   compatibilityDate: '2025-02-28',

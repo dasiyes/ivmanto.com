@@ -9,6 +9,8 @@ steps:
     id: 'frontend-build'
     args:
       - 'build'
+      - '--build-arg'
+      - 'NUXT_API_BASE_URL=https://ivmanto.com'
       - '-t'
       - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:${COMMIT_SHA}'
       - '.' # Use the Dockerfile in the root directory

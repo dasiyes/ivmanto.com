@@ -158,9 +158,18 @@ const copied = ref(false)
 const likeCount = ref(0)
 const isLiked = ref(false)
 const isLoadingLikes = ref(true)
-const isLoadingContent = ref(true)
 
-const article = ref<Article | null>(null)
+// Fetch articles list for navigation
+await fetchArticles()
+
+// Fetch the current article (works during SSG generate and client-side)
+const { data: article, status: articleStatus } = await useAsyncData(
+  `article-${slug.value}`,
+  () => fetchArticle(slug.value),
+  { watch: [slug] },
+)
+
+const isLoadingContent = computed(() => articleStatus.value === 'pending')
 
 // Dynamic OG/Twitter meta for shared blog posts
 useSeoMeta({
@@ -206,6 +215,8 @@ useHead({
 
 const sanitizedContent = computed(() => {
   if (!article.value?.content) return ''
+  // DOMPurify only works client-side; during SSR, return raw content
+  if (import.meta.server) return article.value.content
   return DOMPurify.sanitize(article.value.content)
 })
 
@@ -295,27 +306,23 @@ function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-async function loadArticle(targetSlug: string) {
-  isLoadingContent.value = true
-  article.value = await fetchArticle(targetSlug)
-  isLoadingContent.value = false
-}
-
-onMounted(async () => {
-  await fetchArticles()
-  await loadArticle(slug.value)
+// Client-only: fetch likes and check localStorage on mount
+onMounted(() => {
   fetchLikes()
   if (localStorage.getItem(`liked-${slug.value}`)) isLiked.value = true
 })
 
-watch(slug, async (newSlug) => {
+// When slug changes client-side (navigation), reset likes state
+watch(slug, (newSlug) => {
   closeDropdown()
   likeCount.value = 0
   isLiked.value = false
   isLoadingLikes.value = true
-  await loadArticle(newSlug)
-  if (localStorage.getItem(`liked-${newSlug}`)) isLiked.value = true
-  fetchLikes()
+  // article data is refetched automatically by useAsyncData's watch option
+  nextTick(() => {
+    if (localStorage.getItem(`liked-${newSlug}`)) isLiked.value = true
+    fetchLikes()
+  })
 })
 </script>
 

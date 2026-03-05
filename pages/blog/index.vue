@@ -13,9 +13,8 @@ useSeoMeta({
 
 const { sortedArticles, isLoading, error, fetchArticles } = useArticles()
 
-onMounted(() => {
-  fetchArticles()
-})
+// Fetch articles at setup time (works during SSG generate and client-side)
+await fetchArticles()
 
 const searchQuery = ref('')
 
