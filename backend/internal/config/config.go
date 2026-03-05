@@ -52,8 +52,9 @@ type IdeasConfig struct {
 
 // BlogConfig holds configuration for the GCS-backed blog system.
 type BlogConfig struct {
-	GCSBucket       string
-	PubSubPushToken string // Optional shared secret for Pub/Sub push validation
+	GCSBucket                  string
+	PubSubPushToken            string // Optional shared secret for Pub/Sub push validation
+	FrontendRebuildWebhookURL  string // Optional Cloud Build webhook URL to trigger frontend rebuilds
 }
 
 // AnalyticsConfig holds configuration for Google Analytics.
@@ -146,6 +147,6 @@ func Load() (*Config, error) {
 			ApiSecret:     gaApiSecret,
 			MeasurementID: gaMeasurementID,
 		},
-		Blog: BlogConfig{GCSBucket: gcsBlogBucket, PubSubPushToken: pubsubPushToken},
+		Blog: BlogConfig{GCSBucket: gcsBlogBucket, PubSubPushToken: pubsubPushToken, FrontendRebuildWebhookURL: os.Getenv("FRONTEND_REBUILD_WEBHOOK_URL")},
 	}, nil
 }

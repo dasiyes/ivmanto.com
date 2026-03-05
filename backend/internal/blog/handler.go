@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -12,17 +13,19 @@ import (
 
 // Handler serves blog article endpoints.
 type Handler struct {
-	logger    *slog.Logger
-	cache     *Cache
-	pushToken string // optional shared secret for Pub/Sub push validation
+	logger     *slog.Logger
+	cache      *Cache
+	pushToken  string // optional shared secret for Pub/Sub push validation
+	webhookURL string // optional Cloud Build webhook URL for frontend rebuilds
 }
 
 // NewHandler creates a new blog handler.
-func NewHandler(logger *slog.Logger, cache *Cache, pushToken string) *Handler {
+func NewHandler(logger *slog.Logger, cache *Cache, pushToken string, webhookURL string) *Handler {
 	return &Handler{
-		logger:    logger,
-		cache:     cache,
-		pushToken: pushToken,
+		logger:     logger,
+		cache:      cache,
+		pushToken:  pushToken,
+		webhookURL: webhookURL,
 	}
 }
 
@@ -106,8 +109,36 @@ func (h *Handler) handlePubSubPush(w http.ResponseWriter, r *http.Request) {
 	// 4. Schedule debounced refresh (returns immediately).
 	h.cache.Refresh()
 
-	// 5. Acknowledge (200 OK). The actual refresh runs asynchronously.
+	// 5. Trigger frontend rebuild via Cloud Build webhook (non-blocking).
+	go h.triggerFrontendRebuild(objectID)
+
+	// 6. Acknowledge (200 OK). The actual refresh runs asynchronously.
 	w.WriteHeader(http.StatusOK)
+}
+
+// triggerFrontendRebuild sends a POST request to the Cloud Build webhook URL
+// to trigger a frontend-only rebuild so new articles are pre-rendered.
+// This runs in a goroutine and never blocks the Pub/Sub acknowledgment.
+func (h *Handler) triggerFrontendRebuild(objectID string) {
+	if h.webhookURL == "" {
+		return // No webhook configured, skip silently.
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	body := bytes.NewBufferString(fmt.Sprintf(`{"trigger_source":"pubsub","object":"%s"}`, objectID))
+
+	resp, err := client.Post(h.webhookURL, "application/json", body)
+	if err != nil {
+		h.logger.Error("failed to trigger frontend rebuild webhook", "error", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		h.logger.Info("frontend rebuild triggered successfully", "object", objectID, "status", resp.StatusCode)
+	} else {
+		h.logger.Warn("frontend rebuild webhook returned non-2xx", "object", objectID, "status", resp.StatusCode)
+	}
 }
 
 // handleArticlesStatus returns diagnostic information about all articles
