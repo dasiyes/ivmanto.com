@@ -19,7 +19,9 @@ export function useArticles()
     error.value = null
     try
     {
-      const data = await $fetch<ArticleMeta[]>('/api/articles')
+      const config = useRuntimeConfig()
+      const baseURL = import.meta.server ? config.apiBaseUrl : ''
+      const data = await $fetch<ArticleMeta[]>('/api/articles', { baseURL })
       articles.value = data
       return data
     } catch (e)
@@ -36,7 +38,9 @@ export function useArticles()
   {
     try
     {
-      const data = await $fetch<Article>(`/api/articles/${slug}`)
+      const config = useRuntimeConfig()
+      const baseURL = import.meta.server ? config.apiBaseUrl : ''
+      const data = await $fetch<Article>(`/api/articles/${slug}`, { baseURL })
       return data
     } catch (e: any)
     {
