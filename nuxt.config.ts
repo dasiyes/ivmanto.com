@@ -42,6 +42,12 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Global Security Headers
+    '/**': {
+      headers: {
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+      },
+    },
     // Pre-render static marketing pages
     '/': { prerender: true },
     '/about': { prerender: true },
