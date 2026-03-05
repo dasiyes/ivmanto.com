@@ -196,7 +196,7 @@ useHead({
       return [
         {
           type: 'application/ld+json',
-          children: JSON.stringify({
+          innerHTML: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
             headline: article.value.title,
