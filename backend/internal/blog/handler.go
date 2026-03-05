@@ -109,8 +109,10 @@ func (h *Handler) handlePubSubPush(w http.ResponseWriter, r *http.Request) {
 	// 4. Schedule debounced refresh (returns immediately).
 	h.cache.Refresh()
 
-	// 5. Trigger frontend rebuild via Cloud Build webhook (non-blocking).
-	go h.triggerFrontendRebuild(objectID)
+	// 5. Trigger frontend rebuild only for new/updated articles (not deletions).
+	if eventType == "OBJECT_FINALIZE" {
+		go h.triggerFrontendRebuild(objectID)
+	}
 
 	// 6. Acknowledge (200 OK). The actual refresh runs asynchronously.
 	w.WriteHeader(http.StatusOK)
