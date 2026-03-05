@@ -1,0 +1,44 @@
+# Frontend-only rebuild - triggered by Eventarc when new blog articles
+# are published to the GCS bucket. Skips the backend build entirely.
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'frontend-build'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'NUXT_API_BASE_URL=https://ivmanto.com'
+      - '-t'
+      - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'frontend-push'
+    args:
+      - 'push'
+      - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:latest'
+    waitFor: ['frontend-build']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'frontend-deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_FRONTEND_SERVICE_NAME}'
+      - '--image=europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:latest'
+      - '--region=europe-west3'
+      - '--platform=managed'
+      - '--ingress=internal-and-cloud-load-balancing'
+      - '--project=${PROJECT_ID}'
+      - '--allow-unauthenticated'
+    waitFor: ['frontend-push']
+
+substitutions:
+  _FRONTEND_SERVICE_NAME: 'ivmanto-com'
+  _REPO_NAME: 'ivmanto-com-repo'
+
+images:
+  - 'europe-west3-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_FRONTEND_SERVICE_NAME}:latest'
