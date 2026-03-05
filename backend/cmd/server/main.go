@@ -98,7 +98,7 @@ func main() {
 	bookingHandler := booking.NewHandler(logger, gcalSvc, emailService, trackerSvc)
 	ideasHandler := ideas.NewHandler(logger, genaiClient, emailService, cfg.Ideas.GenerateIdeasPromptTemplate)
 	articlesHandler := articles.NewHandler(logger)
-	blogHandler := blog.NewHandler(logger, blogCache, cfg.Blog.PubSubPushToken)
+	blogHandler := blog.NewHandler(logger, blogCache, cfg.Blog.PubSubPushToken, cfg.Blog.FrontendRebuildWebhookURL)
 
 	// 5. Register routes
 	mux := http.NewServeMux()
