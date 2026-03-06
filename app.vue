@@ -11,7 +11,17 @@ useHead({
   titleTemplate: (titleChunk) => {
     if (!titleChunk) return siteTitle;
     return titleChunk.includes('ivmanto.com') ? titleChunk : `${titleChunk} | ivmanto.com`;
-  }
+  },
+  link: [
+    {
+      rel: 'canonical',
+      href: computed(() => {
+        let path = route.path === '/' ? '' : route.path
+        if (path.endsWith('/') && path.length > 1) path = path.slice(0, -1)
+        return `${siteUrl}${path}`
+      }),
+    },
+  ],
 })
 
 useSeoMeta({

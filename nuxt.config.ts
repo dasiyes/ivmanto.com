@@ -41,6 +41,10 @@ export default defineNuxtConfig({
     },
   },
 
+  features: {
+    inlineStyles: true
+  },
+
   routeRules: {
     // Global Security Headers
     '/**': {
