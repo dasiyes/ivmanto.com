@@ -19,6 +19,13 @@
           >GitHub</a
         >
         <a
+          href="https://x.com/IvmantoSol"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-primary"
+          >X / Twitter</a
+        >
+        <a
           href="https://g.dev/ivmanto-nikolaytonev"
           target="_blank"
           rel="noopener noreferrer"

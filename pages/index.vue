@@ -63,9 +63,10 @@ useHead({
 
 const { sortedArticles, fetchArticles } = useArticles()
 
-onMounted(() => {
-  fetchArticles()
-})
+// useAsyncData runs server-side during `nuxi generate`, embedding article
+// links directly in the pre-rendered HTML so SEO crawlers can discover them.
+// onMounted alone would only run in the browser, leaving the HTML empty.
+await useAsyncData('home-articles', () => fetchArticles())
 
 const featuredArticles = computed(() => sortedArticles.value.slice(0, 3))
 
