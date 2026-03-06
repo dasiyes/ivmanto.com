@@ -215,9 +215,12 @@ useHead({
 
 const sanitizedContent = computed(() => {
   if (!article.value?.content) return ''
+  // Strip the leading <h1> from the content to avoid duplicating the title
+  // which is already rendered from article.title in the template above.
+  const contentWithoutLeadingH1 = article.value.content.replace(/^\s*<h1[^>]*>.*?<\/h1>\s*/i, '')
   // DOMPurify only works client-side; during SSR, return raw content
-  if (import.meta.server) return article.value.content
-  return DOMPurify.sanitize(article.value.content)
+  if (import.meta.server) return contentWithoutLeadingH1
+  return DOMPurify.sanitize(contentWithoutLeadingH1)
 })
 
 const currentArticleIndex = computed(() => {
