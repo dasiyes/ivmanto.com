@@ -3,15 +3,15 @@ import { trackEvent } from '~/services/analytics'
 import { generateInspirationIdeas, type Idea } from '~/services/api'
 
 useSeoMeta({
-  title: 'ivmanto.com | Data & AI Consultancy',
+  title: 'ivmanto.com | Data Consultancy & AI Solutions',
   description:
-    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions that turn your data into a strategic asset.',
-  ogTitle: 'ivmanto.com | Data & AI Consultancy',
+    'Expert data consultancy on Google Cloud Platform. Providing data architecture, governance, and AI solutions that turn your data into a strategic asset.',
+  ogTitle: 'ivmanto.com | Data Consultancy & AI Solutions',
   ogDescription:
-    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions that turn your data into a strategic asset.',
-  twitterTitle: 'ivmanto.com | Data & AI Consultancy',
+    'Expert data consultancy on Google Cloud Platform. Providing data architecture, governance, and AI solutions that turn your data into a strategic asset.',
+  twitterTitle: 'ivmanto.com | Data Consultancy & AI Solutions',
   twitterDescription:
-    'Data & AI Consultancy on Google Cloud Platform. Expert data architecture, governance, and AI solutions.',
+    'Expert data consultancy on Google Cloud Platform. Providing data architecture, governance, and AI solutions.',
 })
 
 // FAQPage schema for SEO
@@ -120,7 +120,7 @@ function trackBookConsultationClick() {
           >GOOGLE CLOUD PLATFORM SPECIALIST</span
         >
         <h1 class="text-4xl md:text-6xl font-bold mt-4 text-dark-slate leading-tight">
-          Data & AI Consultancy — Expert Cloud Architecture & Solutions
+          Data Consultancy & AI Solutions — Expert Cloud Architecture
         </h1>
         <p class="text-lg md:text-xl text-gray-600 mt-6 max-w-3xl mx-auto">
           Transforming your data into actionable insights with robust, scalable, and intelligent

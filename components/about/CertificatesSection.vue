@@ -49,12 +49,14 @@ const certificates = [
           rel="noopener noreferrer"
           class="group"
         >
-          <img
+          <NuxtImg
             :src="cert.imgSrc"
             :alt="`Google Cloud Certified - ${cert.name}`"
             class="h-36 w-36 md:h-40 md:w-40 object-contain transition-transform duration-300 group-hover:scale-105"
             width="263"
             height="263"
+            format="webp"
+            loading="lazy"
           />
         </a>
       </div>

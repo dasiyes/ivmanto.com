@@ -88,7 +88,7 @@ const { cleanTitle } = usePageMetadata()
       <li>
         <strong>Data Governance: Your Framework for Trust and Scale</strong>
         <p>
-          If strategy is the map, governance is the reliable operating system for the journey. It
+          If strategy is the map, establishing a formal <strong>data governance framework</strong> is the reliable operating system for the journey. It
           answers the "how," "who," and "with what rules." This is where we turn strategy into a
           sustainable, everyday reality. Our implementation focuses on:
         </p>

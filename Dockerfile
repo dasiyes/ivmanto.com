@@ -46,6 +46,6 @@ COPY --from=build /app/.output/public .
 EXPOSE 8080
 
 # Start the static file server.
-# The '-s' flag rewrites missing routes to index.html, which is needed for
-# client-rendered pages (blog, booking) that don't have pre-rendered HTML.
-CMD ["serve", "-s", "."]
+# All routes are pre-rendered by `nuxi generate`, so no SPA fallback is needed.
+# Without `-s`, serve resolves clean URLs (e.g. /about → /about/index.html).
+CMD ["serve", "."]
