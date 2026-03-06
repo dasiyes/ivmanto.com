@@ -44,6 +44,7 @@ vendor/
 .env
 docs/protected/
 docs/GA4-GTM/
+docs/SEO-reports/
 /protected/
 grok-generated.jpg
 generated_video_1.mp4
