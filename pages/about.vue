@@ -52,12 +52,13 @@ useHead({
     <section class="py-20 md:py-28 bg-light-gray">
       <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
         <div>
-          <img
+          <NuxtImg
             src="/nt.jpg"
             alt="Nikolay Tonev - Cloud Data Architect and AI Consultant"
             class="rounded-xl shadow-lg w-full max-w-md mx-auto"
             width="448"
             height="448"
+            format="webp"
             loading="lazy"
           />
         </div>

@@ -14,12 +14,14 @@ const { cleanTitle } = usePageMetadata()
     <p class="italic lg:text-sm">(A 2-minute read)</p>
     <hr class="border-gray-200 mb-4" />
 
-    <img
+    <NuxtImg
       src="/sovereign-cloud-eu.webp"
       alt="Sovereign Cloud in Europe"
       class="float-left mr-4 mb-2 w-1/3 rounded-lg shadow-md"
       width="250"
       height="250"
+      format="webp"
+      loading="lazy"
     />
     <p>
       In an era defined by data, the concept of <strong>digital sovereignty</strong> has become
@@ -137,7 +139,7 @@ const { cleanTitle } = usePageMetadata()
         <li>
           The US CLOUD Act raises concerns in the EU about potential access to data by US authorities.
         </li>
-      </ul>      
+      </ul>
       <li>
         <strong>Security & Risk Management</strong>
       </li>
@@ -183,7 +185,7 @@ const { cleanTitle } = usePageMetadata()
             <li>German Coalition Agreement 2025</li>
             <li>Federal Ministry for Economic Affairs and Climate Action</li>
             <li>Federal Ministry of Health, Federal Ministry of Finance, Federal Ministry for Economic Affairs and Climate Action.</li>
-            <li>Federal Ministry of the Interior.</li> 
+            <li>Federal Ministry of the Interior.</li>
           </ul>
         </li>
       </ul>

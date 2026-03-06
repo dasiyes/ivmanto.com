@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   ssr: true,
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap', '@nuxtjs/google-fonts'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/sitemap', '@nuxtjs/google-fonts', '@nuxt/image'],
 
   googleFonts: {
     families: {
