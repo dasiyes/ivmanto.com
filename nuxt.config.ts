@@ -64,6 +64,7 @@ export default defineNuxtConfig({
     // Client-only for dynamic pages
     '/booking': { prerender: true },
     '/booking/cancel': { prerender: true },
+    '/assessment': { prerender: true },
     // Blog: pre-rendered at generate time for SEO
     '/blog': { prerender: true },
     '/blog/**': { prerender: true },

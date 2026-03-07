@@ -64,6 +64,33 @@ useHead({
       </div>
     </div>
 
+    <div class="mt-20 max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-dark-slate mb-6">Related Reading</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <NuxtLink
+          to="/blog/the-shift-to-agentic-ai-and-autonomous-workflows"
+          class="block p-4 bg-light-gray rounded-lg hover:shadow-md transition-shadow"
+        >
+          <h3 class="font-semibold text-dark-slate">The Shift to Agentic AI</h3>
+          <p class="text-sm text-gray-600 mt-1">From conversational AI to autonomous workflows</p>
+        </NuxtLink>
+        <NuxtLink
+          to="/blog/DataMeshGovernance"
+          class="block p-4 bg-light-gray rounded-lg hover:shadow-md transition-shadow"
+        >
+          <h3 class="font-semibold text-dark-slate">Data Mesh Governance</h3>
+          <p class="text-sm text-gray-600 mt-1">Enforcing policies without becoming a bottleneck</p>
+        </NuxtLink>
+        <NuxtLink
+          to="/blog/VisionaryDataArchitecture"
+          class="block p-4 bg-light-gray rounded-lg hover:shadow-md transition-shadow"
+        >
+          <h3 class="font-semibold text-dark-slate">Visionary Data Architecture</h3>
+          <p class="text-sm text-gray-600 mt-1">Stop building data museums</p>
+        </NuxtLink>
+      </div>
+    </div>
+
     <div class="mt-20 text-center">
       <h2 class="text-3xl font-bold">Ready to build your data foundation?</h2>
       <p class="mt-4 text-lg text-gray-600">

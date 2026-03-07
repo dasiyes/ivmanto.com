@@ -8,6 +8,7 @@ export type Service = {
   detailsComponent: Component
   tagDetails?: { [key: string]: string }
   industries: string[]
+  relatedBlogSlugs: string[]
 }
 
 export const services: Service[] = [
@@ -25,6 +26,7 @@ export const services: Service[] = [
         'The DAMA-DMBOK (Data Management Body of Knowledge) is a framework of data management best practices, often used as a study guide for data management certification.',
     },
     industries: ['All'],
+    relatedBlogSlugs: ['NavigatingTheDataFrontier', 'OnDataManagement'],
   },
   {
     id: 'sovereigncloud',
@@ -41,6 +43,7 @@ export const services: Service[] = [
         'The Data Act is a comprehensive initiative to address the challenges and unleash the opportunities presented by data in the European Union, emphasising fair access and user rights, while ensuring the protection of personal data.',
     },
     industries: ['Finance', 'Healthcare', 'Public sector'],
+    relatedBlogSlugs: ['FromBigDataTo'],
   },
   {
     id: 'data-architecture',
@@ -59,6 +62,7 @@ export const services: Service[] = [
         'Cloud SQL is a fully-managed database service that makes it easy to set up, maintain, manage, and administer your relational PostgreSQL, MySQL, and SQL Server databases in the cloud.',
     },
     industries: ['Finance', 'Retail', 'Healthcare'],
+    relatedBlogSlugs: ['VisionaryDataArchitecture', 'CommonArchitecturalPatterns'],
   },
   {
     id: 'ml-engineering',
@@ -74,6 +78,7 @@ export const services: Service[] = [
       CICD: 'Continuous Integration and Continuous Delivery (CI/CD) is a method to frequently deliver apps to customers by introducing automation into the stages of app development.',
     },
     industries: ['Retail', 'Healthcare'],
+    relatedBlogSlugs: ['the-shift-to-agentic-ai-and-autonomous-workflows', 'TheRiseOfSlm'],
   },
   {
     id: 'data-strategy-and-governance',
@@ -87,6 +92,7 @@ export const services: Service[] = [
       DAMA: 'The DAMA-DMBOK (Data Management Body of Knowledge) is a framework of data management best practices, often used as a study guide for data management certification.',
     },
     industries: ['Finance', 'Healthcare'],
+    relatedBlogSlugs: ['DataMeshGovernance', 'OnDataManagement'],
   },
 ]
 

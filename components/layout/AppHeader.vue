@@ -66,6 +66,9 @@
         <NuxtLink to="/blog" class="text-gray-600 hover:text-primary transition-colors"
           >Articles</NuxtLink
         >
+        <NuxtLink to="/assessment" class="text-gray-600 hover:text-primary transition-colors"
+          >Assessment</NuxtLink
+        >
         <NuxtLink to="/#contact" class="text-gray-600 hover:text-primary transition-colors"
           >Contact</NuxtLink
         >
@@ -135,6 +138,12 @@
           @click="isMobileMenuOpen = false"
           class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
           >Articles</NuxtLink
+        >
+        <NuxtLink
+          to="/assessment"
+          @click="isMobileMenuOpen = false"
+          class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50"
+          >Assessment</NuxtLink
         >
         <NuxtLink
           to="/#contact"

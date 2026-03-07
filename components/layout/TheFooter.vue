@@ -36,6 +36,7 @@
       <div class="mt-4 flex justify-center space-x-6 text-sm">
         <NuxtLink to="/about" class="hover:text-primary">About</NuxtLink>
         <NuxtLink to="/services" class="hover:text-primary">Services</NuxtLink>
+        <NuxtLink to="/assessment" class="hover:text-primary">Assessment</NuxtLink>
         <NuxtLink to="/#contact" class="hover:text-primary">Contact</NuxtLink>
         <NuxtLink to="/privacy-policy" class="hover:text-primary">Privacy Policy</NuxtLink>
         <NuxtLink to="/terms" class="hover:text-primary">Terms of Service</NuxtLink>
