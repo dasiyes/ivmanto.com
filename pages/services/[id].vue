@@ -79,6 +79,23 @@
               Book a Consultation
             </NuxtLink>
           </div>
+
+          <!-- Related Articles -->
+          <div v-if="relatedArticles.length > 0" class="mt-8">
+            <h3 class="text-xl font-bold text-dark-slate mb-4">Related Articles</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <NuxtLink
+                v-for="article in relatedArticles"
+                :key="article.slug"
+                :to="`/blog/${article.slug}`"
+                class="block p-4 bg-light-gray rounded-lg hover:shadow-md transition-all hover:-translate-y-0.5"
+              >
+                <h4 class="font-semibold text-dark-slate">{{ article.title }}</h4>
+                <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ article.summary }}</p>
+                <span class="mt-2 inline-block text-primary font-semibold text-sm">Read Article &rarr;</span>
+              </NuxtLink>
+            </div>
+          </div>
         </div>
         <div v-else class="text-center p-12">
           <h1 class="text-2xl font-bold">Service Not Found</h1>
@@ -97,6 +114,17 @@ import { trackEvent } from '~/services/analytics'
 const route = useRoute()
 const id = computed(() => route.params.id as string)
 const service = computed(() => getServiceById(id.value))
+
+// Fetch articles for related articles section
+const { fetchArticles, getArticleBySlug } = useArticles()
+await fetchArticles()
+
+const relatedArticles = computed(() => {
+  if (!service.value) return []
+  return service.value.relatedBlogSlugs
+    .map((slug) => getArticleBySlug(slug))
+    .filter((a): a is NonNullable<typeof a> => a != null)
+})
 
 // Page-level SEO metadata
 const routeMetadata: Record<string, { title: string; description: string }> = {
