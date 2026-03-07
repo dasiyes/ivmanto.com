@@ -62,8 +62,8 @@ export default defineNuxtConfig({
     '/privacy-policy': { prerender: true },
     '/terms': { prerender: true },
     // Client-only for dynamic pages
-    '/booking': { ssr: false },
-    '/booking/cancel': { ssr: false },
+    '/booking': { prerender: true },
+    '/booking/cancel': { prerender: true },
     // Blog: pre-rendered at generate time for SEO
     '/blog': { prerender: true },
     '/blog/**': { prerender: true },

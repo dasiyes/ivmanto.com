@@ -63,9 +63,9 @@ useHead({
           />
         </div>
         <div>
-          <h2 class="text-3xl md:text-4xl font-bold text-dark-slate">
+          <h1 class="text-3xl md:text-4xl font-bold text-dark-slate">
             A Partner in Your Data Journey
-          </h2>
+          </h1>
           <p class="text-lg text-gray-600 mt-6">
             I am a dedicated Cloud Data Architect with extensive experience on the Google Cloud
             Platform. My passion is helping businesses unlock the true value of their data. I focus
