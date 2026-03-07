@@ -164,7 +164,7 @@ onMounted(() => {
 <template>
   <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
     <div v-if="!isBookingConfirmed">
-      <h2 class="text-2xl font-bold text-dark-slate mb-6 text-center">Book a Consultation</h2>
+      <h1 class="text-2xl font-bold text-dark-slate mb-6 text-center">Book a Consultation</h1>
 
       <!-- Date Selector -->
       <div class="flex items-center justify-between mb-6">

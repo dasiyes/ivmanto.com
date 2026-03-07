@@ -28,6 +28,11 @@
 </template>
 
 <script setup lang="ts">
+useSeoMeta({
+  title: 'Cancel Booking | ivmanto.com',
+  description: 'Cancel your scheduled consultation with IVMANTO. Contact us if you need further assistance modifying your appointment.',
+})
+
 const route = useRoute()
 const isLoading = ref(true)
 const error = ref<string | null>(null)

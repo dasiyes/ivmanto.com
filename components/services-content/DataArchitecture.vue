@@ -7,7 +7,7 @@ const { cleanTitle } = usePageMetadata()
 
 <template>
   <article class="prose lg:prose-l max-w-none p-6">
-    <h2>{{ cleanTitle }}</h2>
+    <h1>{{ cleanTitle }}</h1>
     <p class="italic lg:text-l">
       Designing scalable, secure, and cost-effective data platforms on GCP.
     </p>

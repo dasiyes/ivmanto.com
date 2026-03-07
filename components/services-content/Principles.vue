@@ -7,7 +7,7 @@ const { cleanTitle } = usePageMetadata()
 
 <template>
   <article class="prose prose-sm lg:prose-base max-w-none p-6">
-    <h2>{{ cleanTitle }}</h2>
+    <h1>{{ cleanTitle }}</h1>
     <p class="italic lg:text-l">
       Our approach is grounded in the globally recognized standards of DAMA and its Data Management
       Body of Knowledge (DMBOK), ensuring we turn your information into your most reliable and
