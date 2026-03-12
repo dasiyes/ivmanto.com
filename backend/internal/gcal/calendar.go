@@ -160,12 +160,26 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	// domain-wide delegation. Instead, we send an .ics attachment in the
 	// confirmation email. We will leave the existing attendees (i.e., the calendar owner) on the event.
 	// eventToBook.Attendees = nil
+
 	// Request Google Meet conference data to be added to the event.
-	// Google Meet creation has been removed as requested.
+	meetRequestID, err := uuid.NewRandom()
+	if err != nil {
+		slog.Warn("could not generate Meet request ID, skipping Meet link", "error", err)
+	} else {
+		eventToBook.ConferenceData = &calendar.ConferenceData{
+			CreateRequest: &calendar.CreateConferenceRequest{
+				RequestId: meetRequestID.String(),
+				ConferenceSolutionKey: &calendar.ConferenceSolutionKey{
+					Type: "hangoutsMeet",
+				},
+			},
+		}
+	}
 
 	// 4. Atomically update the event. The ETag mechanism handled by the client library
 	// ensures that if the event was changed between our read and write, this will fail.
-	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).Do()
+	// ConferenceDataVersion(1) tells the API to process the ConferenceData create request.
+	updatedEvent, err := s.calSvc.Events.Update(s.calendarID, eventToBook.Id, eventToBook).ConferenceDataVersion(1).Do()
 
 	if err != nil {
 		// Check for a 409 Conflict or 412 Precondition Failed, which indicates the slot was just taken.
@@ -177,7 +191,7 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 	}
 	slog.Info("Successfully updated event with booking details", "eventID", updatedEvent.Id)
 
-	// Return the updated event directly. No Google Meet link will be included.
+	// Return the updated event. The Google Meet link will be in ConferenceData / HangoutLink.
 	return updatedEvent, nil
 }
 
