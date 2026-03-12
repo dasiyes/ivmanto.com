@@ -1,7 +1,5 @@
 <script setup lang="ts">
-const route = useRoute()
-
-// Global Schema and canonical link
+// Global Schema (JSON-LD structured data)
 useHead({
   script: [
     {
@@ -43,19 +41,6 @@ useHead({
           target: 'https://ivmanto.com/blog?q={search_term_string}',
           'query-input': 'required name=search_term_string',
         },
-      }),
-    },
-  ],
-  link: [
-    {
-      rel: 'canonical',
-      href: computed(() => {
-        const baseUrl = 'https://ivmanto.com'
-        let path = route.path === '/' ? '' : route.path
-        if (path.endsWith('/') && path.length > 1) {
-          path = path.slice(0, -1)
-        }
-        return `${baseUrl}${path}`
       }),
     },
   ],
