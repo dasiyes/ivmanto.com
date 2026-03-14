@@ -5,6 +5,7 @@ useSeoMeta({
   title: 'Contact us | ivmanto.com',
   description:
     'Get in touch with IVMANTO to discuss your data and AI challenges. Book a free consultation or send us a message to start your data transformation journey.',
+  robots: 'noindex, nofollow',
 })
 
 type TimeSlot = {
