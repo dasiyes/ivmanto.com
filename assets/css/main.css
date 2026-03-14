@@ -1,9 +1,148 @@
-/* assets/css/main.css */
+/* assets/css/main.css — Design System v2 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles from your mockup */
+/* ─── Custom Properties ─── */
+:root {
+  --color-primary: #00a896;
+  --color-primary-light: #02c39a;
+  --color-primary-dark: #028090;
+  --color-amber: #f59e0b;
+  --color-amber-light: #fbbf24;
+  --color-dark: #0f172a;
+  --gradient-primary: linear-gradient(135deg, #00a896, #02c39a);
+  --gradient-warm: linear-gradient(135deg, #00a896, #02c39a, #f59e0b);
+  --gradient-hero: linear-gradient(160deg, #0f172a 0%, #0c1e3a 50%, #061225 100%);
+  --gradient-accent: linear-gradient(135deg, #028090, #00a896, #02c39a);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glow-teal: 0 0 30px rgba(0, 168, 150, 0.3);
+  --glow-teal-strong: 0 0 60px rgba(0, 168, 150, 0.5);
+  --glow-amber: 0 0 30px rgba(245, 158, 11, 0.25);
+  --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ─── Glassmorphism ─── */
+@layer components {
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-card-light {
+    @apply relative overflow-hidden rounded-2xl;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 168, 150, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-card-light:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 168, 150, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 168, 150, 0.1);
+  }
+
+  /* ─── Gradient Text ─── */
+  .gradient-text {
+    background: var(--gradient-accent);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 6s ease-in-out infinite;
+  }
+
+  /* ─── Animated Buttons ─── */
+  .btn-glow {
+    @apply relative font-bold py-3 px-8 rounded-xl text-lg transition-all duration-300;
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 168, 150, 0.3);
+  }
+
+  .btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 168, 150, 0.5);
+  }
+
+  .btn-glow:active {
+    transform: translateY(0);
+  }
+
+  .btn-outline-glow {
+    @apply relative font-bold py-3 px-8 rounded-xl text-lg transition-all duration-300;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-outline-glow:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 20px rgba(0, 168, 150, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* ─── Section Reveal Animation ─── */
+  .reveal-section {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s var(--transition-smooth), transform 0.8s var(--transition-smooth);
+  }
+
+  .reveal-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Stagger delays for children */
+  .reveal-stagger > :nth-child(1) { transition-delay: 0s; }
+  .reveal-stagger > :nth-child(2) { transition-delay: 0.15s; }
+  .reveal-stagger > :nth-child(3) { transition-delay: 0.3s; }
+  .reveal-stagger > :nth-child(4) { transition-delay: 0.45s; }
+}
+
+/* ─── Blob Shapes ─── */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+/* ─── Gradient Shift Keyframes (referenced by gradient-text) ─── */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ─── Smooth Accordion ─── */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s var(--transition-smooth), padding 0.4s var(--transition-smooth);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.accordion-content.is-open {
+  max-height: 200px;
+  padding-top: 0;
+  padding-bottom: 1.25rem;
+}
+
+/* ─── Dot Grid Overlay for Hero ─── */
+.dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* ─── Loader (preserved) ─── */
 .loader {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #00a896;
@@ -14,14 +153,6 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.hero-bg-pattern {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 200 200'%3e%3crect fill='%23F8F9FA' width='200' height='200'/%3e%3cg fill='none' stroke='%23D1D5DB' stroke-width='1'%3e%3cpath d='M100 0L200 100 100 200 0 100z'/%3e%3cpath d='M100 50L150 100 100 150 50 100z'/%3e%3c/g%3e%3c/svg%3e");
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

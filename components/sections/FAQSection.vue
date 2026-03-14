@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const faqs = ref([
   {
@@ -15,6 +15,7 @@ const faqs = ref([
   {
     question: "Do you provide hands-on engineering or just strategy?",
     answer: "I do both. I believe the best architects are those who still know how to build. I provide the high-level strategic blueprint and can lead the hands-on implementation of pipelines and infrastructure.",
+    isOpen: false
   },
   {
     question: "How do you ensure data security and compliance?",
@@ -26,40 +27,76 @@ const faqs = ref([
 function toggleFaq(index: number) {
   faqs.value[index].isOpen = !faqs.value[index].isOpen
 }
+
+const sectionRef = ref<HTMLElement | null>(null)
+const isVisible = ref(false)
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) isVisible.value = true
+      })
+    },
+    { threshold: 0.15 }
+  )
+  if (sectionRef.value) observer.observe(sectionRef.value)
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
-  <section class="py-20 bg-light-gray">
-    <div class="container mx-auto px-6 max-w-4xl">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-dark-slate">Common Questions</h2>
-        <p class="text-gray-600 mt-4">Everything you need to know about partnering with me.</p>
+  <section ref="sectionRef" class="py-20 md:py-28 bg-gray-50 relative overflow-hidden">
+    <!-- Subtle background accent -->
+    <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-amber/5 blur-3xl pointer-events-none"></div>
+
+    <div class="container mx-auto px-6 max-w-4xl relative z-10">
+      <div
+        class="text-center mb-12 transition-all duration-700"
+        :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+      >
+        <span class="text-amber font-semibold tracking-widest text-sm uppercase">FAQ</span>
+        <h2 class="text-3xl md:text-5xl font-bold text-dark-slate mt-3">Common Questions</h2>
+        <p class="text-gray-500 mt-4">Everything you need to know about partnering with me.</p>
       </div>
 
       <div class="space-y-4">
         <div 
           v-for="(faq, index) in faqs" 
           :key="index"
-          class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100"
+          class="glass-card-light transition-all duration-500 hover:shadow-lg"
+          :class="[
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8',
+            faq.isOpen ? 'ring-1 ring-primary/20' : ''
+          ]"
+          :style="{ transitionDelay: isVisible ? `${0.1 * index}s` : '0s' }"
         >
           <button 
             @click="toggleFaq(index)"
-            class="w-full px-6 py-5 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+            class="w-full px-6 py-5 text-left flex justify-between items-center transition-colors"
           >
-            <span class="font-bold text-dark-slate">{{ faq.question }}</span>
-            <svg 
-              class="w-5 h-5 text-primary transition-transform duration-300"
-              :class="{ 'rotate-180': faq.isOpen }"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+            <span class="font-semibold text-dark-slate pr-4">{{ faq.question }}</span>
+            <div
+              class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300"
+              :class="faq.isOpen ? 'bg-primary text-white rotate-180' : 'bg-gray-100 text-gray-400'"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
+              <svg 
+                class="w-4 h-4 transition-transform duration-300"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </button>
           <div 
-            v-if="faq.isOpen" 
-            class="px-6 pb-5 text-gray-600 animate-fadeIn"
+            class="accordion-content px-6 text-gray-500 leading-relaxed"
+            :class="{ 'is-open': faq.isOpen }"
           >
             {{ faq.answer }}
           </div>
@@ -68,13 +105,3 @@ function toggleFaq(index: number) {
     </div>
   </section>
 </template>
-
-<style scoped>
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-</style>
