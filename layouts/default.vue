@@ -50,7 +50,9 @@ useHead({
 <template>
   <div class="flex flex-col min-h-screen">
     <LayoutAppHeader />
-    <slot />
+    <main class="flex-1">
+      <slot />
+    </main>
     <LayoutTheFooter />
     <CookieBanner />
   </div>

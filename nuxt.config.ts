@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 
   googleFonts: {
     families: {
-      Montserrat: [400, 700],
+      Inter: '300..800',
     },
     display: 'swap',
     download: true,

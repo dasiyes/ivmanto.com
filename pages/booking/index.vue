@@ -163,7 +163,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+  <section class="py-16 md:py-24 bg-gray-50 min-h-[70vh]">
+  <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
     <div v-if="!isBookingConfirmed">
       <h1 class="text-2xl font-bold text-dark-slate mb-6 text-center">Book a Consultation</h1>
 
@@ -264,4 +265,5 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  </section>
 </template>
