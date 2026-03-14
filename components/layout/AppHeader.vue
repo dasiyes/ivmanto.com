@@ -1,14 +1,16 @@
 <template>
-  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200 shadow-sm">
+  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-primary/10" style="box-shadow: 0 4px 20px rgba(0, 168, 150, 0.08);">
     <nav class="container mx-auto px-6 py-3 flex justify-between items-center relative">
-      <NuxtLink to="/"
-        ><img
+      <NuxtLink to="/" class="group">
+        <img
           src="~/assets/mockup/logo.svg"
           alt="IVMANTO Logo"
-          class="h-16 w-auto"
+          class="h-16 w-auto transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(0,168,150,0.5)]"
+          style="filter: drop-shadow(0 0 6px rgba(0, 168, 150, 0.25));"
           width="64"
           height="64"
-      /></NuxtLink>
+        />
+      </NuxtLink>
       <div class="hidden md:flex items-center space-x-8">
         <!-- Services Menu with Dropdown -->
         <!-- The py-4 -my-4 trick creates an invisible vertical padding area to bridge the gap between the link and the submenu, preventing it from closing prematurely. -->
@@ -76,12 +78,18 @@
       <div class="hidden md:flex items-center space-x-4">
         <NuxtLink
           to="/#contact"
-          class="bg-primary text-white font-medium py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all"
+          class="text-white font-medium py-2 px-5 rounded-xl transition-all duration-300 hover:-translate-y-0.5"
+          style="background: linear-gradient(135deg, #00a896, #02c39a); box-shadow: 0 4px 15px rgba(0, 168, 150, 0.3);"
+          onmouseover="this.style.boxShadow='0 6px 25px rgba(0, 168, 150, 0.5)'"
+          onmouseout="this.style.boxShadow='0 4px 15px rgba(0, 168, 150, 0.3)'"
           >Get In Touch</NuxtLink
         >
         <NuxtLink
           :to="{ name: 'login' }"
-          class="bg-light-gray text-primary font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-all"
+          class="text-primary font-medium py-2 px-5 rounded-xl border border-primary/20 transition-all duration-300 hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-0.5"
+          style="box-shadow: 0 2px 8px rgba(0, 168, 150, 0.08);"
+          onmouseover="this.style.boxShadow='0 4px 15px rgba(0, 168, 150, 0.15)'"
+          onmouseout="this.style.boxShadow='0 2px 8px rgba(0, 168, 150, 0.08)'"
           >Client Login</NuxtLink
         >
       </div>
@@ -157,13 +165,14 @@
           <NuxtLink
             to="/#contact"
             @click="isMobileMenuOpen = false"
-            class="flex-1 bg-primary text-white font-medium py-2 px-4 rounded-lg hover:bg-opacity-90 transition-all text-center"
+            class="flex-1 text-white font-medium py-2 px-4 rounded-xl transition-all text-center"
+            style="background: linear-gradient(135deg, #00a896, #02c39a); box-shadow: 0 4px 15px rgba(0, 168, 150, 0.3);"
             >Get In Touch</NuxtLink
           >
           <NuxtLink
             :to="{ name: 'login' }"
             @click="isMobileMenuOpen = false"
-            class="flex-1 bg-light-gray text-primary font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-all text-center"
+            class="flex-1 text-primary font-medium py-2 px-4 rounded-xl border border-primary/20 transition-all text-center hover:bg-primary/5"
             >Client Login</NuxtLink
           >
         </div>

@@ -99,17 +99,87 @@ function trackBookConsultationClick() {
 // Hero animation state
 const heroLoaded = ref(false)
 
-// Scroll-reveal observer
+// Typewriter cycling text
+const typewriterWords = ['Data Architecture', 'AI Pipelines', 'Cloud Migration', 'Real-time Analytics']
+const currentWordIndex = ref(0)
+const displayedText = ref('')
+const isDeleting = ref(false)
+let typewriterInterval: ReturnType<typeof setTimeout> | null = null
+
+function typewriterStep() {
+  const currentWord = typewriterWords[currentWordIndex.value]
+
+  if (!isDeleting.value) {
+    // Typing
+    displayedText.value = currentWord.substring(0, displayedText.value.length + 1)
+    if (displayedText.value === currentWord) {
+      // Pause, then start deleting
+      typewriterInterval = setTimeout(() => {
+        isDeleting.value = true
+        typewriterStep()
+      }, 2200)
+      return
+    }
+    typewriterInterval = setTimeout(typewriterStep, 80)
+  } else {
+    // Deleting
+    displayedText.value = currentWord.substring(0, displayedText.value.length - 1)
+    if (displayedText.value === '') {
+      isDeleting.value = false
+      currentWordIndex.value = (currentWordIndex.value + 1) % typewriterWords.length
+      typewriterInterval = setTimeout(typewriterStep, 400)
+      return
+    }
+    typewriterInterval = setTimeout(typewriterStep, 40)
+  }
+}
+
+// Scroll-reveal observers
 const articlesRef = ref<HTMLElement | null>(null)
 const contactRef = ref<HTMLElement | null>(null)
 const articlesVisible = ref(false)
 const contactVisible = ref(false)
 
+// Scroll indicator fade
+const scrolled = ref(false)
+
 let observers: IntersectionObserver[] = []
+
+function handleScroll() {
+  scrolled.value = window.scrollY > 100
+}
+
+// Horizontal scroll drag
+function initDragScroll(el: HTMLElement | null) {
+  if (!el) return
+  let isDown = false
+  let startX = 0
+  let scrollLeft = 0
+
+  el.addEventListener('mousedown', (e) => {
+    isDown = true
+    startX = e.pageX - el.offsetLeft
+    scrollLeft = el.scrollLeft
+  })
+  el.addEventListener('mouseleave', () => { isDown = false })
+  el.addEventListener('mouseup', () => { isDown = false })
+  el.addEventListener('mousemove', (e) => {
+    if (!isDown) return
+    e.preventDefault()
+    const x = e.pageX - el.offsetLeft
+    el.scrollLeft = scrollLeft - (x - startX) * 1.5
+  })
+}
+
+const scrollContainerRef = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   // Trigger hero animations after a brief delay
   setTimeout(() => { heroLoaded.value = true }, 100)
+  // Start typewriter after hero loads
+  setTimeout(() => typewriterStep(), 1200)
+
+  window.addEventListener('scroll', handleScroll, { passive: true })
 
   // Scroll observers
   const createObserver = (el: HTMLElement | null, flag: { value: boolean }) => {
@@ -126,29 +196,34 @@ onMounted(() => {
   const o2 = createObserver(contactRef.value, contactVisible)
   if (o1) observers.push(o1)
   if (o2) observers.push(o2)
+
+  // Init horizontal drag scroll
+  initDragScroll(scrollContainerRef.value)
 })
 
 onUnmounted(() => {
   observers.forEach((o) => o.disconnect())
+  window.removeEventListener('scroll', handleScroll)
+  if (typewriterInterval) clearTimeout(typewriterInterval)
 })
 </script>
 
 <template>
   <div>
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- HERO SECTION — Dark gradient w/ kinetic text   -->
+    <!-- HERO SECTION — Immersive w/ typewriter + badges -->
     <!-- ═══════════════════════════════════════════════ -->
-    <section class="relative min-h-[90vh] flex items-center overflow-hidden" style="background: var(--gradient-hero);">
+    <section class="relative min-h-[92vh] flex items-center overflow-hidden" style="background: var(--gradient-hero);">
       <!-- Dot grid overlay -->
-      <div class="absolute inset-0 dot-grid opacity-40"></div>
+      <div class="absolute inset-0 dot-grid opacity-30"></div>
 
       <!-- Animated background blobs -->
-      <div class="blob w-[500px] h-[500px] bg-primary/20 -top-32 -right-32 animate-blob-float"></div>
-      <div class="blob w-[400px] h-[400px] bg-primary-dark/15 -bottom-20 -left-20 animate-blob-float-reverse"></div>
-      <div class="blob w-[250px] h-[250px] bg-amber/10 top-1/3 right-1/4 animate-blob-float" style="animation-delay: -3s;"></div>
+      <div class="blob w-[600px] h-[600px] bg-primary/10 -top-40 -right-40 animate-blob-float"></div>
+      <div class="blob w-[500px] h-[500px] bg-primary-dark/8 -bottom-24 -left-24 animate-blob-float-reverse"></div>
+      <div class="blob w-[300px] h-[300px] bg-amber/5 top-1/3 right-1/4 animate-blob-float" style="animation-delay: -3s;"></div>
 
       <div class="container mx-auto px-6 relative z-10">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
           <!-- Text Content -->
           <div class="text-center lg:text-left">
             <!-- Eyebrow -->
@@ -159,8 +234,8 @@ onUnmounted(() => {
               Google Cloud Platform Specialist
             </span>
 
-            <!-- Main headline with kinetic reveal -->
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+            <!-- Main headline — static part -->
+            <h1 class="text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold leading-tight">
               <span
                 class="block text-white transition-all duration-700"
                 :class="heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
@@ -176,6 +251,17 @@ onUnmounted(() => {
                 & <span class="gradient-text">AI</span> Solutions
               </span>
             </h1>
+
+            <!-- Typewriter cycling line -->
+            <div
+              class="mt-5 h-10 flex items-center transition-all duration-700"
+              :class="heroLoaded ? 'opacity-100' : 'opacity-0'"
+              :style="{ transitionDelay: '0.55s' }"
+            >
+              <span class="text-xl md:text-2xl font-light text-primary-light tracking-wide">
+                {{ displayedText }}<span class="typewriter-cursor"></span>
+              </span>
+            </div>
 
             <!-- Subheadline -->
             <p
@@ -205,20 +291,37 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Animated Visual -->
+          <!-- Floating Badges Visual -->
           <div
             class="hidden lg:block transition-all duration-1000"
             :class="heroLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'"
             :style="{ transitionDelay: '0.4s' }"
           >
-            <SectionsHeroInfographicSection />
+            <SectionsHeroInfographicSection :articles="featuredArticles" />
           </div>
         </div>
       </div>
+
+      <!-- Scroll indicator -->
+      <div
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-opacity duration-500"
+        :class="scrolled ? 'opacity-0' : 'opacity-60'"
+      >
+        <span class="text-xs text-gray-400 tracking-widest uppercase">Scroll to explore</span>
+        <svg class="w-5 h-5 text-gray-400 scroll-indicator" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7" />
+        </svg>
+      </div>
     </section>
 
-    <!-- Wave divider: hero → process -->
-    <SectionsSectionDivider class="text-white bg-hero-to" />
+    <!-- Wave divider: hero → stats -->
+    <SectionsSectionDivider class="text-hero-to" style="background: var(--gradient-hero);" />
+
+    <!-- Stats Counter Section -->
+    <SectionsStatsSection />
+
+    <!-- Wave divider: stats → process -->
+    <SectionsSectionDivider class="text-white" style="background: var(--gradient-hero);" />
 
     <!-- Process Section -->
     <SectionsProcessSection />
@@ -227,7 +330,7 @@ onUnmounted(() => {
     <SectionsSectionDivider class="text-gray-50 bg-white" />
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- ARTICLES SECTION                                -->
+    <!-- ARTICLES SECTION — Horizontal scroll            -->
     <!-- ═══════════════════════════════════════════════ -->
     <section id="articles" ref="articlesRef" class="py-20 md:py-28 bg-gray-50 relative overflow-hidden">
       <!-- Subtle background accents -->
@@ -246,28 +349,34 @@ onUnmounted(() => {
           </p>
         </div>
 
-        <!-- Article Cards -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Horizontal Scroll Cards (desktop) / Grid (mobile) -->
+        <div
+          ref="scrollContainerRef"
+          class="horizontal-scroll lg:flex lg:overflow-x-auto md:grid md:grid-cols-2 grid grid-cols-1 gap-6"
+        >
           <div
             v-for="(article, index) in featuredArticles"
             :key="article.slug"
-            class="glass-card-light p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl group"
+            class="gradient-border-spin glass-card-light p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl group lg:min-w-[340px] lg:max-w-[380px]"
             :class="articlesVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
             :style="{ transitionDelay: articlesVisible ? `${0.15 * index}s` : '0s' }"
           >
-            <span class="text-sm text-gray-400 font-medium">{{
-              new Date(article.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })
-            }}</span>
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-sm text-gray-400 font-medium">{{
+                new Date(article.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              }}</span>
+              <span class="text-xs text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full">~3 min read</span>
+            </div>
             <h3
-              class="text-xl font-bold text-dark-slate mt-3 group-hover:text-primary transition-colors duration-300"
+              class="text-xl font-bold text-dark-slate mt-2 group-hover:text-primary transition-colors duration-300"
             >
               {{ article.title }}
             </h3>
-            <p class="mt-3 text-gray-500 leading-relaxed">{{ article.summary }}</p>
+            <p class="mt-3 text-gray-500 leading-relaxed line-clamp-3">{{ article.summary }}</p>
             <NuxtLink
               :to="`/blog/${article.slug}`"
               class="text-primary font-semibold mt-4 inline-flex items-center gap-1 group/link"
@@ -325,7 +434,7 @@ onUnmounted(() => {
     <SectionsFAQSection />
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- CONTACT SECTION — Gradient with floating blobs  -->
+    <!-- CONTACT SECTION — Split layout                  -->
     <!-- ═══════════════════════════════════════════════ -->
     <section id="contact" ref="contactRef" class="py-20 md:py-28 text-white relative overflow-hidden" style="background: var(--gradient-hero);">
       <!-- Dot grid -->
@@ -336,22 +445,59 @@ onUnmounted(() => {
       <div class="blob w-[300px] h-[300px] bg-amber/10 -bottom-16 -right-16 animate-blob-float-reverse"></div>
 
       <div class="container mx-auto px-6 relative z-10">
-        <div
-          class="text-center mb-12 transition-all duration-700"
-          :class="contactVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
-        >
-          <span class="text-amber font-semibold tracking-widest text-sm uppercase">Get Started</span>
-          <h2 class="text-3xl md:text-5xl font-bold mt-3">Let's Build Something Great Together</h2>
-          <p class="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">
-            Have a project in mind? Let me know the details and I'll draft your inquiry.
-          </p>
-        </div>
-        <div
-          class="transition-all duration-700"
-          :class="contactVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
-          :style="{ transitionDelay: '0.2s' }"
-        >
-          <ContactForm source="home_page_form" />
+        <div class="grid lg:grid-cols-2 gap-16 items-start">
+          <!-- Left: Compelling copy + quick facts -->
+          <div
+            class="transition-all duration-700"
+            :class="contactVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+          >
+            <span class="text-amber font-semibold tracking-widest text-sm uppercase">Get Started</span>
+            <h2 class="text-3xl md:text-5xl font-bold mt-3 leading-tight">Let's Build<br/>Something <span class="gradient-text">Great</span></h2>
+            <p class="text-lg text-gray-400 mt-6 max-w-lg">
+              Have a project in mind? Let's discuss how I can help transform your data landscape
+              into a competitive advantage.
+            </p>
+
+            <!-- Quick facts -->
+            <div class="mt-10 space-y-5">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/20 text-primary flex-shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-white">Fast Response</div>
+                  <div class="text-sm text-gray-400">Usually within 24 hours</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/20 text-primary flex-shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-white">NDA Available</div>
+                  <div class="text-sm text-gray-400">Your data stays confidential</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/20 text-primary flex-shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-white">Free Intro Call</div>
+                  <div class="text-sm text-gray-400">30-minute discovery session</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Contact Form -->
+          <div
+            class="transition-all duration-700"
+            :class="contactVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+            :style="{ transitionDelay: '0.2s' }"
+          >
+            <ContactForm source="home_page_form" />
+          </div>
         </div>
       </div>
     </section>

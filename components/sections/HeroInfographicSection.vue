@@ -1,45 +1,87 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+interface Article {
+  slug: string
+  title: string
+  summary: string
+  date: string
+}
+
+const props = defineProps<{
+  articles: Article[]
+}>()
+
+const isVisible = ref(false)
+
+onMounted(() => {
+  setTimeout(() => { isVisible.value = true }, 600)
+})
+
+// Staggered offsets for "randomly distributed" feel
+const cardStyles = [
+  { top: '0%', right: '0', transform: 'rotate(-1.5deg)', delay: '0.3s' },
+  { top: '34%', right: '40px', transform: 'rotate(1deg)', delay: '0.5s' },
+  { top: '66%', right: '10px', transform: 'rotate(-0.5deg)', delay: '0.7s' },
+]
+</script>
+
 <template>
-  <div class="relative flex justify-center" aria-hidden="true">
-    <!-- Animated Abstract Orb -->
-    <div class="relative w-[300px] h-[300px] md:w-[400px] md:h-[400px]">
-      <!-- Outer ring -->
+  <div class="relative w-full" style="height: 650px;">
+    <!-- Particle field background -->
+    <div class="particle-field">
       <div
-        class="absolute inset-0 rounded-full animate-pulse-glow"
-        style="background: conic-gradient(from 0deg, transparent 0%, rgba(0,168,150,.3) 25%, transparent 50%, rgba(2,195,154,.3) 75%, transparent 100%); animation: orbSpin 12s linear infinite, pulseGlow 3s ease-in-out infinite;"
+        v-for="i in 8"
+        :key="i"
+        class="particle"
+        :style="{
+          left: `${(i * 12) % 100}%`,
+          top: `${(i * 20 + 10) % 100}%`,
+          width: '2px',
+          height: '2px',
+          animationDuration: `${7 + (i % 4) * 2}s`,
+          animationDelay: `${(i % 5) * -2}s`,
+        }"
       ></div>
+    </div>
 
-      <!-- Mid glow layer -->
-      <div
-        class="absolute inset-6 rounded-full"
-        style="background: radial-gradient(circle, rgba(0,168,150,.15) 0%, transparent 70%); animation: orbSpin 8s linear infinite reverse;"
-      ></div>
-
-      <!-- Core gradient orb -->
-      <div
-        class="absolute inset-12 rounded-full animate-float"
-        style="background: radial-gradient(circle at 40% 40%, rgba(2,195,154,.5), rgba(0,168,150,.3) 40%, rgba(2,128,144,.2) 70%, transparent); box-shadow: 0 0 80px rgba(0,168,150,.3), inset 0 0 60px rgba(2,195,154,.1);"
-      ></div>
-
-      <!-- Floating inner accent dots -->
-      <div
-        class="absolute top-1/4 left-1/3 w-3 h-3 rounded-full bg-primary-light/60"
-        style="animation: float 4s ease-in-out infinite;"
-      ></div>
-      <div
-        class="absolute bottom-1/3 right-1/4 w-2 h-2 rounded-full bg-primary/50"
-        style="animation: float 5s ease-in-out 1s infinite;"
-      ></div>
-      <div
-        class="absolute top-1/2 right-1/3 w-1.5 h-1.5 rounded-full bg-accent-light/40"
-        style="animation: float 6s ease-in-out 0.5s infinite;"
-      ></div>
+    <!-- Article Cards — staggered layout -->
+    <div
+      v-for="(article, index) in (articles || []).slice(0, 3)"
+      :key="article.slug"
+      class="absolute w-[350px] transition-all duration-700 group cursor-pointer"
+      :class="isVisible ? 'opacity-100' : 'opacity-0 translate-y-8'"
+      :style="{
+        top: cardStyles[index]?.top,
+        right: cardStyles[index]?.right,
+        transform: isVisible ? cardStyles[index]?.transform : 'translateY(32px)',
+        transitionDelay: cardStyles[index]?.delay,
+      }"
+    >
+      <NuxtLink :to="`/blog/${article.slug}`" class="block">
+        <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+          style="background: rgba(255,255,255,0.92); border: 1px solid rgba(0,168,150,0.12);">
+          <!-- Teal title strip -->
+          <div class="px-5 py-3" style="background: var(--gradient-primary);">
+            <span class="text-white text-sm font-semibold tracking-wider uppercase">Latest Article</span>
+          </div>
+          <!-- Card body -->
+          <div class="px-5 py-5">
+            <h3 class="text-base font-bold text-gray-800 leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
+              {{ article.title }}
+            </h3>
+            <p class="text-sm text-gray-500 mt-2.5 leading-relaxed line-clamp-2">
+              {{ article.summary }}
+            </p>
+            <div class="flex items-center justify-between mt-4">
+              <span class="text-sm text-gray-400">{{
+                new Date(article.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+              }}</span>
+              <span class="text-sm text-primary font-semibold group-hover:translate-x-1 transition-transform duration-300">Read →</span>
+            </div>
+          </div>
+        </div>
+      </NuxtLink>
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes orbSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>

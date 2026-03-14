@@ -1,4 +1,4 @@
-/* assets/css/main.css — Design System v2 */
+/* assets/css/main.css — Design System v2.1 — Dynamic Overhaul */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -21,6 +21,7 @@
   --glow-teal-strong: 0 0 60px rgba(0, 168, 150, 0.5);
   --glow-amber: 0 0 30px rgba(245, 158, 11, 0.25);
   --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Glassmorphism ─── */
@@ -107,6 +108,244 @@
   .reveal-stagger > :nth-child(4) { transition-delay: 0.45s; }
 }
 
+/* ─── Tilt Card — Mouse-tracking 3D tilt ─── */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+}
+
+.tilt-card-inner {
+  transform: translateZ(20px);
+}
+
+/* ─── Animated Particle Background ─── */
+.particle-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(0, 168, 150, 0.5);
+  box-shadow: 0 0 6px rgba(0, 168, 150, 0.3);
+  animation: particleDrift linear infinite;
+}
+
+.particle:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+@keyframes particleDrift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(30px); opacity: 0; }
+}
+
+/* ─── Hero Typewriter Cursor ─── */
+.typewriter-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background: var(--color-primary);
+  margin-left: 4px;
+  animation: cursorBlink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ─── Floating Badge ─── */
+.floating-badge {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 168, 150, 0.08);
+  transition: transform 0.3s var(--transition-smooth), box-shadow 0.3s var(--transition-smooth);
+}
+
+.floating-badge:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(0, 168, 150, 0.15);
+}
+
+/* ─── Stats Counter ─── */
+.counter-value {
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s ease;
+}
+
+.counter-glow {
+  animation: counterPulse 0.6s ease-out;
+}
+
+@keyframes counterPulse {
+  0% { text-shadow: 0 0 0 rgba(0, 168, 150, 0); }
+  50% { text-shadow: 0 0 30px rgba(0, 168, 150, 0.6); }
+  100% { text-shadow: 0 0 0 rgba(0, 168, 150, 0); }
+}
+
+/* ─── SVG Line Draw ─── */
+.draw-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 1.5s var(--transition-smooth);
+}
+
+.draw-line.is-drawn {
+  stroke-dashoffset: 0;
+}
+
+/* ─── Cursor Glow on Cards ─── */
+.card-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glow::before {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 168, 150, 0.15), transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+/* ─── Horizontal Scroll Container ─── */
+.horizontal-scroll {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  cursor: grab;
+  padding-bottom: 1rem;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll:active {
+  cursor: grabbing;
+}
+
+.horizontal-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ─── Animated Gradient Border ─── */
+.gradient-border-spin {
+  position: relative;
+  z-index: 0;
+}
+
+.gradient-border-spin::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle, 0deg), transparent 60%, var(--color-primary) 80%, var(--color-primary-light) 90%, transparent 100%);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: spinBorder 3s linear infinite;
+}
+
+.gradient-border-spin:hover::before {
+  opacity: 1;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spinBorder {
+  to { --angle: 360deg; }
+}
+
+/* ─── Smooth Accordion (grid-rows) ─── */
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s var(--transition-smooth);
+}
+
+.accordion-content.is-open {
+  grid-template-rows: 1fr;
+}
+
+.accordion-content > div {
+  overflow: hidden;
+}
+
+/* ─── Input Focus Underline ─── */
+.input-animated {
+  position: relative;
+  border-bottom: 2px solid rgba(0, 168, 150, 0.2);
+  transition: border-color 0.3s ease;
+}
+
+.input-animated:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* ─── Gradient Section Divider ─── */
+.section-fade-dark-to-light {
+  height: 120px;
+  background: linear-gradient(180deg, #0f172a 0%, #0c1e3a 30%, #f8f9fa 100%);
+}
+
+.section-fade-light-to-dark {
+  height: 120px;
+  background: linear-gradient(180deg, #f8f9fa 0%, #0c1e3a 70%, #0f172a 100%);
+}
+
+.section-fade-white-to-gray {
+  height: 80px;
+  background: linear-gradient(180deg, white 0%, #f8f9fa 100%);
+}
+
+.section-fade-gray-to-white {
+  height: 80px;
+  background: linear-gradient(180deg, #f8f9fa 0%, white 100%);
+}
+
+/* ─── Scroll Indicator ─── */
+.scroll-indicator {
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(10px); opacity: 1; }
+}
+
 /* ─── Blob Shapes ─── */
 .blob {
   position: absolute;
@@ -115,25 +354,10 @@
   pointer-events: none;
 }
 
-/* ─── Gradient Shift Keyframes (referenced by gradient-text) ─── */
+/* ─── Global Keyframes ─── */
 @keyframes gradientShift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-}
-
-/* ─── Smooth Accordion ─── */
-.accordion-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s var(--transition-smooth), padding 0.4s var(--transition-smooth);
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.accordion-content.is-open {
-  max-height: 200px;
-  padding-top: 0;
-  padding-bottom: 1.25rem;
 }
 
 /* ─── Dot Grid Overlay for Hero ─── */
