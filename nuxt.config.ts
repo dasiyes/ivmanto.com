@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 
   sitemap: {
     sources: ['/api/__sitemap__/blog'],
-    exclude: ['/login', '/booking-demo'],
+    exclude: ['/login', '/booking-demo', '/booking', '/booking/cancel'],
   },
 
   css: ['~/assets/css/main.css'],
