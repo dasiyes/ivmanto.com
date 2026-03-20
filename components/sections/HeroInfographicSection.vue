@@ -27,7 +27,7 @@ const cardStyles = [
 </script>
 
 <template>
-  <div class="relative w-full" style="height: 650px;">
+  <div class="relative w-full hero-infographic-wrap">
     <!-- Particle field background -->
     <div class="particle-field">
       <div
@@ -59,10 +59,9 @@ const cardStyles = [
       }"
     >
       <NuxtLink :to="`/blog/${article.slug}`" class="block">
-        <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-          style="background: rgba(255,255,255,0.92); border: 1px solid rgba(0,168,150,0.12);">
+        <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 article-preview-card">
           <!-- Teal title strip -->
-          <div class="px-5 py-3" style="background: var(--gradient-primary);">
+          <div class="px-5 py-3 article-preview-strip">
             <span class="text-white text-sm font-semibold tracking-wider uppercase">Latest Article</span>
           </div>
           <!-- Card body -->

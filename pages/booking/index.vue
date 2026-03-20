@@ -172,7 +172,7 @@ onMounted(() => {
       <div class="flex items-center justify-between mb-6">
         <button
           @click="changeDay(-1)"
-          class="h-10 w-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-200 hover:text-primary hover:scale-110 disabled:cursor-not-allowed disabled:opacity-75 disabled:scale-100 disabled:text-gray-400"
+          class="btn-day-nav"
           :disabled="isPreviousDayDisabled || isLoading"
           aria-label="Previous day"
         >
@@ -186,7 +186,7 @@ onMounted(() => {
         </div>
         <button
           @click="changeDay(1)"
-          class="h-10 w-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-200 hover:text-primary hover:scale-110 disabled:cursor-not-allowed disabled:opacity-75 disabled:scale-100 disabled:text-gray-400"
+          class="btn-day-nav"
           :disabled="isNextDayDisabled || isLoading"
           aria-label="Next day"
         >
@@ -232,15 +232,15 @@ onMounted(() => {
         <div class="space-y-4">
           <div>
             <label for="name" class="block text-gray-700 font-medium mb-1">Full Name</label>
-            <input type="text" id="name" v-model="bookingDetails.name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input type="text" id="name" v-model="bookingDetails.name" required class="form-field" />
           </div>
           <div>
             <label for="email" class="block text-gray-700 font-medium mb-1">Email</label>
-            <input type="email" id="email" v-model="bookingDetails.email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+            <input type="email" id="email" v-model="bookingDetails.email" required class="form-field" />
           </div>
           <div>
             <label for="notes" class="block text-gray-700 font-medium mb-1">Project Notes (Optional)</label>
-            <textarea id="notes" v-model="bookingDetails.notes" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+            <textarea id="notes" v-model="bookingDetails.notes" rows="3" class="form-field"></textarea>
           </div>
         </div>
         <div class="flex justify-end gap-4 mt-6">

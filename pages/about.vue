@@ -80,25 +80,25 @@ useHead({
           <div class="mt-8 flex flex-wrap gap-4">
             <a
               href="https://linkedin.com/in/nikolaytonev"
-              class="bg-white border border-gray-300 text-dark-slate font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2"
+              class="btn-profile-link"
               target="_blank"
               rel="noopener noreferrer"
               >LinkedIn</a
             ><a
               href="https://github.com/dasiyes"
-              class="bg-white border border-gray-300 text-dark-slate font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2"
+              class="btn-profile-link"
               target="_blank"
               rel="noopener noreferrer"
               >GitHub</a
             ><a
               href="https://www.credly.com/users/nikolay-tonev.a60be769/badges#credly"
-              class="bg-white border border-gray-300 text-dark-slate font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2"
+              class="btn-profile-link"
               target="_blank"
               rel="noopener noreferrer"
               >Credly Profile</a
             ><a
               href="https://cdmp.info/"
-              class="bg-white border border-gray-300 text-dark-slate font-medium py-2 px-4 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2"
+              class="btn-profile-link"
               target="_blank"
               rel="noopener noreferrer"
               >DAMA Professionals</a
