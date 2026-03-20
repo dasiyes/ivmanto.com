@@ -57,8 +57,7 @@ onUnmounted(() => {
 <template>
   <section
     ref="sectionRef"
-    class="py-16 md:py-20 relative overflow-hidden"
-    style="background: var(--gradient-hero);"
+    class="py-16 md:py-20 relative overflow-hidden bg-hero-gradient"
   >
     <!-- Subtle dot grid -->
     <div class="absolute inset-0 dot-grid opacity-20"></div>

@@ -24,6 +24,16 @@
   --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ─── Hero gradient utility — avoids inline style= on every section ─── */
+.bg-hero-gradient {
+  background: var(--gradient-hero);
+}
+
+/* ─── Animation delay helpers ─── */
+.animation-delay-neg3s {
+  animation-delay: -3s;
+}
+
 /* ─── Glassmorphism ─── */
 @layer components {
   .glass-card {

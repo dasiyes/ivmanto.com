@@ -1,0 +1,22 @@
+# IVMANTO
+
+> Expert Data & AI Consultancy on Google Cloud Platform. IVMANTO helps businesses design scalable data architectures, implement AI/ML solutions, and establish data governance frameworks — turning raw data into a strategic competitive advantage.
+
+Founded and led by Nikolay Tonev, a Cloud Data Architect with 20+ years of enterprise data experience and a GCP specialist aligned with DAMA-DMBOK principles.
+
+## Services
+
+- [Data Strategy & Governance](https://ivmanto.com/services/data-strategy-and-governance): Aligning data initiatives with business goals; governance frameworks for GDPR and compliance.
+- [Data Architecture on GCP](https://ivmanto.com/services/data-architecture): Scalable, secure data architectures using BigQuery, Cloud Storage, and modern data engineering.
+- [AI & ML Solutions](https://ivmanto.com/services/ml-engineering): Custom AI/ML pipelines, predictive analytics, and generative AI on Google Cloud.
+- [Sovereign Cloud](https://ivmanto.com/services/sovereigncloud): Data, operations, and AI sovereignty for compliance-sensitive environments.
+- [Guiding Principles](https://ivmanto.com/services/principles): DAMA-aligned principles for data strategy, governance, and architecture.
+
+## Pages
+
+- [Home](https://ivmanto.com/): Overview of Data & AI consultancy services.
+- [About](https://ivmanto.com/about): Meet Nikolay Tonev, Cloud Data Architect & AI Consultant.
+- [Blog](https://ivmanto.com/blog): Insights and articles on data strategy, cloud architecture, AI/ML, and software engineering.
+- [Book a Consultation](https://ivmanto.com/booking): Schedule a free 30-minute discovery session.
+- [Privacy Policy](https://ivmanto.com/privacy-policy): GDPR-compliant data handling policy.
+- [Terms of Service](https://ivmanto.com/terms): Terms governing use of ivmanto.com.

@@ -92,7 +92,7 @@
               >
                 <h4 class="font-semibold text-dark-slate">{{ article.title }}</h4>
                 <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ article.summary }}</p>
-                <span class="mt-2 inline-block text-primary font-semibold text-sm">Read Article &rarr;</span>
+                <span class="mt-2 inline-block text-primary font-semibold text-sm">Read: {{ article.title }} &rarr;</span>
               </NuxtLink>
             </div>
           </div>
@@ -177,15 +177,17 @@ const serviceSchema = computed(() => {
 })
 
 useHead({
-  script: [
-    {
-      id: 'service-schema',
-      type: 'application/ld+json',
-      children: computed(() =>
-        serviceSchema.value ? JSON.stringify(serviceSchema.value, null, 2) : '',
-      ),
-    },
-  ],
+  script: computed(() =>
+    serviceSchema.value
+      ? [
+          {
+            id: 'service-schema',
+            type: 'application/ld+json',
+            innerHTML: JSON.stringify(serviceSchema.value, null, 2),
+          },
+        ]
+      : [],
+  ),
 })
 
 function trackServiceClick(service: Service) {

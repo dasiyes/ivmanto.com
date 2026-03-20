@@ -171,9 +171,18 @@ const { data: article, status: articleStatus } = await useAsyncData(
 
 const isLoadingContent = computed(() => articleStatus.value === 'pending')
 
+// Truncate article title so the full "<title> | ivmanto.com" stays ≤ 70 chars
+function seoTitle(raw: string | undefined): string {
+  if (!raw) return 'Blog | ivmanto.com'
+  const suffix = ' | ivmanto.com' // 14 chars
+  const maxTitleLen = 70 - suffix.length // 56 chars for the article title
+  const truncated = raw.length > maxTitleLen ? raw.slice(0, maxTitleLen - 1).trimEnd() + '…' : raw
+  return `${truncated}${suffix}`
+}
+
 // Dynamic OG/Twitter meta for shared blog posts
 useSeoMeta({
-  title: computed(() => article.value ? `${article.value.title} | ivmanto.com` : 'Blog | ivmanto.com'),
+  title: computed(() => seoTitle(article.value?.title)),
   description: computed(() => article.value?.summary ?? ''),
   ogTitle: computed(() => article.value?.title ?? 'Blog | ivmanto.com'),
   ogDescription: computed(() => article.value?.summary ?? ''),
@@ -193,15 +202,25 @@ useHead({
   }),
   script: computed(() => {
     if (article.value) {
+      // Google requires headline ≤ 110 chars for Article rich results
+      const headline = article.value.title.length > 110
+        ? article.value.title.slice(0, 109) + '…'
+        : article.value.title
       return [
         {
           type: 'application/ld+json',
           innerHTML: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
-            headline: article.value.title,
+            mainEntityOfPage: {
+              '@type': 'WebPage',
+              '@id': `https://ivmanto.com/blog/${article.value.slug}`,
+            },
+            headline,
             description: article.value.summary,
+            image: 'https://ivmanto.com/social-sharing-card.webp',
             datePublished: article.value.date,
+            dateModified: article.value.date,
             author: { '@id': 'https://ivmanto.com/about#person' },
             publisher: { '@id': 'https://ivmanto.com/#organization' },
             url: `https://ivmanto.com/blog/${article.value.slug}`,

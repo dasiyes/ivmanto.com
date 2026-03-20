@@ -213,14 +213,14 @@ onUnmounted(() => {
     <!-- ═══════════════════════════════════════════════ -->
     <!-- HERO SECTION — Immersive w/ typewriter + badges -->
     <!-- ═══════════════════════════════════════════════ -->
-    <section class="relative min-h-[92vh] flex items-center overflow-hidden" style="background: var(--gradient-hero);">
+    <section class="relative min-h-[92vh] flex items-center overflow-hidden bg-hero-gradient">
       <!-- Dot grid overlay -->
       <div class="absolute inset-0 dot-grid opacity-30"></div>
 
       <!-- Animated background blobs -->
       <div class="blob w-[600px] h-[600px] bg-primary/10 -top-40 -right-40 animate-blob-float"></div>
       <div class="blob w-[500px] h-[500px] bg-primary-dark/8 -bottom-24 -left-24 animate-blob-float-reverse"></div>
-      <div class="blob w-[300px] h-[300px] bg-amber/5 top-1/3 right-1/4 animate-blob-float" style="animation-delay: -3s;"></div>
+      <div class="blob w-[300px] h-[300px] bg-amber/5 top-1/3 right-1/4 animate-blob-float animation-delay-neg3s"></div>
 
       <div class="container mx-auto px-6 relative z-10">
         <div class="grid lg:grid-cols-2 gap-16 items-center">
@@ -315,13 +315,13 @@ onUnmounted(() => {
     </section>
 
     <!-- Wave divider: hero → stats -->
-    <SectionsSectionDivider class="text-hero-to" style="background: var(--gradient-hero);" />
+    <SectionsSectionDivider class="text-hero-to bg-hero-gradient" />
 
     <!-- Stats Counter Section -->
     <SectionsStatsSection />
 
     <!-- Wave divider: stats → process -->
-    <SectionsSectionDivider class="text-white" style="background: var(--gradient-hero);" />
+    <SectionsSectionDivider class="text-white bg-hero-gradient" />
 
     <!-- Process Section -->
     <SectionsProcessSection />
@@ -380,6 +380,7 @@ onUnmounted(() => {
             <NuxtLink
               :to="`/blog/${article.slug}`"
               class="text-primary font-semibold mt-4 inline-flex items-center gap-1 group/link"
+              :aria-label="`Read article: ${article.title}`"
             >
               Read More
               <span class="transition-transform duration-300 group-hover/link:translate-x-1">→</span>
@@ -436,7 +437,7 @@ onUnmounted(() => {
     <!-- ═══════════════════════════════════════════════ -->
     <!-- CONTACT SECTION — Split layout                  -->
     <!-- ═══════════════════════════════════════════════ -->
-    <section id="contact" ref="contactRef" class="py-20 md:py-28 text-white relative overflow-hidden" style="background: var(--gradient-hero);">
+    <section id="contact" ref="contactRef" class="py-20 md:py-28 text-white relative overflow-hidden bg-hero-gradient">
       <!-- Dot grid -->
       <div class="absolute inset-0 dot-grid opacity-20"></div>
 
