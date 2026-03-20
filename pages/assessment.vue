@@ -19,14 +19,17 @@ useHead({
       type: 'application/ld+json',
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
-        '@type': 'WebApplication',
+        // Google Rich Results requires SoftwareApplication, not WebApplication
+        '@type': 'SoftwareApplication',
+        '@id': 'https://ivmanto.com/assessment#app',
         name: 'Data Maturity Assessment',
         url: 'https://ivmanto.com/assessment',
         description:
           'Free interactive assessment to evaluate your organization\'s data maturity across 5 key dimensions.',
         applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web Browser',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        provider: { '@id': 'https://ivmanto.com/#organization' },
+        author: { '@id': 'https://ivmanto.com/#organization' },
       }),
     },
   ],
