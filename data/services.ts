@@ -62,7 +62,7 @@ export const services: Service[] = [
         'Cloud SQL is a fully-managed database service that makes it easy to set up, maintain, manage, and administer your relational PostgreSQL, MySQL, and SQL Server databases in the cloud.',
     },
     industries: ['Finance', 'Retail', 'Healthcare'],
-    relatedBlogSlugs: ['VisionaryDataArchitecture', 'CommonArchitecturalPatterns'],
+    relatedBlogSlugs: ['VisionaryDataArchitecture'],
   },
   {
     id: 'ml-engineering',

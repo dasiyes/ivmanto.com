@@ -1,4 +1,10 @@
 <script setup lang="ts">
+useSeoMeta({
+  title: 'Book a Demo | ivmanto.com',
+  description: 'Schedule a free 30-minute discovery call with IVMANTO to discuss your data and AI challenges on Google Cloud Platform.',
+  robots: 'noindex, nofollow',
+})
+
 const bookingPageUrl = ref(
   'https://calendar.google.com/calendar/appointments/schedules/YOUR_SCHEDULE_ID?gv=true',
 )

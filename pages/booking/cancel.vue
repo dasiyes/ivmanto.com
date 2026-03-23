@@ -10,7 +10,7 @@
       <p>{{ error }}</p>
       <p>
         Please
-        <NuxtLink to="/contact" class="text-blue-600 hover:underline">contact us</NuxtLink>
+        <NuxtLink to="/booking" class="text-blue-600 hover:underline">contact us</NuxtLink>
         if you need further assistance.
       </p>
     </div>
@@ -31,6 +31,7 @@
 useSeoMeta({
   title: 'Cancel Booking | ivmanto.com',
   description: 'Cancel your scheduled consultation with IVMANTO. Contact us if you need further assistance modifying your appointment.',
+  robots: 'noindex, nofollow',
 })
 
 const route = useRoute()

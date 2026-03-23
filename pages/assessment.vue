@@ -19,17 +19,23 @@ useHead({
       type: 'application/ld+json',
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
-        // Google Rich Results requires SoftwareApplication, not WebApplication
-        '@type': 'SoftwareApplication',
-        '@id': 'https://ivmanto.com/assessment#app',
+        '@type': 'WebPage',
+        '@id': 'https://ivmanto.com/assessment',
         name: 'Data Maturity Assessment',
         url: 'https://ivmanto.com/assessment',
         description:
           'Free interactive assessment to evaluate your organization\'s data maturity across 5 key dimensions.',
-        applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Web Browser',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        author: { '@id': 'https://ivmanto.com/#organization' },
+        isPartOf: { '@id': 'https://ivmanto.com/#website' },
+        about: {
+          '@type': 'Quiz',
+          name: 'Data Maturity Assessment',
+          description:
+            'Evaluate your organization\'s data readiness across Strategy, Architecture, Governance, AI Readiness, and Culture. Get a personalized maturity score and recommendations.',
+          educationalLevel: 'Professional',
+          numberOfQuestions: 10,
+          timeRequired: 'PT3M',
+        },
+        provider: { '@id': 'https://ivmanto.com/#organization' },
       }),
     },
   ],

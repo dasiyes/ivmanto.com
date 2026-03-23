@@ -24,7 +24,7 @@
 |---|---|
 | Keywords | GCP vs AWS data warehouse, cloud data platform comparison 2026, BigQuery vs Redshift vs Synapse |
 | Link-Magnet Type | Original Research/Benchmark (tables, charts, real cost data) |
-| Internal Links | → [Data Architecture service](/services/data-architecture), → [Common Architectural Patterns blog](/blog/CommonArchitecturalPatterns) |
+| Internal Links | → [Data Architecture service](/services/data-architecture) |
 | Outbound Links | Google Cloud pricing docs, AWS pricing, Azure pricing, Gartner Magic Quadrant reference |
 | Republish To | **Towards Data Science**, **Hackernoon**, **LinkedIn Article** |
 
