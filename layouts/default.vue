@@ -34,11 +34,18 @@ useHead({
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
+        '@id': 'https://ivmanto.com/#website',
         name: 'IVMANTO',
         url: 'https://ivmanto.com',
+        publisher: {
+          '@id': 'https://ivmanto.com/#organization',
+        },
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://ivmanto.com/blog?q={search_term_string}',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://ivmanto.com/blog?q={search_term_string}',
+          },
           'query-input': 'required name=search_term_string',
         },
       }),

@@ -5,4 +5,3 @@ Disallow: /booking-demo
 Disallow: /api/_internal/
 
 Sitemap: https://ivmanto.com/sitemap.xml
-Sitemap: https://ivmanto.com/api/sitemap-blog.xml
