@@ -82,6 +82,8 @@ steps:
       # Set environment variables one by one for clarity and to avoid parsing issues with complex strings.
       - '--set-env-vars=CALENDAR_ID=${_CALENDAR_ID}'
       - '--set-env-vars=GCAL_AVAILABLE_SLOT_SUMMARY=${_GCAL_AVAILABLE_SLOT_SUMMARY}'
+      - '--set-env-vars=GCAL_SA_EMAIL=${_GCAL_SA_EMAIL}'
+      - '--set-env-vars=GCAL_IMPERSONATE_USER=${_GCAL_IMPERSONATE_USER}'
       - '--set-env-vars=SMTP_HOST=${_SMTP_HOST}'
       - '--set-env-vars=SMTP_PORT=${_SMTP_PORT}'
       - '--set-env-vars=SEND_FROM=${_SEND_FROM}'
@@ -103,6 +105,8 @@ substitutions:
   # These must be configured in the Cloud Build Trigger UI.
   _CALENDAR_ID: 'c_2950137553d97197f3e7963a9543784e119032ca9cc1b970ea668c6e9d2c9764@group.calendar.google.com' # Example, but likely correct
   _GCAL_AVAILABLE_SLOT_SUMMARY: 'AfB' # Example, but likely correct
+  _GCAL_SA_EMAIL: 'ivmanto-backend-sa@ivmanto-com-prod.iam.gserviceaccount.com'
+  _GCAL_IMPERSONATE_USER: 'nikolay.tonev@ivmanto.com'
   _SMTP_HOST: 'smtp.gmail.com' # e.g., 'smtp.gmail.com' - Set in Trigger UI
   _SMTP_PORT: '587' # e.g., '587' - Set in Trigger UI
   _SEND_FROM: 'nikolay.tonev@ivmanto.com' # e.g., 'contact@ivmanto.com' - Set in Trigger UI

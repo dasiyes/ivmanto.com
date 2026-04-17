@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/impersonate"
 	"google.golang.org/api/option"
 	"ivmanto.com/backend/internal/config"
 )
@@ -45,16 +46,25 @@ type BookingDetails struct {
 	Notes   string
 }
 
-// NewService creates a new calendar service client using Application Default Credentials.
-// On GCP, this uses the attached service account. For local dev, it uses `gcloud auth application-default login`.
+// NewService creates a new calendar service client using Domain-Wide Delegation.
+// The runtime principal (ADC) impersonates the configured service account, which in turn
+// impersonates a Workspace user via DWD. This is required so that Google Meet conferences
+// can be created on the calendar events.
 func NewService(ctx context.Context, cfg *config.Config) (Service, error) {
-	slog.Info("Authenticating for Google Calendar using Application Default Credentials")
+	slog.Info("Authenticating for Google Calendar via DWD user impersonation",
+		"sa", cfg.GCal.ServiceAccountEmail,
+		"subject", cfg.GCal.ImpersonateUser)
 
-	// Application Default Credentials (ADC) will be used automatically.
-	// On Cloud Run, this is the attached service account.
-	// Locally, this is the identity from `gcloud auth application-default login`.
-	// We just need to specify the required scope.
-	srv, err := calendar.NewService(ctx, option.WithScopes(calendar.CalendarScope))
+	ts, err := impersonate.CredentialsTokenSource(ctx, impersonate.CredentialsConfig{
+		TargetPrincipal: cfg.GCal.ServiceAccountEmail,
+		Scopes:          []string{calendar.CalendarScope},
+		Subject:         cfg.GCal.ImpersonateUser,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create impersonated token source: %w", err)
+	}
+
+	srv, err := calendar.NewService(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve Calendar client: %w", err)
 	}

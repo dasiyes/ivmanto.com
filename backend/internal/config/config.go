@@ -37,6 +37,8 @@ type EmailConfig struct {
 type GCalConfig struct {
 	CalendarID           string
 	AvailableSlotSummary string
+	ServiceAccountEmail  string // Runtime SA email, used as the impersonation source for DWD.
+	ImpersonateUser      string // Workspace user to impersonate via Domain-Wide Delegation.
 }
 
 // GCPConfig holds project-level Google Cloud configuration.
@@ -98,6 +100,14 @@ func Load() (*Config, error) {
 	if availableSlotSummary == "" {
 		missingVars = append(missingVars, "GCAL_AVAILABLE_SLOT_SUMMARY")
 	}
+	gcalSAEmail := os.Getenv("GCAL_SA_EMAIL")
+	if gcalSAEmail == "" {
+		missingVars = append(missingVars, "GCAL_SA_EMAIL")
+	}
+	gcalImpersonateUser := os.Getenv("GCAL_IMPERSONATE_USER")
+	if gcalImpersonateUser == "" {
+		missingVars = append(missingVars, "GCAL_IMPERSONATE_USER")
+	}
 
 	projectID, err := metadata.ProjectID()
 	if err != nil {
@@ -140,7 +150,12 @@ func Load() (*Config, error) {
 	return &Config{
 		Service: ServiceConfig{Port: port},
 		Email:   EmailConfig{SmtpHost: smtpHost, SmtpPort: smtpPort, SendFrom: sendFrom, SendFromAlias: sendFromAlias, SmtpPass: smtpPass},
-		GCal:    GCalConfig{CalendarID: calendarID, AvailableSlotSummary: availableSlotSummary},
+		GCal: GCalConfig{
+			CalendarID:           calendarID,
+			AvailableSlotSummary: availableSlotSummary,
+			ServiceAccountEmail:  gcalSAEmail,
+			ImpersonateUser:      gcalImpersonateUser,
+		},
 		GCP:     GCPConfig{ProjectID: projectID, Location: location},
 		Ideas:   IdeasConfig{GenerateIdeasPromptTemplate: generateIdeasPromptTemplate},
 		Analytics: AnalyticsConfig{

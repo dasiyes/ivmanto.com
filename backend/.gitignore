@@ -1,2 +1,4 @@
 vendor/
 gcp-credentials.json
+.env
+.env.local
