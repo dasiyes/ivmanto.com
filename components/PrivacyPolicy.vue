@@ -58,7 +58,7 @@
         parts of our Service.
       </li>
       <li>
-        <strong>Website</strong> refers to ivmanto.com, accessible from https://www.ivmanto.com
+        <strong>Website</strong> refers to ivmanto.com, accessible from https://ivmanto.com
       </li>
       <li><strong>Service</strong> refers to the Website.</li>
       <li><strong>Country</strong> refers to: Germany</li>
@@ -569,7 +569,7 @@
       <li>By email: nikolay.tonev@ivmanto.com</li>
       <li>
         By visiting this page on our website:
-        <a href="https://www.ivmanto.com/#contact">Contact Us</a>
+        <a href="https://ivmanto.com/#contact">Contact Us</a>
       </li>
     </ul>
   </div>

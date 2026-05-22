@@ -51,10 +51,30 @@ useHead({
       <div
         v-for="service in allServices"
         :key="service.id"
-        class="flex flex-col rounded-lg border border-gray-200 shadow-sm p-6"
+        class="relative flex flex-col rounded-lg p-6"
+        :class="
+          service.featured
+            ? 'border-2 border-amber bg-amber/5 shadow-md'
+            : 'border border-gray-200 shadow-sm'
+        "
       >
+        <span
+          v-if="service.featured"
+          class="absolute -top-3 left-6 inline-flex items-center bg-amber text-white text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-sm"
+        >
+          Featured
+        </span>
         <h3 class="text-lg font-semibold text-dark-slate">{{ service.menuTitle }}</h3>
         <p class="mt-2 text-sm text-gray-600 flex-grow">{{ service.summary }}</p>
+        <div v-if="service.keywords?.length" class="mt-3 flex flex-wrap gap-1.5">
+          <span
+            v-for="keyword in service.keywords.slice(0, 4)"
+            :key="keyword"
+            class="text-xs text-primary-dark bg-light-gray border border-gray-200 rounded-full px-2 py-0.5"
+          >
+            {{ keyword }}
+          </span>
+        </div>
         <NuxtLink
           :to="`/services/${service.id}`"
           class="mt-4 inline-block text-primary font-semibold hover:underline"

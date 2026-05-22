@@ -1,39 +1,79 @@
 # ivmanto.com
 
-This template should help get you started developing with Vue 3 in Vite.
+The website for IVMANTO — a Data & AI consultancy specializing in Google Cloud
+Platform. This is a monorepo containing two independently deployed services.
 
-## Recommended IDE Setup
+## Repository layout
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+| Path        | Service           | Stack                        |
+| ----------- | ----------------- | ---------------------------- |
+| `/` (root)  | Frontend website  | Nuxt 3 (SSG), TypeScript     |
+| `/backend`  | HTTP API backend  | Go (module `ivmanto.com/backend`) |
 
-## Type Support for `.vue` Imports in TS
+Each service has its own `Dockerfile` and is deployed as a separate Cloud Run
+service via `cloudbuild.yaml`.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Architecture
 
-## Customize configuration
+```
+Browser → Nuxt frontend (Cloud Run)
+              └─ /api/* → Go backend (Cloud Run)
+                              ├─ /api/booking/*  → Google Calendar (DWD impersonation)
+                              ├─ /api/blog/*     → GCS bucket (markdown)
+                              ├─ /api/contact    → SMTP
+                              ├─ /api/ideas      → Vertex AI (Gemini)
+                              └─ /api/articles   → in-memory likes counter
+```
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Local development
 
-## Project Setup
+### Frontend
 
 ```sh
 npm install
+npm run dev        # http://localhost:3000  (proxies /api/* to :8080)
 ```
 
-### Compile and Hot-Reload for Development
+### Backend
+
+Requires a `backend/.env` file (copy from `backend/.env.example`):
 
 ```sh
-npm run dev
+cd backend && go run ./cmd/server   # http://localhost:8080
 ```
 
-### Type-Check, Compile and Minify for Production
+For GCP APIs locally:
 
 ```sh
-npm run build
+gcloud auth application-default login
+gcloud auth application-default set-quota-project ivmanto-com-prod
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## Common commands
 
 ```sh
-npm run lint
+# Frontend
+npm run dev        # dev server
+npm run generate   # static (SSG) build — what Cloud Build runs
+npm run format     # Prettier
+
+# Backend
+cd backend
+go build ./...
+go test ./...
 ```
+
+## Deployment
+
+Pushing to `main` triggers Cloud Build (`cloudbuild.yaml`), which builds and
+pushes both Docker images to Artifact Registry and deploys the frontend and
+backend to Cloud Run (`europe-west3`, project `ivmanto-com-prod`). Backend
+secrets are injected from Secret Manager.
+
+Working branches follow the `dev-vX.Y.Z` pattern and merge to `main` via pull
+request; branch protection requires checks to pass.
+
+## Further documentation
+
+- `CLAUDE.md` — detailed architecture and conventions
+- `docs/features/dev-vX.Y.Z/` — per-release working notes and release notes
