@@ -48,17 +48,34 @@
               <component :is="service.detailsComponent" />
             </main>
 
-            <!-- Right Sidebar: Keywords -->
+            <!-- Right Sidebar: Key Concepts & Topics -->
             <aside
-              v-if="service.tagDetails && Object.keys(service.tagDetails).length"
+              v-if="
+                (service.tagDetails && Object.keys(service.tagDetails).length) ||
+                service.keywords?.length
+              "
               class="w-full lg:w-1/3"
             >
-              <div class="p-4 bg-light-gray rounded-lg sticky top-24">
-                <h3 class="font-bold text-dark-slate mb-4">Key Concepts</h3>
-                <div class="space-y-4">
-                  <div v-for="(desc, tag) in service.tagDetails" :key="tag">
-                    <p class="font-semibold text-primary">{{ tag }}</p>
-                    <p class="text-sm text-gray-600">{{ desc }}</p>
+              <div class="p-4 bg-light-gray rounded-lg sticky top-24 space-y-6">
+                <div v-if="service.tagDetails && Object.keys(service.tagDetails).length">
+                  <h3 class="font-bold text-dark-slate mb-4">Key Concepts</h3>
+                  <div class="space-y-4">
+                    <div v-for="(desc, tag) in service.tagDetails" :key="tag">
+                      <p class="font-semibold text-primary">{{ tag }}</p>
+                      <p class="text-sm text-gray-600">{{ desc }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="service.keywords?.length">
+                  <h3 class="font-bold text-dark-slate mb-3">Topics</h3>
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      v-for="keyword in service.keywords"
+                      :key="keyword"
+                      class="text-xs font-medium text-primary-dark bg-white border border-gray-200 rounded-full px-2.5 py-1"
+                    >
+                      {{ keyword }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -92,7 +109,9 @@
               >
                 <h4 class="font-semibold text-dark-slate">{{ article.title }}</h4>
                 <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ article.summary }}</p>
-                <span class="mt-2 inline-block text-primary font-semibold text-sm">Read: {{ article.title }} &rarr;</span>
+                <span class="mt-2 inline-block text-primary font-semibold text-sm"
+                  >Read: {{ article.title }} &rarr;</span
+                >
               </NuxtLink>
             </div>
           </div>
@@ -128,6 +147,21 @@ const relatedArticles = computed(() => {
 
 // Page-level SEO metadata
 const routeMetadata: Record<string, { title: string; description: string }> = {
+  'ai-automation-discovery': {
+    title: 'AI & Automation Strategic Discovery | ivmanto.com',
+    description:
+      'Discover high-impact AI and automation use-cases for your SMB. We audit workflows, pinpoint bottlenecks, and deliver an ROI-prioritized automation roadmap.',
+  },
+  'data-pipeline-engineering': {
+    title: 'Data Pipeline Design & Architecture | ivmanto.com',
+    description:
+      'End-to-end data pipeline engineering — we design scalable, secure pipelines that transform raw data into curated, analytics- and AI-ready datasets.',
+  },
+  'agentic-ai-solutions': {
+    title: 'Agentic AI Solution Design & Team Enablement | ivmanto.com',
+    description:
+      'Design and implement Agentic AI solutions — autonomous, reasoning agents — with architectural guidance, best practices, and team enablement for your staff.',
+  },
   'data-strategy-and-governance': {
     title: 'Data Strategy & Governance | ivmanto.com',
     description:
@@ -170,9 +204,11 @@ const serviceSchema = computed(() => {
     serviceType: service.value.menuTitle,
     name: service.value.menuTitle,
     description: service.value.summary,
+    category: 'Data & AI Consulting',
     provider: { '@id': 'https://ivmanto.com/#organization' },
     areaServed: { '@type': 'Country', name: 'Global' },
     url: `https://ivmanto.com${route.path}`,
+    ...(service.value.keywords?.length ? { keywords: service.value.keywords.join(', ') } : {}),
   }
 })
 

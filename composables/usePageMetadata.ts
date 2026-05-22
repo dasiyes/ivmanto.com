@@ -19,6 +19,21 @@ const routeMetadata: Record<string, { title: string; description: string }> = {
     description:
       'Explore our Data & AI services. From data strategy and GCP architecture to custom AI/ML solutions and Go backend development, we empower your business with data.',
   },
+  '/services/ai-automation-discovery': {
+    title: 'AI & Automation Strategic Discovery | ivmanto.com',
+    description:
+      'Discover high-impact AI and automation use-cases for your SMB. We audit workflows, pinpoint bottlenecks, and deliver an ROI-prioritized automation roadmap.',
+  },
+  '/services/data-pipeline-engineering': {
+    title: 'Data Pipeline Design & Architecture | ivmanto.com',
+    description:
+      'End-to-end data pipeline engineering — we design scalable, secure pipelines that transform raw data into curated, analytics- and AI-ready datasets.',
+  },
+  '/services/agentic-ai-solutions': {
+    title: 'Agentic AI Solution Design & Team Enablement | ivmanto.com',
+    description:
+      'Design and implement Agentic AI solutions — autonomous, reasoning agents — with architectural guidance, best practices, and team enablement for your staff.',
+  },
   '/services/data-strategy-and-governance': {
     title: 'Data Strategy & Governance | ivmanto.com',
     description:

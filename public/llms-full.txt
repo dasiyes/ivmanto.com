@@ -1,0 +1,83 @@
+# IVMANTO — Full Service & Site Reference
+
+> Expert Data & AI Consultancy on Google Cloud Platform (GCP). IVMANTO helps small and medium-sized businesses turn raw data into a strategic competitive advantage — from discovering practical AI use-cases to engineering data pipelines and deploying Agentic AI solutions.
+
+## About IVMANTO
+
+IVMANTO is a Data & AI consultancy founded and led by Nikolay Tonev, a Cloud Data Architect with 20+ years of enterprise data experience. The practice is a Google Cloud Platform specialist and grounds its work in the globally recognized DAMA-DMBOK (Data Management Body of Knowledge) standards. IVMANTO is based in Germany and serves clients worldwide.
+
+Contact: https://ivmanto.com/booking — book a free 30-minute discovery session.
+
+## Featured Services
+
+### AI & Automation Strategic Discovery
+
+URL: https://ivmanto.com/services/ai-automation-discovery
+
+Many small and medium-sized businesses want to leverage AI but don't know where to start. IVMANTO helps SMBs bypass the hype and identify high-impact, practical use-cases for automation. By auditing current workflows, IVMANTO pinpoints bottlenecks and designs a clear automation roadmap that directly reduces operational costs and scales business capabilities.
+
+Key deliverables: workflow assessments, ROI prioritization, actionable automation roadmaps.
+
+Topics: AI use-case discovery, business process automation, workflow automation, automation roadmap, ROI prioritization, AI for SMBs, intelligent automation.
+
+### Data Pipeline Design & Architecture
+
+URL: https://ivmanto.com/services/data-pipeline-engineering
+
+AI and automation are only as good as the data powering them. IVMANTO designs and architects robust, scalable data pipelines that ingest raw information and transform it into high-quality, curated datasets. Whether preparing for advanced analytics or feeding AI models, IVMANTO ensures data infrastructure is reliable, secure, and ready to deliver real business value.
+
+Key deliverables: architecture design, data integration, production-ready curated data environments.
+
+Topics: data pipeline engineering, data pipeline design, data architecture, data integration, ETL pipelines, curated datasets, AI-ready data, scalable data infrastructure.
+
+### Agentic AI Solution Design & Team Enablement
+
+URL: https://ivmanto.com/services/agentic-ai-solutions
+
+Going beyond basic chatbots, IVMANTO specializes in designing and implementing next-generation Agentic AI solutions — autonomous agents capable of executing complex tasks, reasoning, and collaborating. Working side-by-side with internal engineering or product teams, IVMANTO provides the architectural guidance, best practices, and implementation support needed to deploy intelligent workflows that deliver tangible business outcomes.
+
+Key deliverables: multi-agent system architecture, technical implementation guidance, team workshops.
+
+Topics: agentic AI, AI agents, multi-agent systems, autonomous agents, agentic AI implementation, intelligent workflows, AI solution architecture, team enablement.
+
+## Additional Services
+
+### Data Strategy & Governance
+
+URL: https://ivmanto.com/services/data-strategy-and-governance
+
+Implementing a robust data governance framework and DAMA-aligned principles for data quality and security. IVMANTO aligns data initiatives with business goals for maximum impact and regulatory compliance, including GDPR.
+
+### Data Architecture on GCP
+
+URL: https://ivmanto.com/services/data-architecture
+
+Designing and building scalable, secure, and cost-effective data architectures on Google Cloud Platform. IVMANTO leverages BigQuery, Cloud Storage, Cloud SQL, and modern data engineering practices such as the lakehouse, data mesh, and data fabric.
+
+### AI & ML Solutions
+
+URL: https://ivmanto.com/services/ml-engineering
+
+Operationalizing machine learning models and developing an AI transformation strategy from prototype to production. IVMANTO builds automated CI/CD pipelines for model training, deployment, and monitoring using Vertex AI.
+
+### Sovereign Cloud
+
+URL: https://ivmanto.com/services/sovereigncloud
+
+An architectural perspective on Data, Operations, and AI Sovereignty for compliance-sensitive environments, aligned with the EU Data Act.
+
+### Guiding Principles
+
+URL: https://ivmanto.com/services/principles
+
+DAMA-aligned principles for data strategy, governance, and architecture, grounded in the DAMA-DMBOK, ensuring data becomes a reliable and valuable asset for decision-making and AI.
+
+## Key Pages
+
+- Home — https://ivmanto.com/ — Overview of IVMANTO's Data & AI consultancy services.
+- About — https://ivmanto.com/about — Background on founder Nikolay Tonev, Cloud Data Architect & AI Consultant.
+- Blog — https://ivmanto.com/blog — Articles on data strategy, cloud architecture, AI/ML, Agentic AI, and software engineering.
+- Assessment — https://ivmanto.com/assessment — Data & AI readiness assessment.
+- Book a Consultation — https://ivmanto.com/booking — Schedule a free 30-minute discovery session.
+- Privacy Policy — https://ivmanto.com/privacy-policy — GDPR-compliant data handling policy.
+- Terms of Service — https://ivmanto.com/terms — Terms governing use of ivmanto.com.

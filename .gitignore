@@ -19,7 +19,8 @@ coverage
 .output/
 
 # Claude Code local session data
-.claude/
+.claude/*
+!.claude/launch.json
 
 /cypress/videos/
 /cypress/screenshots/
