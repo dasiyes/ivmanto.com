@@ -367,6 +367,20 @@ The Dockerfile currently uses `serve -s .` for the SPA. For pure SSG (no ISR), t
 - **Type Safety**: Strict TypeScript — no `any` unless unavoidable
 - **Content Sanitization**: Always use DOMPurify for user/API-provided HTML (`v-html`)
 
+### Backend (Go)
+- **Style**: Standard Go formatting (`gofmt`). No custom linter beyond `go vet`.
+- **Module path**: `ivmanto.com/backend`. Internal packages live under `backend/internal/`.
+- **Handlers**: Each domain (booking, blog, contact, ideas) has its own package in `backend/internal/` exporting an HTTP handler. Routes are registered in `backend/cmd/server/main.go`.
+- **Env vars**: All env vars are loaded by `internal/config` at startup. Missing required vars cause a fatal exit logged as `"missing required environment variables"`. When you add a new env var:
+  1. Wire it into `internal/config/config.go` (load + validate)
+  2. Add a placeholder to `backend/.env.example`
+  3. Add the substitution to `cloudbuild.yaml` OR add it to Secret Manager — state which in the PR
+- **Error handling**: Wrap errors with context (`fmt.Errorf("doing X: %w", err)`). HTTP handlers respond with non-2xx + JSON body `{"error": "..."}` — do not panic.
+- **Logging**: Use the structured logger middleware (`internal/middleware`). For ad-hoc logs use `log.Printf` with `key=value` pairs. No `fmt.Println` in handler code.
+- **External clients**: GCS, Vertex AI, Calendar, SMTP clients are initialised once in `main.go` and injected into handlers. Do not create new clients per request.
+- **Calendar / Meet**: All Google Calendar work goes through `internal/gcal`. Meet conferences require `ConferenceDataVersion(1)` on the Calendar update call. DWD impersonation is non-negotiable — do not switch to a different auth strategy without owner approval.
+- **Tests**: Place tests next to the package (`foo_test.go`). Mock GCP clients via interfaces where already abstracted (see `internal/gcal` for the pattern). Don't add new test frameworks.
+
 ### SEO Standards
 - Every page MUST have a unique `<title>` and `<meta name="description">`
 - Pages not meant for indexing MUST have `<meta name="robots" content="noindex">`
