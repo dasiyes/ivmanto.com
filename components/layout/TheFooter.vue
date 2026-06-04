@@ -36,6 +36,7 @@
           <p class="text-white font-semibold text-sm tracking-widest uppercase mt-6 mb-3">Friends</p>
           <div class="flex flex-col space-y-2 text-sm">
             <a href="https://vivily.de/" target="_blank" rel="noopener noreferrer" class="hover:text-amber transition-colors">Vivily.de</a>
+            <a href="https://muchakova.com/" target="_blank" rel="noopener noreferrer" class="hover:text-amber transition-colors">Muchakova.com</a>
           </div>
         </div>
       </div>

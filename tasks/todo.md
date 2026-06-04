@@ -551,3 +551,51 @@ Start with **Option A** (pure client-side blog). This achieves the primary goal 
 | All `src/services/` | `services/` (moved, not deleted) |
 | All `src/data/` | `data/` (moved, not deleted) |
 | All `src/types/` | `types/` (moved, not deleted) |
+
+---
+
+## Task: 2026-06-04 — Add muchakova.com to site footer Friends section
+
+**Branch:** `dev-v0.1.5` (off `main`, current HEAD `ede9113`)
+**Scope:** Frontend — one file, one new `<a>` element in the Friends block.
+**Owner-asked:** Yes (2026-06-04).
+
+### Plan
+
+- [x] Read `AGENTS.md` and `.agents/rules.md` (rule book)
+- [x] Locate footer component (`components/layout/TheFooter.vue`) and confirm Friends block
+- [x] Match existing pattern from Vivily.de entry (trailing slash, `hover:text-amber`, `target="_blank" rel="noopener noreferrer"`)
+- [x] Cut branch `dev-v0.1.5` from `main`
+- [x] Add entry to `tasks/todo.md`
+- [ ] Add `<a href="https://muchakova.com/" ...>Muchakova.com</a>` directly below Vivily.de line
+- [ ] Commit: `feat(footer): add muchakova.com to Friends section`
+- [ ] Push branch to `origin`
+- [ ] Open PR against `main` using `.github/pull_request_template.md`
+- [ ] **Pre-PR frontend gates deferred to CI for this PR only** (local npm env not yet configured on this box — see Note A below)
+
+### Verification
+
+- [ ] Diff review against the existing Vivily.de line for pattern consistency
+- [ ] CI `npm run lint` and `npm run generate` pass on the PR
+- [ ] Manual footer check on the preview environment post-merge
+
+### Note A — Local verification deferred
+
+Per owner direction (2026-06-04), local `npm install` / `lint` / `generate` are intentionally not run for this PR. Reason: local node/npm environment is not yet bootstrapped on the workstation. This is acceptable for a 1-line content change in a Vue template (no logic, no env vars, no build-config touch). A separate setup task will bootstrap the local frontend dev environment so future PRs can be verified locally before reaching PROD CI/CD.
+
+### Note B — Out of scope (do not touch in this PR)
+
+- `cloudbuild.yaml`
+- `nuxt.config.ts`
+- `plugins/analytics.client.ts`
+- `dist` symlink
+- Anything in `backend/`
+- Any secret / env var
+
+### Out-of-scope issues flagged (NOT to be fixed in this PR)
+
+None observed in the Friends block.
+
+### Lessons
+
+(none yet — will fill in after review)
