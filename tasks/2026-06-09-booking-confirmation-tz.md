@@ -1,6 +1,6 @@
 # Booking confirmation: render time in the visitor's timezone
 
-- **Status:** approved by owner 2026-06-09 — implementation complete, awaiting PR
+- **Status:** approved by owner 2026-06-09 — implementation complete, commit `2ce549c` pushed to `origin/dev-v0.1.6`, awaiting PR
 - **Date opened:** 2026-06-09
 - **Decisions confirmed by owner:**
   - `.ics` rendering is correct (UTC `Z` works as expected in the visitor's calendar). Only the email body needs TZ localisation. The `X-WR-TIMEZONE` hint is a small "while we're here" add — owner explicitly OK'd it.
