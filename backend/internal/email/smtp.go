@@ -228,6 +228,7 @@ func (s *SmtpService) SendBookingConfirmation(details BookingConfirmationDetails
 		Location:    details.MeetLink,
 		Name:        details.ToName,
 		Email:       details.ToEmail,
+		Timezone:    details.IcsTimezone,
 	})
 
 	// Create the attachment
@@ -282,15 +283,32 @@ func (s *SmtpService) SendContactMessage(msg ContactMessage) error {
 }
 
 // SendBookingCancellationToClient sends a cancellation confirmation to the user.
-func (s *SmtpService) SendBookingCancellationToClient(toName, toEmail string, startTime time.Time) error {
+// The visitor's IANA zone and a display label are forwarded from the booking
+// handler (read off the calendar event's private properties) so the slot
+// time renders in the visitor's local time, not the calendar owner's.
+func (s *SmtpService) SendBookingCancellationToClient(toName, toEmail string, startTime time.Time, visitorLoc *time.Location, visitorTZLabel string) error {
 	subject := "Your consultation has been cancelled"
+
+	// Localise the rendered time to the visitor's zone. If we have no
+	// visitor location (legacy event without a stored TZ, or unknown
+	// IANA name), fall back to the start time's own location and the
+	// empty label.
+	renderedTime := startTime
+	if visitorLoc != nil {
+		renderedTime = startTime.In(visitorLoc)
+	}
+	slotLabel := renderedTime.Format("Monday, January 2, 2006 at 3:04 PM")
+	if visitorTZLabel != "" {
+		slotLabel = slotLabel + " " + visitorTZLabel
+	}
+
 	htmlBody := fmt.Sprintf(`
 		<p>Hi %s,</p>
 		<p>This is a confirmation that your consultation scheduled for <strong>%s</strong> has been successfully cancelled.</p>
 		<p>If you wish to book another time, please feel free to visit our <a href="https://ivmanto.com/booking"><strong>booking page</strong></a> again.</p>
 		<p>Thanks,<br>The IVMANTO Team</p>`,
 		toName,
-		startTime.Format("Monday, January 2, 2006 at 3:04 PM MST"))
+		slotLabel)
 
 	return s.send([]string{toEmail}, nil, subject, htmlBody, nil)
 }

@@ -18,6 +18,12 @@ type EventDetails struct {
 	Location    string // Typically the Google Meet link
 	Name        string // Client's name
 	Email       string // Client's email
+	// Timezone is the visitor's IANA timezone (e.g. "Europe/Athens"). When
+	// non-empty, an X-WR-TIMEZONE header is emitted at the VCALENDAR level
+	// so older Outlook/iOS clients render the event in the visitor's zone
+	// rather than the calendar owner's. The DTSTART/DTEND fields are always
+	// UTC (Z-suffixed), which is RFC-5545 compliant for all modern clients.
+	Timezone string
 }
 
 // Attachment represents an email attachment.
@@ -49,6 +55,9 @@ func Generate(details EventDetails) string {
 	b.WriteString("PRODID:-//ivmanto.com//Booking Service//EN\r\n")
 	b.WriteString("CALSCALE:GREGORIAN\r\n")
 	b.WriteString("METHOD:REQUEST\r\n")
+	if tz := strings.TrimSpace(details.Timezone); tz != "" {
+		b.WriteString(fmt.Sprintf("X-WR-TIMEZONE:%s\r\n", escapeString(tz)))
+	}
 	b.WriteString("BEGIN:VEVENT\r\n")
 	b.WriteString(fmt.Sprintf("UID:%s\r\n", details.UID))
 	b.WriteString(fmt.Sprintf("DTSTAMP:%s\r\n", timeToUTCiCalFormat(time.Now())))

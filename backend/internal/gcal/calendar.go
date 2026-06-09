@@ -40,10 +40,11 @@ type gcalService struct {
 
 // BookingDetails contains information for a new booking.
 type BookingDetails struct {
-	EventID string
-	Name    string
-	Email   string
-	Notes   string
+	EventID         string
+	Name            string
+	Email           string
+	Notes           string
+	VisitorTimezone string // IANA zone, e.g. "Europe/Athens"; empty string falls back to the calendar's zone
 }
 
 // NewService creates a new calendar service client using Domain-Wide Delegation.
@@ -156,6 +157,13 @@ func (s *gcalService) BookSlot(details BookingDetails) (*calendar.Event, error) 
 		eventToBook.ExtendedProperties.Private["cancellation_token"] = cancellationToken
 		eventToBook.ExtendedProperties.Private["client_name"] = details.Name
 		eventToBook.ExtendedProperties.Private["client_email"] = details.Email
+		// VisitorTimezone is the IANA zone of the visitor's browser at booking
+		// time. We persist it so the cancellation email can render the slot
+		// in the visitor's local time even though the cancellation request
+		// comes via an email link with no live client context. The booking
+		// handler's resolveVisitorTimezone helper applies the same fallback
+		// rules if this string is empty or unknown.
+		eventToBook.ExtendedProperties.Private["visitor_timezone"] = details.VisitorTimezone
 	}
 
 	// 3. Update the event with the client's details.
@@ -229,6 +237,10 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 
 	// 2. Preserve original details for notifications before modifying.
 	// We retrieve the client details from the private properties we stored during booking.
+	var visitorTZ string
+	if eventToCancel.ExtendedProperties != nil && eventToCancel.ExtendedProperties.Private != nil {
+		visitorTZ = eventToCancel.ExtendedProperties.Private["visitor_timezone"]
+	}
 	originalEvent := &calendar.Event{
 		Id:      eventToCancel.Id,
 		Summary: eventToCancel.Summary,
@@ -238,6 +250,11 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 			{
 				DisplayName: eventToCancel.ExtendedProperties.Private["client_name"],
 				Email:       eventToCancel.ExtendedProperties.Private["client_email"],
+			},
+		},
+		ExtendedProperties: &calendar.EventExtendedProperties{
+			Private: map[string]string{
+				"visitor_timezone": visitorTZ,
 			},
 		},
 	}
@@ -253,6 +270,7 @@ func (s *gcalService) CancelBooking(ctx context.Context, token string) (*calenda
 	delete(eventToCancel.ExtendedProperties.Private, "cancellation_token")
 	delete(eventToCancel.ExtendedProperties.Private, "client_name")
 	delete(eventToCancel.ExtendedProperties.Private, "client_email")
+	delete(eventToCancel.ExtendedProperties.Private, "visitor_timezone")
 
 	// 4. Persist the update to Google Calendar.
 	_, err = s.calSvc.Events.Update(s.calendarID, eventToCancel.Id, eventToCancel).Do()
