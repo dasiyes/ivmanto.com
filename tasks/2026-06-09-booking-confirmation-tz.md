@@ -35,22 +35,23 @@ The visitor was in a +1 offset (EEST-ish). The wall-clock shown is the **calenda
 ## Fix scope (minimal, per `.agents/rules.md`)
 
 1. **Frontend (`pages/booking/index.vue`):** include the visitor's IANA timezone in the booking POST body.
-   - Source: `Intl.DateTimeFormat().resolvedOptions().timeZone` (already used at line 59-62 for the "Timezone: ..." label — reuse it).
+   - Source: `Intl.DateTimeFormat().resolvedOptions().timeZone` (already used for the "Timezone: ..." label — split into a separate `timezoneIana` ref so the wire format and the human-readable display don't conflate).
    - Field name: `visitorTimezone` (matches REST naming in `createBookingRequest`).
 2. **Backend request struct (`backend/internal/booking/handler.go`):** add `VisitorTimezone string` to `createBookingRequest`.
 3. **Backend TZ resolution:** in `handleCreateBooking`, after parsing `event.Start.DateTime`:
    - Attempt `time.LoadLocation(req.VisitorTimezone)`. If it fails (empty string, unknown IANA name, no tzdata in the container), log a warning and fall back to the calendar's location (CEST) — **do not fail the booking**.
    - Build a `time.Time` in the visitor's location (preserve the absolute instant — convert the existing `startTime` to the visitor's zone via `startTime.In(visitorLoc)`, do not re-parse and re-shift).
-4. **Email render (`backend/internal/email/smtp.go`):** pass the resolved visitor location to `details.StartTime`/`EndTime` and the `Timezone` label. Use `time.Time.Format` with the visitor's location already attached (so `Format("3:04 PM")` renders in the visitor's wall-clock). Use a short abbreviation for display — e.g. format `MST`/`CEST`/`EEST` — derived from the IANA name via `time.Time.AppendFormat` with a layout that includes `MST`, or via a small helper. Acceptable to fall back to the IANA name string in parentheses if abbreviation lookup fails.
+   - Derive the display label at the call site from the event's actual start time: `startTime.In(visitorLoc).Format("MST")`. This makes the abbreviation DST-correct (EEST in summer, EET in winter for Athens).
+4. **Email render (`backend/internal/email/smtp.go`):** pass the resolved visitor location to `details.StartTime`/`EndTime` and the `Timezone` label. Use `time.Time.Format` with the visitor's location already attached (so `Format("3:04 PM")` renders in the visitor's wall-clock).
 5. **Cancellation email path:** same fix in the cancellation emails (`SendBookingCancellationToClient`, `SendBookingCancellationToAdmin`) — currently they format `startTime` directly without a TZ context, so a +1 visitor sees organiser time there too. Fix at the same time to avoid a second report.
-6. **iCal (.ics):** add an `X-WR-TIMEZONE:<VisitorIANA>` line at the VCALENDAR level for the visitor's copy. Keep `DTSTART`/`DTEND` as UTC `Z` (already correct). A full `VTIMEZONE` block is out of scope for this PR — `Z` + `X-WR-TIMEZONE` is sufficient for all modern clients.
-7. **Tests:** add a small unit test in `backend/internal/email/` that constructs a `BookingConfirmationDetails` with a known `StartTime` in `Europe/Berlin` and a `Timezone` of `Europe/Athens`, and asserts the rendered HTML contains the Athens wall-clock and abbreviation. (Package has no existing test file — add `smtp_test.go` next to it. Will not introduce a new test framework.)
-8. **Defensive logging:** log `visitorTimezone=...` and `resolvedLocation=...` on every booking, so a future bad TZ value is visible in Cloud Run logs.
+6. **Visitor TZ persistence on the calendar event:** the cancellation email is triggered by an email link with no live client context, so the visitor IANA must be stored on the calendar event at booking time and read back on cancel. Implemented as `event.ExtendedProperties.Private["visitor_timezone"]` in `gcal.BookingDetails` and surfaced on the `originalEvent` returned from `gcal.CancelBooking`. Privacy: the IANA name itself is not PII (it's roughly equivalent to a coarse geolocation). Owner approved the scope addition in PR review.
+7. **iCal (.ics):** add an `X-WR-TIMEZONE:<VisitorIANA>` line at the VCALENDAR level for the visitor's copy. Keep `DTSTART`/`DTEND` as UTC `Z` (already correct). A full `VTIMEZONE` block is out of scope for this PR — `Z` + `X-WR-TIMEZONE` is sufficient for all modern clients.
+8. **Tests:** unit tests in `backend/internal/email/` (rendered HTML body for a June Athens scenario) and `backend/internal/booking/handler_test.go` (resolveVisitorTimezone — DST-correct abbreviation, fallback paths, whitespace trimming). Plus the existing `backend/internal/ical/generator_test.go` (X-WR-TIMEZONE presence/absence, escaping).
+9. **Defensive logging:** log `visitorTimezone=...` and `resolvedLocation=...` on every booking, so a future bad TZ value is visible in Cloud Run logs.
 
 ## Out of scope (flagged for separate PRs)
 
 - Full `VTIMEZONE` block in the .ics (current `Z`-suffixed UTC fields are RFC-5545 compliant and modern clients render correctly).
-- Server-side storage of the visitor's TZ (only used in the email/ics path; not persisted on the calendar event).
 - Frontend display of the visitor's TZ in the slot grid — the grid is already in the browser's local time, which is the visitor's TZ by definition.
 
 ## Scope additions made during implementation (flagged for review)

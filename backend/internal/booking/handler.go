@@ -79,38 +79,25 @@ func (h *Handler) respondError(w http.ResponseWriter, status int, message string
 	h.respondJSON(w, status, map[string]string{"message": message})
 }
 
-// resolveVisitorTimezone returns the visitor's *time.Location and a human-readable
-// label for display in the confirmation email. The visitor's IANA name comes from
-// the browser via Intl.DateTimeFormat(). If it is empty, malformed, or unknown
-// to the runtime's tzdata, the function falls back to the calendar's own
-// timezone (e.g. Europe/Berlin) so a bad client value can never fail a booking.
+// resolveVisitorTimezone returns the visitor's *time.Location for use in
+// time arithmetic. The visitor's IANA name comes from the browser via
+// Intl.DateTimeFormat(). If it is empty, malformed, or unknown to the
+// runtime's tzdata, the function falls back to the calendar's own
+// timezone (e.g. Europe/Berlin) so a bad client value can never fail
+// a booking.
 //
-// The display label prefers a short abbreviation (e.g. "CEST", "EEST") derived
-// from the resolved location; if that is not available, the IANA name is used.
-func resolveVisitorTimezone(visitorIANA string, fallback *time.Location) (*time.Location, string) {
-	loc := fallback
-	label := fallback.String()
-
+// The display label (short abbreviation, e.g. "CEST", "EEST") is NOT
+// derived here because abbreviations are DST-coupled — probing at a
+// fixed instant would yield the wrong label half the year. Callers
+// compute the label from the event's actual start time at the call
+// site: `startTime.In(loc).Format("MST")`.
+func resolveVisitorTimezone(visitorIANA string, fallback *time.Location) *time.Location {
 	if tz := strings.TrimSpace(visitorIANA); tz != "" {
 		if loaded, err := time.LoadLocation(tz); err == nil {
-			loc = loaded
-			label = tz
+			return loaded
 		}
 	}
-
-	// Derive a short abbreviation by formatting a probe instant in the
-	// resolved location. Go's time package exposes the abbreviation via
-	// the "MST" layout token. This is best-effort — if the abbreviation
-	// cannot be computed, we fall back to the IANA name (or the calendar
-	// location's String() in the empty-input case).
-	if loc != nil {
-		probe := time.Date(2026, 1, 1, 12, 0, 0, 0, loc)
-		abbr := probe.Format("MST")
-		if abbr != "" {
-			label = abbr
-		}
-	}
-	return loc, label
+	return fallback
 }
 
 // handleCancelBooking processes a request to cancel a booking.
@@ -158,7 +145,10 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 	if originalEvent.ExtendedProperties != nil && originalEvent.ExtendedProperties.Private != nil {
 		visitorTZ = originalEvent.ExtendedProperties.Private["visitor_timezone"]
 	}
-	visitorLoc, visitorTZLabel := resolveVisitorTimezone(visitorTZ, h.gcalSvc.Location())
+	visitorLoc := resolveVisitorTimezone(visitorTZ, h.gcalSvc.Location())
+	// The display label follows DST because we format the actual
+	// event start time, not a fixed probe instant.
+	visitorTZLabel := startTime.In(visitorLoc).Format("MST")
 
 	// Send notifications. We can run these in goroutines for speed.
 	go func() {
@@ -294,7 +284,10 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		// Localise to the visitor's timezone if provided. The calendar's
 		// own zone is the fallback when the field is empty or unrecognised,
 		// so a malformed client value can never fail the booking.
-		visitorLoc, visitorTZLabel := resolveVisitorTimezone(req.VisitorTimezone, h.gcalSvc.Location())
+		visitorLoc := resolveVisitorTimezone(req.VisitorTimezone, h.gcalSvc.Location())
+		// The display label follows DST because we format the actual
+		// event start time, not a fixed probe instant.
+		visitorTZLabel := startTime.In(visitorLoc).Format("MST")
 		h.logger.Info("Rendering booking confirmation in visitor timezone",
 			"event_id", event.Id, "visitor_timezone", req.VisitorTimezone,
 			"resolved_location", visitorLoc.String(), "display_label", visitorTZLabel)

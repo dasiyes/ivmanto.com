@@ -184,25 +184,22 @@ func (s *SmtpService) send(to, cc []string, subject, htmlBody string, attachment
 	return nil
 }
 
-// SendBookingConfirmation sends a confirmation email to the user.
-func (s *SmtpService) SendBookingConfirmation(details BookingConfirmationDetails) error {
-	subject := "Your consultation is confirmed!"
-
+// buildBookingConfirmationHTML renders the user-facing confirmation email
+// body. Extracted from SendBookingConfirmation so tests can assert the
+// rendered HTML without going through the SMTP transport.
+func buildBookingConfirmationHTML(details BookingConfirmationDetails) string {
 	var meetLinkHTML string
 	if details.MeetLink != "" {
 		meetLinkHTML = fmt.Sprintf(`<li><strong>Google Meet Link:</strong> <a href="%s">%s</a></li>`, details.MeetLink, details.MeetLink)
-	} else {
-		meetLinkHTML = ""
 	}
 
-	// In a real app, this body would come from an HTML template.
-	htmlBody := fmt.Sprintf(`
+	body := fmt.Sprintf(`
 		<p>Hi %s,</p>
 		<p>Your 30-minute consultation is confirmed. Here are the details:</p>
 		<ul>
-			<li><strong>Date:</strong> %s</li>
-			<li><strong>Time:</strong> %s - %s (%s)</li>
-			%s
+		<li><strong>Date:</strong> %s</li>
+		<li><strong>Time:</strong> %s - %s (%s)</li>
+		%s
 		</ul>
 		<p>A calendar invitation (.ics file) is attached to this email. Please open it to add the event to your calendar.</p>
 		<p>We look forward to speaking with you!</p>
@@ -215,8 +212,15 @@ func (s *SmtpService) SendBookingConfirmation(details BookingConfirmationDetails
 		meetLinkHTML)
 
 	if details.CancellationURL != "" {
-		htmlBody += fmt.Sprintf(`<p style="font-size: small; color: #666;">Need to make a change? <a href="%s">Cancel this booking</a>.</p>`, details.CancellationURL)
+		body += fmt.Sprintf(`<p style="font-size: small; color: #666;">Need to make a change? <a href="%s">Cancel this booking</a>.</p>`, details.CancellationURL)
 	}
+	return body
+}
+
+// SendBookingConfirmation sends a confirmation email to the user.
+func (s *SmtpService) SendBookingConfirmation(details BookingConfirmationDetails) error {
+	subject := "Your consultation is confirmed!"
+	htmlBody := buildBookingConfirmationHTML(details)
 
 	// Generate the .ics file content
 	icsContent := ical.Generate(ical.EventDetails{

@@ -56,13 +56,20 @@ const isNextDayDisabled = computed(() => {
   return startOfSelected.getTime() >= limitDate.getTime()
 })
 
-// timezone returns the visitor's IANA timezone name (e.g. "Europe/Berlin").
-// This is sent to the backend so the confirmation email and .ics attachment
-// can render the meeting time in the visitor's local zone rather than the
-// calendar owner's zone.
-const timezone = computed(() => {
+// timezoneIana is the visitor's IANA timezone name (e.g. "Europe/Berlin").
+// Sent in the POST body so the backend can localise the confirmation
+// email and .ics attachment to the visitor's zone.
+const timezoneIana = computed(() => {
   if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat === 'undefined') return ''
   return Intl.DateTimeFormat().resolvedOptions().timeZone
+})
+
+// timezone is the human-readable form of the visitor's IANA name
+// (underscores replaced with spaces) for the on-screen "Timezone:"
+// label. Falls back to "Unknown" when Intl is unavailable.
+const timezone = computed(() => {
+  const iana = timezoneIana.value
+  return iana ? iana.replace(/_/g, ' ') : 'Unknown'
 })
 
 function toYYYYMMDD(date: Date) {
@@ -128,7 +135,7 @@ async function handleBookingSubmit() {
         ga_client_id: clientId,
         ga_session_id: sessionId,
         eventId: selectedSlot.value.id,
-        visitorTimezone: timezone.value,
+        visitorTimezone: timezoneIana.value,
         ...bookingDetails.value,
       }),
     })
