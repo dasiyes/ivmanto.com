@@ -604,4 +604,8 @@ None observed in the Friends block.
 
 ## Active task pointer (2026-06-09)
 
-Active work item: **Booking confirmation renders in visitor's timezone** — see [`2026-06-09-booking-confirmation-tz.md`](2026-06-09-booking-confirmation-tz.md) for the full plan. Branch: `dev-v0.1.6` (commits `2ce549c`, `9496df2`, `400a00d`) pushed to origin; PR #93 open; addressing Clauco review feedback (two [BUG] blockers fixed, [SCOPE] persistence accepted, [TEST] render-path coverage added).
+**Next priority (awaiting Clauco spec):** Clauco will brief ivmo on a higher-priority feature to develop on ivmanto.com. Pending that spec, no work has started.
+
+**Backlog — deferred:** **GCP CI/CD watcher** — see [`2026-06-09-gcp-cicd-watcher.md`](2026-06-09-gcp-cicd-watcher.md). Plan covers gcloud SDK install, SA auth on `ivmanto-com-prod` (four roles: cloudbuild.builds.viewer, run.developer, artifactregistry.reader, logging.viewer), and four devops skills (cicd-monitor, cicd-rollback, cicd-redeploy, cicd-smoke). Owner has approved adding to backlog; work to start only after the higher-priority Clauco task is complete.
+
+**Recently completed (2026-06-09):** **Booking confirmation renders in visitor's timezone** — see [`2026-06-09-booking-confirmation-tz.md`](2026-06-09-booking-confirmation-tz.md) for the full plan. Branch `dev-v0.1.6` merged into `main` as PR #93 (merge commit `2668fda`). Local branch deleted, working tree clean. Visitor confirmation + cancellation emails now render in the visitor's local timezone with DST-correct abbreviation; .ics attachment gets an `X-WR-TIMEZONE` header for the visitor. Reviewer: Clauco (redma thread `pr-review-ivmanto-v0.1.6`).

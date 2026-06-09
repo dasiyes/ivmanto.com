@@ -1,6 +1,6 @@
 # Booking confirmation: render time in the visitor's timezone
 
-- **Status:** approved by owner 2026-06-09 — implementation complete, commits `2ce549c` + `9496df2` + `400a00d` pushed to `origin/dev-v0.1.6`. PR #93 open; addressing Clauco review feedback.
+- **Status:** approved by owner 2026-06-09 — implementation complete, commits `2ce549c` + `9496df2` + `400a00d` + `2697133` pushed to `origin/dev-v0.1.6`. PR #93 MERGED 2026-06-09T19:01:40Z (merge commit `2668fda`). Local `main` fast-forwarded, `dev-v0.1.6` deleted, working tree clean.
 - **Date opened:** 2026-06-09
 - **Decisions confirmed by owner:**
   - `.ics` rendering is correct (UTC `Z` works as expected in the visitor's calendar). Only the email body needs TZ localisation. The `X-WR-TIMEZONE` hint is a small "while we're here" add — owner explicitly OK'd it.
@@ -54,27 +54,33 @@ The visitor was in a +1 offset (EEST-ish). The wall-clock shown is the **calenda
 - Full `VTIMEZONE` block in the .ics (current `Z`-suffixed UTC fields are RFC-5545 compliant and modern clients render correctly).
 - Frontend display of the visitor's TZ in the slot grid — the grid is already in the browser's local time, which is the visitor's TZ by definition.
 
-## Scope additions made during implementation (flagged for review)
+## Scope additions made during implementation (resolved)
 
-- **Admin booking notification email (`SendBookingNotificationToAdmin`):** the original plan said "leave as-is, RFC1123 is timezone-explicit". On review, this was wrong: `time.Parse(time.RFC3339, "...+02:00")` returns a time in an unnamed `*time.FixedZone`, and `Format(time.RFC1123)` on that produces an empty/MST-less string. The admin was seeing `Tue, 09 Jun 2026 13:30:00 ` (no suffix). I added a one-line fix in the booking handler to convert the parsed time into the calendar's IANA location before sending to the email service — same root cause, same one-call fix. If you'd rather I drop this, revert the last 8 lines of the `handleCreateBooking` admin goroutine.
-- **`backend/internal/gcal/calendar.go`:** the no-touch list in `AGENTS.md` and `.agents/pr-review-contract.md` says "`backend/internal/gcal/` auth code" is off-limits. My edits are to `BookingDetails`, `BookSlot`, and `CancelBooking` (the booking-flow logic), NOT to `NewService` (the DWD auth code). I am calling this out explicitly here and in the PR body so the reviewer can confirm. If the contract is meant to be read more strictly — i.e. the whole `gcal/` package is locked — I will revert these and find a different way (likely persisting the visitor TZ in a separate backend store).
+- **Admin booking notification email (`SendBookingNotificationToAdmin`)** — *approved by reviewer in re-review of PR #93*. The reviewer confirmed the same RFC3339/FixedZone root cause made a follow-up report inevitable, and approved keeping the 8-line fix in the PR.
+- **`backend/internal/gcal/calendar.go`** — *approved by reviewer in re-review of PR #93*. The reviewer agreed the no-touch list protects the DWD block in `NewService` (lines 49-92), not the whole package. Edits to `BookingDetails`, `BookSlot`, and `CancelBooking` are booking-flow data and business logic, fair game.
+- **Visitor-TZ persistence on the calendar event** — *owner-approved via reviewer*. Initially listed under "Out of scope"; moved to "Fix scope" item 6 with the rationale that the cancellation email path has no live client context. Plan doc and code fix landed in the same commit (`400a00d`).
 
-## Pre-PR gates to run
+## Pre-PR gates (post-merge verification by reviewer)
 
-- [ ] `cd backend && go build ./...` — must pass
-- [ ] `cd backend && go test ./...` — must pass, including the new test
-- [ ] `go run ./cmd/server` boots — must not add new missing-env-var errors
-- [ ] Local smoke: with backend running and a real GCal test event, POST to `/api/booking/book` with a `visitorTimezone` of `Europe/Athens` and verify the resulting email body says "4:30 PM - 5:00 PM (EEST)" for an event originally at 15:30 CEST. (Will need a sandbox visitor inbox.)
-- [ ] No secrets in the diff
-- [ ] No edits to `cloudbuild.yaml`, `backend/internal/gcal/` (only `booking/` and `email/` and `ical/` touched), `backend/cmd/server/main.go`, or `nuxt.config.ts`
-- [ ] Conventional commit message: `fix(booking): render confirmation email in visitor's timezone`
+- [x] `cd backend && go build ./...` — clean (verified by reviewer on `400a00d`)
+- [x] `cd backend && go test ./...` — `booking` 0.30s, `email` 0.50s, all pass (verified by reviewer on `400a00d`)
+- [x] `go run ./cmd/server` — no new missing-env-var errors (no env var changes in the PR)
+- [ ] Local smoke with a real GCal test event and `visitorTimezone=Europe/Athens` — *deferred to post-deploy verification*; the render-path test `TestBookingConfirmationHTML_AthensInJune` covers the same string output as the smoke test would, but a live email send is still worth doing once the new revision is live in Cloud Run.
+- [x] No secrets in the diff
+- [x] No edits to `cloudbuild.yaml`, the DWD block in `backend/internal/gcal/NewService`, `backend/cmd/server/main.go` startup contract, or `nuxt.config.ts`
+- [x] Conventional commits: `fix(booking): render confirmation email in visitor's timezone`, `docs(tasks): update plan status with commit ref and PR state`, `fix(booking): address PR #93 review blockers (DST probe, content regression)`, `docs(tasks): record re-push + review-feedback fixes`
+- [x] Branch: `dev-v0.1.6` → `main` (merge commit `2668fda`)
 
 ## Open questions for owner
 
-1. **Abbreviation source:** `time.Time.Format` with `MST` layout gives zone abbreviations from Go's embedded `tzdata` (since Go 1.15 this is always available, no extra import needed). I will use that. If a non-ASCII/non-standard name is needed, we'll iterate. OK?
-2. **Frontend field naming:** I'll go with `visitorTimezone` (camelCase) in the JSON to match the existing `eventId`/`ga_client_id` style. OK?
-3. **Empty parentheses in current email:** this is a cosmetic symptom of the same root cause (handler passing the source zone but the format string expecting a display label). Will be fixed by the same change. No separate PR needed unless you want one.
+1. **Abbreviation source:** `time.Time.Format` with `MST` layout gives zone abbreviations from Go's embedded `tzdata`. *Resolved* — used this approach. Final label is computed at the call site from `startTime.In(visitorLoc).Format("MST")` so the abbreviation follows DST (EEST in summer, EET in winter).
+2. **Frontend field naming:** `visitorTimezone` (camelCase) to match the existing `eventId`/`ga_client_id` style. *Resolved* — used as planned.
+3. **Empty parentheses in current email:** *Resolved* — fixed by the same change, plus the follow-up DST-coupling fix in the re-review (commit `400a00d`).
 
 ## Review notes
 
-(To be filled in after PR review.)
+- **First pass (commit `2ce549c`):** "⚠️ Needs changes — 2 blockers" from Clauco on redma thread `pr-review-ivmanto-v0.1.6`. Two [BUG]s (DST-coupling in abbreviation probe; content regression on the visible "Timezone:" label), one [SCOPE] item (visitor-TZ persistence — owner-approved in flight), one [TEST] nicety (render-path coverage). Reviewer also confirmed pre-PR gates clean (`go build`, `go test` all pass; `npm run generate` 120 routes prerendered; `npm run lint` fails on `main` but pre-existing and not introduced by this PR).
+- **Second pass (commits `400a00d` + `2697133`):** "✅ Looks good — no blockers. Ready to merge." All findings resolved; the helper `resolveVisitorTimezone` was reduced to a pure IANA loader, the label is computed at each call site from the actual event start time, the frontend split `timezoneIana`/`timezone` restores the original display behaviour without regressing the wire format, and `smtp_test.go` adds render-path coverage. Plan doc and code landed together.
+- **Post-merge:** PR #93 MERGED 2026-06-09T19:01:40Z. Local `main` fast-forwarded, `dev-v0.1.6` deleted, working tree clean. Deploy triggered automatically by the `main` push (per `cloudbuild.yaml`).
+- **Lesson (added to ivmo's working memory):** abbreviating timezones from a fixed probe instant is DST-coupled; always probe at the event's actual instant. Caught only because the reviewer ran the bug scenario end-to-end; the original test accepted both `EEST` and `EET`, which is the smoking gun that the bug wasn't caught locally.
+- **Carry-over to next task:** the GCP CI/CD watcher (backlog, plan at `tasks/2026-06-09-gcp-cicd-watcher.md`) is the natural follow-up — without gcloud on this box, ivmo could not watch the deploy land in real time.
