@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"google.golang.org/api/calendar/v3"
@@ -78,6 +79,27 @@ func (h *Handler) respondError(w http.ResponseWriter, status int, message string
 	h.respondJSON(w, status, map[string]string{"message": message})
 }
 
+// resolveVisitorTimezone returns the visitor's *time.Location for use in
+// time arithmetic. The visitor's IANA name comes from the browser via
+// Intl.DateTimeFormat(). If it is empty, malformed, or unknown to the
+// runtime's tzdata, the function falls back to the calendar's own
+// timezone (e.g. Europe/Berlin) so a bad client value can never fail
+// a booking.
+//
+// The display label (short abbreviation, e.g. "CEST", "EEST") is NOT
+// derived here because abbreviations are DST-coupled — probing at a
+// fixed instant would yield the wrong label half the year. Callers
+// compute the label from the event's actual start time at the call
+// site: `startTime.In(loc).Format("MST")`.
+func resolveVisitorTimezone(visitorIANA string, fallback *time.Location) *time.Location {
+	if tz := strings.TrimSpace(visitorIANA); tz != "" {
+		if loaded, err := time.LoadLocation(tz); err == nil {
+			return loaded
+		}
+	}
+	return fallback
+}
+
 // handleCancelBooking processes a request to cancel a booking.
 func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 	var req cancelRequest
@@ -117,9 +139,20 @@ func (h *Handler) handleCancelBooking(w http.ResponseWriter, r *http.Request) {
 	}
 	startTime, _ := time.Parse(time.RFC3339, originalEvent.Start.DateTime)
 
+	// Pull the visitor's timezone that was stored on the event at booking
+	// time so the cancellation email renders in the visitor's local zone.
+	var visitorTZ string
+	if originalEvent.ExtendedProperties != nil && originalEvent.ExtendedProperties.Private != nil {
+		visitorTZ = originalEvent.ExtendedProperties.Private["visitor_timezone"]
+	}
+	visitorLoc := resolveVisitorTimezone(visitorTZ, h.gcalSvc.Location())
+	// The display label follows DST because we format the actual
+	// event start time, not a fixed probe instant.
+	visitorTZLabel := startTime.In(visitorLoc).Format("MST")
+
 	// Send notifications. We can run these in goroutines for speed.
 	go func() {
-		err := h.emailSvc.SendBookingCancellationToClient(clientName, clientEmail, startTime)
+		err := h.emailSvc.SendBookingCancellationToClient(clientName, clientEmail, startTime, visitorLoc, visitorTZLabel)
 		if err != nil {
 			h.logger.Error("Failed to send cancellation email to client", "client_email", clientEmail, "error", err)
 		}
@@ -182,6 +215,10 @@ type createBookingRequest struct {
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Notes   string `json:"notes"`
+	// VisitorTimezone is the IANA timezone of the visitor's browser, e.g. "Europe/Athens".
+	// The backend localises the confirmation email and .ics to this zone. Optional;
+	// when empty or unrecognised, the calendar's own timezone is used as a fallback.
+	VisitorTimezone string `json:"visitorTimezone,omitempty"`
 	// GaClientID captures the Google Analytics Client ID for server-side conversion tracking.
 	GaClientID  string `json:"ga_client_id,omitempty"`
 	GaSessionID string `json:"ga_session_id,omitempty"`
@@ -203,10 +240,11 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bookingDetails := gcal.BookingDetails{
-		EventID: req.EventID,
-		Name:    req.Name,
-		Email:   req.Email,
-		Notes:   req.Notes,
+		EventID:         req.EventID,
+		Name:            req.Name,
+		Email:           req.Email,
+		Notes:           req.Notes,
+		VisitorTimezone: req.VisitorTimezone,
 	}
 
 	event, err := h.gcalSvc.BookSlot(bookingDetails)
@@ -243,6 +281,17 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		startTime, _ := time.Parse(time.RFC3339, event.Start.DateTime)
 		endTime, _ := time.Parse(time.RFC3339, event.End.DateTime)
 
+		// Localise to the visitor's timezone if provided. The calendar's
+		// own zone is the fallback when the field is empty or unrecognised,
+		// so a malformed client value can never fail the booking.
+		visitorLoc := resolveVisitorTimezone(req.VisitorTimezone, h.gcalSvc.Location())
+		// The display label follows DST because we format the actual
+		// event start time, not a fixed probe instant.
+		visitorTZLabel := startTime.In(visitorLoc).Format("MST")
+		h.logger.Info("Rendering booking confirmation in visitor timezone",
+			"event_id", event.Id, "visitor_timezone", req.VisitorTimezone,
+			"resolved_location", visitorLoc.String(), "display_label", visitorTZLabel)
+
 		var cancellationURL string
 		if event.ExtendedProperties != nil && event.ExtendedProperties.Private != nil {
 			if token, ok := event.ExtendedProperties.Private["cancellation_token"]; ok && token != "" {
@@ -253,14 +302,15 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		emailDetails := email.BookingConfirmationDetails{
 			ToName:          req.Name,
 			ToEmail:         req.Email,
-			StartTime:       startTime,
-			EndTime:         endTime,
-			Timezone:        startTime.Location().String(),
+			StartTime:       startTime.In(visitorLoc),
+			EndTime:         endTime.In(visitorLoc),
+			Timezone:        visitorTZLabel,
 			MeetLink:        getMeetLink(event),
 			CancellationURL: cancellationURL,
 			IcsUID:          event.ICalUID,
 			IcsSummary:      event.Summary,
 			IcsDescription:  event.Description,
+			IcsTimezone:     req.VisitorTimezone,
 		}
 		if err := h.emailSvc.SendBookingConfirmation(emailDetails); err != nil {
 			h.logger.Error("Failed to send booking confirmation to client", "client_email", req.Email, "error", err)
@@ -272,6 +322,13 @@ func (h *Handler) handleCreateBooking(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			h.logger.Error("Could not parse start time from booked event for admin email", "error", err)
 			return
+		}
+		// Render in the calendar's own IANA timezone so the admin sees the
+		// wall-clock they expect (e.g. "3:30 PM CEST"), not the empty
+		// parentheses that result from formatting in the unnamed +02:00
+		// fixed zone that RFC3339 parsing produces.
+		if calLoc := h.gcalSvc.Location(); calLoc != nil {
+			startTime = startTime.In(calLoc)
 		}
 		if err := h.emailSvc.SendBookingNotificationToAdmin(req.Name, req.Email, startTime, req.Notes); err != nil {
 			h.logger.Error("Failed to send booking notification to admin", "error", err)

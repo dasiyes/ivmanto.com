@@ -599,3 +599,9 @@ None observed in the Friends block.
 ### Lessons
 
 (none yet — will fill in after review)
+
+---
+
+## Active task pointer (2026-06-09)
+
+Active work item: **Booking confirmation renders in visitor's timezone** — see [`2026-06-09-booking-confirmation-tz.md`](2026-06-09-booking-confirmation-tz.md) for the full plan. Branch: `dev-v0.1.6` (commits `2ce549c`, `9496df2`, `400a00d`) pushed to origin; PR #93 open; addressing Clauco review feedback (two [BUG] blockers fixed, [SCOPE] persistence accepted, [TEST] render-path coverage added).
