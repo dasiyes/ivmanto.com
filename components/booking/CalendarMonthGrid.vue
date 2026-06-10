@@ -80,10 +80,10 @@ const isPrevMonthDisabled = computed(() => {
 })
 
 const isNextMonthDisabled = computed(() => {
-  const lastOfDisplay = new Date(displayMonth.value.getFullYear(), displayMonth.value.getMonth() + 1, 0)
-  const maxMonth = new Date(maxDate.value.getFullYear(), maxDate.value.getMonth(), 1)
-  return lastOfDisplay.getFullYear() > maxMonth.getFullYear()
-    || (lastOfDisplay.getFullYear() === maxMonth.getFullYear() && lastOfDisplay.getMonth() > maxMonth.getMonth())
+  const d = displayMonth.value
+  const m = maxDate.value
+  return d.getFullYear() > m.getFullYear()
+    || (d.getFullYear() === m.getFullYear() && d.getMonth() >= m.getMonth())
 })
 
 const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
