@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getGaSessionInfo } from '~/services/analytics'
+import { toYYYYMMDD } from '~/composables/useDate'
 
 useSeoMeta({
   title: 'Contact us | ivmanto.com',
@@ -71,13 +72,6 @@ const timezone = computed(() => {
   const iana = timezoneIana.value
   return iana ? iana.replace(/_/g, ' ') : 'Unknown'
 })
-
-function toYYYYMMDD(date: Date) {
-  const year = date.getFullYear()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 async function fetchAvailability(date: Date) {
   isLoading.value = true
