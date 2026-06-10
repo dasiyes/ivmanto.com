@@ -17,10 +17,12 @@ export function toYYYYMMDD(date: Date): string {
 }
 
 /**
- * Build the 42-cell (6 rows × 7 cols) month grid for a calendar view, starting
- * at the Sunday on-or-before the 1st of `displayMonth` and ending at the
- * Saturday on-or-after the last day. Out-of-month padding days are included so
- * callers can render them as inert cells.
+ * Build the month grid for a calendar view, starting at the Sunday on-or-
+ * before the 1st of `displayMonth` and ending at the Saturday on-or-after the
+ * last day. The returned array contains 28, 35, or 42 cells (4–6 weeks ×
+ * 7 cols): trailing all-out-of-month weeks are trimmed so single-month views
+ * don't render an empty band beneath the last row. Out-of-month padding days
+ * are included in the first row(s) so callers can render them as inert cells.
  */
 export function buildMonthGrid(displayMonth: Date): Date[] {
   const firstOfMonth = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), 1)
@@ -32,6 +34,14 @@ export function buildMonthGrid(displayMonth: Date): Date[] {
     const d = new Date(gridStart)
     d.setDate(gridStart.getDate() + i)
     cells.push(d)
+  }
+  // Trim trailing all-out-of-month weeks so the grid is 28/35/42 cells,
+  // not always 42. Keeps the calendar tight against the last visible row.
+  while (
+    cells.length > 7
+    && cells.slice(-7).every((d) => d.getMonth() !== displayMonth.getMonth())
+  ) {
+    cells.length -= 7
   }
   return cells
 }
