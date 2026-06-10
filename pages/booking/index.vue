@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getGaSessionInfo } from '~/services/analytics'
+import { toYYYYMMDD } from '~/composables/useDate'
 
 useSeoMeta({
   title: 'Contact us | ivmanto.com',
@@ -19,6 +20,11 @@ const route = useRoute()
 const selectedDate = ref(new Date())
 const bookingWindowDays = 30
 const availableSlots = ref<TimeSlot[]>([])
+// Calendar bounds. `today` is captured at mount so the bounds do not drift
+// while the page is open; matches the prior day-stepper's behaviour where
+// the prev-day button was disabled once the selected day was today.
+const today = new Date()
+const maxBookingDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + bookingWindowDays)
 const selectedSlot = ref<TimeSlot | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -40,22 +46,6 @@ const formattedDate = computed(() => {
   })
 })
 
-const isPreviousDayDisabled = computed(() => {
-  const today = new Date()
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const selected = selectedDate.value
-  const startOfSelected = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate())
-  return startOfSelected.getTime() <= startOfToday.getTime()
-})
-
-const isNextDayDisabled = computed(() => {
-  const today = new Date()
-  const limitDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + bookingWindowDays)
-  const selected = selectedDate.value
-  const startOfSelected = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate())
-  return startOfSelected.getTime() >= limitDate.getTime()
-})
-
 // timezoneIana is the visitor's IANA timezone name (e.g. "Europe/Berlin").
 // Sent in the POST body so the backend can localise the confirmation
 // email and .ics attachment to the visitor's zone.
@@ -71,13 +61,6 @@ const timezone = computed(() => {
   const iana = timezoneIana.value
   return iana ? iana.replace(/_/g, ' ') : 'Unknown'
 })
-
-function toYYYYMMDD(date: Date) {
-  const year = date.getFullYear()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 async function fetchAvailability(date: Date) {
   isLoading.value = true
@@ -109,12 +92,6 @@ async function fetchAvailability(date: Date) {
   } finally {
     isLoading.value = false
   }
-}
-
-function changeDay(amount: number) {
-  const currentDate = selectedDate.value
-  const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + amount)
-  selectedDate.value = newDate
 }
 
 function selectSlot(slot: TimeSlot) {
@@ -180,33 +157,16 @@ onMounted(() => {
     <div v-if="!isBookingConfirmed">
       <h1 class="text-2xl font-bold text-dark-slate mb-6 text-center">Book a Consultation</h1>
 
-      <!-- Date Selector -->
-      <div class="flex items-center justify-between mb-6">
-        <button
-          @click="changeDay(-1)"
-          class="btn-day-nav"
-          :disabled="isPreviousDayDisabled || isLoading"
-          aria-label="Previous day"
-        >
-          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-        </button>
-        <div class="text-center">
-          <h3 class="text-lg font-semibold text-gray-700">{{ formattedDate }}</h3>
-          <p class="text-xs text-gray-500">Timezone: {{ timezone }}</p>
-        </div>
-        <button
-          @click="changeDay(1)"
-          class="btn-day-nav"
-          :disabled="isNextDayDisabled || isLoading"
-          aria-label="Next day"
-        >
-          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-        </button>
+      <!-- Date Selector — month-grid calendar view -->
+      <div class="mb-2">
+        <BookingCalendarMonthGrid
+          v-model="selectedDate"
+          :min-date="today"
+          :max-date="maxBookingDate"
+          :disabled="isLoading"
+        />
       </div>
+      <p class="text-xs text-gray-500 text-center mb-6">Timezone: {{ timezone }}</p>
 
       <!-- Error Message -->
       <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -220,6 +180,9 @@ onMounted(() => {
 
       <!-- Time Slots -->
       <div v-else-if="!selectedSlot" class="min-h-[100px]">
+        <h4 class="text-sm font-medium text-gray-600 mb-3 text-center">
+          Available slots for {{ formattedDate }}
+        </h4>
         <div v-if="availableSlots.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <button
             v-for="slot in availableSlots"
