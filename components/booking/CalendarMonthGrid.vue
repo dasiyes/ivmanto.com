@@ -75,8 +75,8 @@ const grid = computed(() => buildMonthGrid(displayMonth.value))
 
 const isPrevMonthDisabled = computed(() => {
   const firstOfDisplay = new Date(displayMonth.value.getFullYear(), displayMonth.value.getMonth(), 1)
-  const firstOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-  return firstOfDisplay.getTime() <= firstOfThisMonth.getTime()
+  const firstOfMinMonth = new Date(minDate.value.getFullYear(), minDate.value.getMonth(), 1)
+  return firstOfDisplay.getTime() <= firstOfMinMonth.getTime()
 })
 
 const isNextMonthDisabled = computed(() => {
