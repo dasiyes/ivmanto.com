@@ -18,7 +18,11 @@ type TimeSlot = {
 const route = useRoute()
 
 const selectedDate = ref(new Date())
-const bookingWindowDays = 30
+// Visitors can book up to ~3 months ahead. The AfB scheduler (see
+// ~/.hermes/profiles/ivmo/scripts/afb_scheduler.py) populates events with
+// WEEKS_AHEAD=12 starting 4 weeks out, so the 90-day window always has
+// bookable slots once the Monday cron has run for the week.
+const bookingWindowDays = 90
 const availableSlots = ref<TimeSlot[]>([])
 // Calendar bounds. `today` is captured at mount so the bounds do not drift
 // while the page is open; matches the prior day-stepper's behaviour where
