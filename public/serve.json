@@ -1,0 +1,46 @@
+{
+  "redirects": [
+    { "source": "/search", "destination": "/blog", "type": 301 },
+    {
+      "source": "/blog/2026-04-20-common-architectural-patterns",
+      "destination": "/blog/common-architectural-patterns",
+      "type": 301
+    },
+    {
+      "source": "/blog/2026-05-11-ai-agents-always-on-workflows",
+      "destination": "/blog/ai-agents-always-on-workflows",
+      "type": 301
+    },
+    {
+      "source": "/blog/2026-05-18-the-pivot-to-agentic-ai-usage-based-pricing",
+      "destination": "/blog/the-pivot-to-agentic-ai-usage-based-pricing",
+      "type": 301
+    },
+    {
+      "source": "/blog/CommonArchitecturalPatterns",
+      "destination": "/blog/common-architectural-patterns",
+      "type": 301
+    },
+    {
+      "source": "/blog/VertexAiProduction",
+      "destination": "/blog/vertex-ai-production-gotchas",
+      "type": 301
+    },
+    {
+      "source": "/blog/DamaPrinciples",
+      "destination": "/blog/dama-ai-governance",
+      "type": 301
+    },
+    {
+      "source": "/blog/_FromBigDataTo",
+      "destination": "/blog/FromBigDataTo",
+      "type": 301
+    }
+  ],
+  "headers": [
+    {
+      "source": "_nuxt/**",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+    }
+  ]
+}
