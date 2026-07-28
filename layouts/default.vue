@@ -40,14 +40,6 @@ useHead({
         publisher: {
           '@id': 'https://ivmanto.com/#organization',
         },
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: {
-            '@type': 'EntryPoint',
-            urlTemplate: 'https://ivmanto.com/blog?q={search_term_string}',
-          },
-          'query-input': 'required name=search_term_string',
-        },
       }),
     },
   ],
