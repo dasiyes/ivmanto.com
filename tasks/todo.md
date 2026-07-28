@@ -1,611 +1,133 @@
-# Migration Plan: Vue 3 SPA → Nuxt 3 SSG
+# Blog CamelCase Slug Migration — 10 articles → kebab-case + redirects
 
 ## Goal
-Migrate ivmanto.com from a Vue 3 SPA (Vite) to Nuxt 3 with Static Site Generation (SSG) to solve the core SEO problem: crawlers and AI search engines cannot see content rendered only by JavaScript.
 
-## Constraints
-- **Zero content regression** — all text, styling, and user-facing behavior remains identical
-- **Blog system preserved** — articles fetched at runtime from Go backend → GCS bucket pipeline
-- **Booking system preserved** — real-time calendar availability from Go backend
-- **Analytics preserved** — GTM/GA4 with cookie consent gate, GA session stitching
-- **Backend unchanged** — Go backend continues to serve `/api/*` routes
+Bring all 10 remaining CamelCase article slugs into compliance with the `kebab-case` rule in `docs/blog-article-spec.md:7`, and add 301 redirects so the old URLs don't 404 (preserving backlinks, Google search results, and any shared links). Update 8 source-file references that hardcode the old slugs so the cross-link from /services and /about pages resolves to the new URL.
 
----
+The whole task is shipped as ONE PR (single bundle) so the rename and the redirect can never drift apart. Branch protection requires checks to pass; this is not a doc-only change.
 
-## Phase 0: Preparation & Scaffolding
-> Estimated effort: ~1 hour
+## Constraints (from AGENTS.md + .agents/rules.md)
 
-- [ ] **0.1** Create a new git branch: `feat/nuxt-ssg-migration`
-- [ ] **0.2** Scaffold a Nuxt 3 project alongside existing code:
+- Branch: `dev-v0.1.4` (next version after `0.1.3`), never push to main
+- Conventional commits, lowercase, scoped
+- Pre-PR checklist: `npm run lint`, `npm run generate` green; no secrets in diff
+- Zero content regression (the article body, titles, dates, summaries are unchanged)
+- Blog system integrity: GCS bucket pipeline preserved; the Go backend's filename-derived slug lookup continues to work because the new files are still `.md` in `ivmanto_com_blog_articles`
+
+## The 10 slugs (rename map)
+
+| Old (CamelCase) | New (kebab-case) | Source references to update |
+|---|---|---|
+| `AiMarketSentiment` | `ai-market-sentiment` | none in source |
+| `DataMeshGovernance` | `data-mesh-governance` | `data/services.ts:167`, `pages/services/index.vue:98`, `pages/about.vue:138` |
+| `DataProductFallacy` | `data-product-fallacy` | none in source |
+| `DigitalisationSimplicity` | `digitalisation-simplicity` | none in source (British spelling kept) |
+| `FromBigDataTo` | `from-big-data-to` | `data/services.ts:49`, `data/services.ts:116` |
+| `NavigatingTheDataFrontier` | `navigating-the-data-frontier` | `data/services.ts:99` |
+| `OnDataManagement` | `on-data-management` | `data/services.ts:99`, `data/services.ts:167` |
+| `SqlVsNoSql2026` | `sql-vs-nosql-2026` | none in source (year kept) |
+| `TechnicalDebtAsset` | `technical-debt-asset` | none in source |
+| `VisionaryDataArchitecture` | `visionary-data-architecture` | `data/services.ts:49`, `data/services.ts:135`, `pages/services/index.vue:105` |
+
+**Total source-file lines to change: 8** (5 in `data/services.ts`, 2 in `pages/services/index.vue`, 1 in `pages/about.vue`).
+
+## Implementation Plan
+
+### Phase 0 — Branch and prep
+- [ ] **0.1** `cd /home/ivmo/projects/ivmanto.com && git checkout main && git pull`
+- [ ] **0.2** `git checkout -b dev-v0.1.4`
+- [ ] **0.3** Bump `package.json` version 0.1.3 → 0.1.4 (per branch-naming convention)
+- [ ] **0.4** Confirm GCS credential path: `/home/ivmo/.hermes/profiles/ivmo/.secrets/google-service-account.json` exists, and `python3 -c "from google.cloud import storage; storage.Client.from_service_account_json('...').bucket('ivmanto_com_blog_articles')"` works (read-only probe)
+
+### Phase 1 — Update source cross-links (safe to do first; can't break anything because the new URLs don't exist yet — they only 404 like the old ones do today)
+- [ ] **1.1** `data/services.ts` — 5 `relatedBlogSlugs` array updates
+- [ ] **1.2** `pages/services/index.vue` — 2 `to="/blog/..."` attribute updates
+- [ ] **1.3** `pages/about.vue` — 1 `to="/blog/..."` attribute update
+- [ ] **1.4** Verify: `npm run lint` passes (no errors from the cross-link changes)
+- [ ] **1.5** Verify: `git grep -nE 'blog/(AiMarketSentiment|DataMeshGovernance|DataProductFallacy|DigitalisationSimplicity|FromBigDataTo|NavigatingTheDataFrontier|OnDataManagement|SqlVsNoSql2026|TechnicalDebtAsset|VisionaryDataArchitecture)' -- 'data/' 'pages/' 'components/' 'composables/'` returns ZERO matches (other than the 8 we just updated)
+
+### Phase 2 — Add 301 redirects in public/serve.json
+
+**Important: this PR #96 (`cf51162`, dev-v0.1.9, merged 2026-07-28) already shipped redirects for a DIFFERENT set of legacy slugs** (the date-prefixed kebab ones from an earlier cleanup, plus 3 PascalCase slugs that have no successor). The redirect layer on Cloud Run is **`public/serve.json`** (picked up by the `serve` binary in the frontend container), NOT `nuxt.config.ts` routeRules — the SSG output does NOT honor Nuxt runtime routeRules, only the static `serve.json` config. So the right place to add 10 more redirect entries is the bottom of the existing `public/serve.json` array, matching the established shape.
+
+- [ ] **2.1** Add 10 entries to the `redirects` array in `public/serve.json` (one per old CamelCase slug, status 301). Each entry follows the exact `{ source, destination, type }` shape of the existing entries:
+  ```json
+  { "source": "/blog/AiMarketSentiment",     "destination": "/blog/ai-market-sentiment",     "type": 301 },
+  { "source": "/blog/DataMeshGovernance",    "destination": "/blog/data-mesh-governance",    "type": 301 },
+  { "source": "/blog/DataProductFallacy",    "destination": "/blog/data-product-fallacy",    "type": 301 },
+  { "source": "/blog/DigitalisationSimplicity", "destination": "/blog/digitalisation-simplicity", "type": 301 },
+  { "source": "/blog/FromBigDataTo",         "destination": "/blog/from-big-data-to",         "type": 301 },
+  { "source": "/blog/NavigatingTheDataFrontier", "destination": "/blog/navigating-the-data-frontier", "type": 301 },
+  { "source": "/blog/OnDataManagement",      "destination": "/blog/on-data-management",      "type": 301 },
+  { "source": "/blog/SqlVsNoSql2026",        "destination": "/blog/sql-vs-nosql-2026",        "type": 301 },
+  { "source": "/blog/TechnicalDebtAsset",    "destination": "/blog/technical-debt-asset",    "type": 301 },
+  { "source": "/blog/VisionaryDataArchitecture", "destination": "/blog/visionary-data-architecture", "type": 301 }
+  ```
+  Order: alphabetical by source. No trailing-slash pairs — `serve` matches the exact `source` string, and the existing PR #96 entries follow the same single-source shape.
+- [ ] **2.2** Verify: `python3 -c "import json; d = json.load(open('public/serve.json')); print(len(d['redirects']))"` returns 18 (8 existing + 10 new)
+- [ ] **2.3** Verify: `python3 -c "import json; d = json.load(open('public/serve.json')); print([r for r in d['redirects'] if r['source'].endswith('AiMarketSentiment')])"` returns the new entry
+
+### Phase 3 — GCS rename (the load-bearing step)
+- [ ] **3.1** Write a small one-off Python script `scripts/rename_articles.py` that uses the service-account credential to:
+  1. List all 10 old blob names, print their sizes + etags (audit trail)
+  2. Copy each old blob to the new kebab name (preserves content + metadata)
+  3. Verify the copy (byte-compare) and confirm `published: true` in the new blob's bytes
+  4. Delete the old blob
+  5. Print a CSV report: `old,new,bytes,etag,old_deleted`
+- [ ] **3.2** Run the script with a dry-run flag first (`--dry-run`) and verify the rename map against the bucket list
+- [ ] **3.3** Run the script for real (no flag)
+- [ ] **3.4** Verify: the script's report shows all 10 old names deleted AND all 10 new names present AND `published: true` preserved
+- [ ] **3.5** Spot-check 2 of the 10 new files via `verify_gcs_publish.py <local_path>` if a local copy exists, otherwise via a direct `cat` of the GCS object through the service account (NOT a public `curl` — the bucket is private, anonymous 403 is expected per the blog-publishing skill's "GCS Bucket Is Private" pitfall)
+
+### Phase 4 — Re-build the static site + verify
+- [ ] **4.1** `npm run generate` — must complete without errors. The `prerender:routes` hook at `nuxt.config.ts:127-138` fetches `/api/articles` from the live backend; the backend's in-memory cache will pick up the new filenames within seconds via Pub/Sub, so the new slugs will be prerendered. If the cache is stale, wait 30s and re-run.
+- [ ] **4.2** Verify `.output/public/blog/` contains all 10 new kebab-case directories AND none of the old CamelCase directories remain. Use:
   ```bash
-  npx nuxi@latest init ivmanto-nuxt --template v3
+  ls .output/public/blog/ | grep -E '^[A-Z]'
   ```
-  Then merge the generated config files (`nuxt.config.ts`, `tsconfig.json`, `app.vue`) into the existing repo root. Do NOT delete existing `src/` yet.
-- [ ] **0.3** Update `package.json`:
-  - Remove: `vue-router`, `@vueuse/head`, `serve`, `@vitejs/plugin-vue`, `vite`
-  - Add: `nuxt` (^3.x), `@nuxtjs/tailwindcss`, `@nuxt/content` (if needed later)
-  - Keep: `vue`, `axios`, `dompurify`, `tailwindcss`, `@tailwindcss/typography`, all dev deps (eslint, prettier, typescript, etc.)
-  - Update scripts:
-    ```json
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "eslint . --fix",
-    "format": "prettier --write ."
-    ```
-- [ ] **0.4** Create `nuxt.config.ts`:
-  ```ts
-  export default defineNuxtConfig({
-    ssr: true,
-    modules: ['@nuxtjs/tailwindcss'],
-    css: ['~/assets/css/main.css'],
-    runtimeConfig: {
-      public: {
-        geminiApiKey: '',
-      }
-    },
-    nitro: {
-      devProxy: {
-        '/api': { target: 'http://localhost:8080', changeOrigin: true }
-      }
-    },
-    routeRules: {
-      // Pre-render static marketing pages
-      '/': { prerender: true },
-      '/about': { prerender: true },
-      '/services': { prerender: true },
-      '/services/**': { prerender: true },
-      '/booking-demo': { prerender: true },
-      '/login': { prerender: true },
-      '/privacy-policy': { prerender: true },
-      // Client-only for dynamic pages
-      '/booking': { ssr: false },
-      '/booking/cancel': { ssr: false },
-      // Blog: client-rendered (articles come from runtime API)
-      '/blog': { ssr: false },
-      '/blog/**': { ssr: false },
-    },
-    app: {
-      head: {
-        htmlAttrs: { lang: 'en' },
-        charset: 'utf-8',
-        viewport: 'width=device-width, initial-scale=1',
-        link: [
-          { rel: 'icon', href: '/favicon.ico' },
-          { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-          { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        ],
-      }
-    },
-    typescript: {
-      strict: true,
-    },
-  })
-  ```
-- [ ] **0.5** Move `tailwind.config.js` to project root (already there). Update `content` paths:
-  ```js
-  content: [
-    './components/**/*.{vue,js,ts}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './composables/**/*.ts',
-    './plugins/**/*.ts',
-    './app.vue',
-  ]
-  ```
-- [ ] **0.6** Create `assets/css/main.css` from existing `src/style.css` (copy contents, same Tailwind directives + custom styles)
-- [ ] **0.7** Run `npm install` and `npx nuxt prepare` to verify the scaffold compiles
-
----
-
-## Phase 1: Layout & Core Structure
-> Estimated effort: ~1 hour
-
-- [ ] **1.1** Create `app.vue` (Nuxt entry point):
-  ```vue
-  <template>
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </template>
-  ```
-- [ ] **1.2** Create `layouts/default.vue`:
-  - Move global `useHead()` from existing `App.vue` (ProfessionalService schema, canonical URL, title, description)
-  - Include `<AppHeader />`, `<slot />`, `<AppFooter />`, `<CookieBanner />`
-  - The canonical URL logic should use `useRoute()` just as it does now
-  - Replace `@vueuse/head`'s `useHead` with Nuxt's built-in `useHead`
-  - Replace `usePageMetadata()` composable calls with Nuxt's `useSeoMeta()` where appropriate
-- [ ] **1.3** Move layout components (no changes needed to templates/styles):
-  - `src/components/layout/AppHeader.vue` → `components/layout/AppHeader.vue`
-  - `src/components/layout/AppFooter.vue` → `components/layout/AppFooter.vue`
-  - `src/components/layout/AppLogo.vue` → `components/layout/AppLogo.vue`
-  - `src/components/layout/TheHeader.vue` → `components/layout/TheHeader.vue`
-  - `src/components/layout/TheFooter.vue` → `components/layout/TheFooter.vue`
-  - `src/components/CookieBanner.vue` → `components/CookieBanner.vue`
-  - **In each component**: Remove explicit `import { RouterLink } from 'vue-router'` — Nuxt auto-imports `<NuxtLink>`. Replace all `<router-link>` and `<RouterLink>` with `<NuxtLink>`.
-  - **In AppHeader.vue**: Replace `useRoute()` import with auto-imported `useRoute()`
-
-### 1.4 NuxtLink Migration Rules (applies to ALL components)
-When migrating any component:
-1. Remove `import { RouterLink } from 'vue-router'` or `import { RouterLink, useRoute } from 'vue-router'`
-2. Replace `<RouterLink>` / `<router-link>` with `<NuxtLink>`
-3. `useRoute()` and `useRouter()` are auto-imported in Nuxt — remove their imports
-4. Named routes (`{ name: 'booking' }`) work the same way in Nuxt
-5. Hash links (`/#contact`) work the same way
-
----
-
-## Phase 2: Move Components
-> Estimated effort: ~1.5 hours
-
-All components move from `src/components/` → `components/`. The key changes are:
-- Remove `RouterLink` imports (Nuxt auto-imports)
-- Replace `<RouterLink>` with `<NuxtLink>`
-- Remove `useRoute`/`useRouter` imports (Nuxt auto-imports)
-- Replace `@/` path aliases with `~/` (Nuxt convention) or rely on auto-imports
-
-### Section Components
-- [ ] **2.1** Move `src/components/sections/` → `components/sections/`:
-  - `HeroInfographicSection.vue` — no changes needed (pure template)
-  - `ProcessSection.vue` — no changes needed (pure template)
-  - `FAQSection.vue` — no changes needed (self-contained logic)
-  - `ContactSection.vue` — if exists, move as-is
-  - `HeroSection.vue` — if exists, move as-is
-  - `AboutSection.vue` — if exists, move as-is
-  - `ArticlesSection.vue` — if exists, move as-is
-  - `ServicesIndex.vue` — if exists, move as-is
-  - `ServicesSection.vue` — if exists, move as-is
-
-### About Components
-- [ ] **2.2** Move `src/components/about/` → `components/about/`:
-  - `ApproachSection.vue` — no changes
-  - `ExpertiseSection.vue` — no changes
-  - `CertificatesSection.vue` — no changes
-
-### Service Content Components
-- [ ] **2.3** Move `src/components/services-content/` → `components/services-content/`:
-  - `DataArchitecture.vue` — update: replace `usePageMetadata()` import with Nuxt auto-import or remove if unused
-  - `DataGovernance.vue` — same
-  - `MlEngineering.vue` — same
-  - `Principles.vue` — same
-  - `SovereignCloudDE.vue` — same
-
-### Other Components
-- [ ] **2.4** Move remaining components:
-  - `ContactForm.vue` — replace `useRoute` import, replace `RouterLink` → `NuxtLink`
-  - `InspirationModal.vue` — replace `RouterLink` → `NuxtLink`, `<teleport to="body">` works in Nuxt
-  - `PrivacyPolicy.vue` — if used as a component, move as-is
-  - `services/RightColumnContent.vue` — move as-is
-  - `services/ServiceDetail.vue` — move as-is
-
----
-
-## Phase 3: Move Composables, Services, Data, Types
-> Estimated effort: ~30 minutes
-
-### Composables
-- [ ] **3.1** Move `src/composables/` → `composables/`:
-  - `useArticles.ts` — keep as-is. The `fetch('/api/articles')` calls will work from client-side. For SSR-compatible version, consider wrapping with `useFetch()` later.
-  - `useGemini.ts` — update: replace `import.meta.env.VITE_GEMINI_API_KEY` with `useRuntimeConfig().public.geminiApiKey`
-  - `usePageMetadata.ts` — **KEEP for now** as a compatibility layer. Eventually replace with `useSeoMeta()` per-page, but during migration, keeping it working prevents regressions.
-
-### Services
-- [ ] **3.2** Move `src/services/` → `services/` (NOT in composables — these are plain utility modules, not composables):
-  - `analytics.ts` — no changes needed (already has `typeof window === 'undefined'` guards)
-  - `api.ts` — no changes needed
-  - `gemini.ts` — update: replace `import.meta.env.VITE_GEMINI_API_KEY` with runtime config access. **Note**: Since this is not a composable, it cannot call `useRuntimeConfig()` directly. Either:
-    - Convert to accept `apiKey` as a parameter, or
-    - Move the API key lookup to the calling component
-
-### Data & Types
-- [ ] **3.3** Move `src/data/services.ts` → `data/services.ts`
-  - Update `defineAsyncComponent` imports: In Nuxt, components in `components/` are auto-imported. The `defineAsyncComponent(() => import(...))` pattern still works, but paths change from `@/components/` to `~/components/` or use `resolveComponent()`.
-- [ ] **3.4** Move `src/types/article.ts` → `types/article.ts`
-
----
-
-## Phase 4: Convert Views → Pages
-> Estimated effort: ~2 hours (the core of the migration)
-
-### 4.1 Home Page
-- [ ] **4.1.1** Create `pages/index.vue` from `src/views/HomeView.vue`:
-  - Move all content as-is
-  - Replace imports: `RouterLink` → `NuxtLink`, remove `useRoute`/`useRouter` imports
-  - Replace `@/` paths with `~/` paths
-  - Add page-level `useSeoMeta()`:
-    ```ts
-    useSeoMeta({
-      title: 'ivmanto.com | Data & AI Consultancy',
-      description: 'Expert Data & AI consultancy...',
-    })
-    ```
-  - **Add FAQPage schema** (NEW — from SEO recommendation):
-    ```ts
-    useHead({
-      script: [{
-        type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
-          mainEntity: [
-            { '@type': 'Question', name: '...', acceptedAnswer: { '@type': 'Answer', text: '...' } },
-            // ... all 4 FAQ items
-          ]
-        })
-      }]
-    })
-    ```
-
-### 4.2 About Page
-- [ ] **4.2.1** Create `pages/about.vue` from `src/views/AboutView.vue`:
-  - Keep Person schema as-is
-  - Replace `useHead` import → use Nuxt auto-imported version
-  - Replace `RouterLink` → `NuxtLink`
-  - Fix image path: `src="/src/assets/nt.jpg"` → `src="~/assets/nt.jpg"` (or move image to `public/` and use `/nt.jpg`)
-
-### 4.3 Services Pages
-- [ ] **4.3.1** Create `pages/services/index.vue` from `src/views/ServicesLanding.vue`:
-  - Replace `RouterLink` → `NuxtLink`
-  - Replace `@/data/services` → `~/data/services`
-- [ ] **4.3.2** Create `pages/services/[id].vue` from `src/views/ServiceView.vue`:
-  - Replace `props.id` (from vue-router `props: true`) with `useRoute().params.id`
-  - Keep the dynamic Service schema markup
-  - Replace `@vueuse/head` → Nuxt `useHead`
-  - Replace `RouterLink` → `NuxtLink`
-  - Update `defineAsyncComponent` paths
-
-### 4.4 Blog Pages
-- [ ] **4.4.1** Create `pages/blog/index.vue` from `src/views/ArticleListView.vue`:
-  - This page is client-rendered (`ssr: false` in routeRules)
-  - Replace `RouterLink` → `NuxtLink`
-  - Keep `useArticles()` composable call as-is
-- [ ] **4.4.2** Create `pages/blog/[slug].vue` from `src/views/ArticleView.vue`:
-  - This page is client-rendered (`ssr: false` in routeRules)
-  - Replace `props.slug` with `useRoute().params.slug`
-  - Replace `useRouter().push()` with `navigateTo()`
-  - Replace `RouterLink` → `NuxtLink`
-  - Keep DOMPurify sanitization
-  - Keep like functionality and article navigation
-  - **Add Article/BlogPosting schema** (NEW):
-    ```ts
-    useHead({
-      script: computed(() => article.value ? [{
-        type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'BlogPosting',
-          headline: article.value.title,
-          description: article.value.summary,
-          datePublished: article.value.date,
-          author: { '@id': 'https://ivmanto.com/about#person' },
-          publisher: { '@id': 'https://ivmanto.com/#organization' },
-          url: `https://ivmanto.com/blog/${article.value.slug}`,
-        })
-      }] : [])
-    })
-    ```
-- [ ] **4.4.3** The `BlogView.vue` wrapper (just `<RouterView />`) is no longer needed — Nuxt handles nested routing automatically via the `pages/blog/` directory structure.
-
-### 4.5 Booking Pages
-- [ ] **4.5.1** Create `pages/booking/index.vue` from `src/views/BookingCalendar.vue`:
-  - Client-rendered (`ssr: false`)
-  - Replace `useRoute`/`RouterLink` imports
-  - Keep all booking logic exactly as-is
-  - The `Intl.DateTimeFormat` guard for timezone is already SSR-safe
-- [ ] **4.5.2** Create `pages/booking/cancel.vue` from `src/views/BookingCancellation.vue`:
-  - Client-rendered (`ssr: false`)
-  - Replace imports
-
-### 4.6 Other Pages
-- [ ] **4.6.1** Create `pages/booking-demo.vue` from `src/views/BookingGoogleDemo.vue`
-- [ ] **4.6.2** Create `pages/login.vue` from `src/views/LoginView.vue`:
-  - Replace `@vueuse/head` → Nuxt `useHead`
-  - Keep `noindex` meta
-- [ ] **4.6.3** Create `pages/privacy-policy.vue`:
-  - Import `PrivacyPolicy` component and render it
-  - Or inline the content directly
-- [ ] **4.6.4** Create `pages/[...slug].vue` (catch-all 404) from `src/views/NotFoundView.vue`:
-  - Replace `@vueuse/head` → Nuxt `useHead`
-  - Keep `noindex` meta
-
-### 4.7 Scroll Behavior
-- [ ] **4.7.1** Replicate the scroll behavior from vue-router config. In Nuxt, create `app/router.options.ts`:
-  ```ts
-  import type { RouterConfig } from '@nuxt/schema'
-
-  export default <RouterConfig>{
-    scrollBehavior(to) {
-      if (to.hash) {
-        return { el: to.hash, behavior: 'smooth' }
-      }
-      return { top: 0 }
-    }
-  }
-  ```
-
----
-
-## Phase 5: Plugins & Analytics
-> Estimated effort: ~30 minutes
-
-- [ ] **5.1** Create `plugins/analytics.client.ts`:
-  ```ts
-  export default defineNuxtPlugin(() => {
-    // Initialize dataLayer
-    window.dataLayer = window.dataLayer || []
-
-    const consent = localStorage.getItem('cookie_consent')
-    if (consent === 'accepted') {
-      const { initGtm, trackEvent } = await import('~/services/analytics')
-      initGtm()
-
-      // Track initial pageview
-      trackEvent('page_view', {
-        page_path: window.location.pathname + window.location.search,
-        page_title: document.title,
-      })
-
-      // Track SPA pageviews on route change
-      const router = useRouter()
-      router.afterEach((to) => {
-        trackEvent('page_view', {
-          page_path: to.fullPath,
-          page_title: document.title,
-        })
-      })
-    }
-  })
-  ```
-  The `.client.ts` suffix ensures this only runs in the browser.
-
-- [ ] **5.2** Remove analytics initialization from what was `main.ts` — it's now handled by the plugin.
-
-- [ ] **5.3** Verify `window.dataLayer` type declaration still works. Move `declare global` block from `analytics.ts` to a `types/global.d.ts` if needed.
-
----
-
-## Phase 6: Structured Data Enhancement (SEO Recommendation)
-> Estimated effort: ~30 minutes
-
-- [ ] **6.1** Add **WebSite schema** to `layouts/default.vue`:
-  ```ts
-  useHead({
-    script: [{
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: 'IVMANTO',
-        url: 'https://ivmanto.com',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: 'https://ivmanto.com/blog?q={search_term_string}',
-          'query-input': 'required name=search_term_string'
-        }
-      })
-    }]
-  })
-  ```
-  This tells search engines the site has a search feature pointing to the blog's search input.
-
-- [ ] **6.2** Add **FAQPage schema** to `pages/index.vue` (home page) — as described in Phase 4.1.
-
-- [ ] **6.3** Add **BlogPosting schema** to `pages/blog/[slug].vue` — as described in Phase 4.4.2.
-
-- [ ] **6.4** Verify existing schemas still work:
-  - ProfessionalService (global layout)
-  - Person (about page)
-  - Service (service detail pages)
-
----
-
-## Phase 7: Static Assets & Public Files
-> Estimated effort: ~15 minutes
-
-- [ ] **7.1** Move/verify public assets:
-  - `public/certs/` — keep as-is
-  - `public/favicon.ico` — keep (or copy from `src/favicon.ico`)
-  - `public/cloud-pic-2.webp` — verify exists
-  - `public/logo.png` — verify exists (referenced in schema)
-  - `public/social-sharing-card.webp` — verify exists (referenced in schema)
-- [ ] **7.2** Move `src/assets/nt.jpg` → `public/nt.jpg` (simpler) or keep in `assets/` and use `~/assets/nt.jpg` in the about page template
-- [ ] **7.3** Move `src/assets/mockup/logo.svg` → `assets/mockup/logo.svg`
-- [ ] **7.4** Verify Google Fonts loading. The `<link>` tags from `index.html` should be moved to `nuxt.config.ts` → `app.head.link` (already covered in Phase 0.4)
-
----
-
-## Phase 8: Dockerfile Update
-> Estimated effort: ~15 minutes
-
-- [ ] **8.1** Update `Dockerfile` for Nuxt SSG:
-  ```dockerfile
-  # Stage 1: Build
-  FROM node:20-bookworm-slim AS build
-  RUN apt-get update && apt-get upgrade -y && \
-      apt-get clean && rm -rf /var/lib/apt/lists/*
-  WORKDIR /app
-  COPY package.json package-lock.json ./
-  RUN npm install
-  COPY . .
-  RUN npx nuxi generate
-
-  # Stage 2: Serve
-  FROM node:20-bookworm-slim
-  RUN apt-get update && apt-get upgrade -y && \
-      apt-get clean && rm -rf /var/lib/apt/lists/*
-  RUN npm install -g serve
-  WORKDIR /app
-  COPY --from=build /app/.output/public .
-  EXPOSE 8080
-  CMD ["serve", "-s", "."]
-  ```
-  **Key change**: `npm run build` → `npx nuxi generate`, `/app/dist` → `/app/.output/public`
-
----
-
-## Phase 9: Cleanup & Verification
-> Estimated effort: ~1 hour
-
-- [ ] **9.1** Delete old files:
-  - `src/` directory (all files have been migrated)
-  - `src/main.ts` (replaced by Nuxt entry)
-  - `src/App.vue` (replaced by `app.vue` + `layouts/default.vue`)
-  - `src/router/index.ts` (replaced by file-based routing)
-  - `vite.config.ts` (replaced by `nuxt.config.ts`)
-  - `env.d.ts` (Nuxt generates its own)
-- [ ] **9.2** Remove unused dependencies from `package.json`:
-  - `vue-router` (Nuxt includes it)
-  - `@vueuse/head` (Nuxt has built-in head management)
-  - `serve` (keep — still used in Docker)
-  - `@vitejs/plugin-vue` (Nuxt includes Vite + Vue plugin)
-- [ ] **9.3** Run `npm run generate` and verify output:
-  - Check `.output/public/` contains HTML files for all pre-rendered routes
-  - Verify each HTML file has proper `<title>`, `<meta>`, and JSON-LD schema
-- [ ] **9.4** Run `npm run preview` and test every page manually:
-  - [ ] Home page — hero, process section, articles, FAQ, contact form, inspiration modal
-  - [ ] About page — photo, content, certifications, Person schema
-  - [ ] Services landing — all 5 service cards
-  - [ ] Each service detail page — sidebar, content, keywords, CTA, Service schema
-  - [ ] Blog list — search, article cards, loading states
-  - [ ] Blog article — content rendering, navigation, share, likes
-  - [ ] Booking calendar — date selection, time slots, form submission
-  - [ ] Booking cancellation — token-based cancellation
-  - [ ] Login — noindex, placeholder
-  - [ ] Privacy policy — full legal text
-  - [ ] 404 page — catch-all, noindex
-  - [ ] Cookie banner — shows on first visit, consent gating
-  - [ ] Mobile responsive — header menu, all pages
-- [ ] **9.5** Validate structured data:
-  - Use https://validator.schema.org/ on the generated HTML files
-  - Verify ProfessionalService, WebSite, Person, Service, FAQPage schemas
-- [ ] **9.6** Test the API proxy in dev mode:
-  - `npm run dev` with Go backend running
-  - Verify `/api/articles`, `/api/booking/availability`, `/api/contact` all work
-- [ ] **9.7** Build Docker image and test:
+  Expect ZERO output.
+- [ ] **4.3** Verify `.output/public/blog/` contains the 10 new kebab directories:
   ```bash
-  docker build -t ivmanto-nuxt .
-  docker run -p 8080:8080 ivmanto-nuxt
+  for s in ai-market-sentiment data-mesh-governance data-product-fallacy \
+           digitalisation-simplicity from-big-data-to navigating-the-data-frontier \
+           on-data-management sql-vs-nosql-2026 technical-debt-asset \
+           visionary-data-architecture; do
+    test -f ".output/public/blog/$s/index.html" || echo "MISSING: $s"
+  done
   ```
+  Expect ZERO output.
+- [ ] **4.4** Verify `.output/public/sitemap.xml` lists the new slugs and NOT the old ones:
+  ```bash
+  grep -oE 'blog/[A-Z][a-zA-Z0-9]*' .output/public/sitemap.xml && echo "STALE: old slugs still in sitemap"
+  ```
+  Expect ZERO output.
+- [ ] **4.5** Verify the redirect entries are picked up by Cloud Run's `serve`: `serve.json` is copied into `.output/public/` during the build. Confirm the new entries survive: `python3 -c "import json; print(len(json.load(open('.output/public/serve.json'))['redirects']))"` returns 18. (The Nuxt-side routeRules redirect question I worried about earlier is moot — the live site uses `serve` + `serve.json`, not Nuxt's runtime.)
 
----
+### Phase 5 — Commit, push, PR
+- [ ] **5.1** `git add -A && git commit -m "fix(blog): rename 10 CamelCase slugs to kebab-case + add 301 redirects"`
+- [ ] **5.2** `git push -u origin dev-v0.1.4`
+- [ ] **5.3** Open PR against `main` using `.github/pull_request_template.md`. PR body must include:
+  - The rename map table from this doc
+  - Output of `npm run lint` and `npm run generate` (paste verbatim)
+  - The script's audit CSV (10 lines)
+  - The Phase 4 verification grep results (all 3 must be empty)
+- [ ] **5.4** Address review feedback (reviewer = Claude, per the AGENTS.md contract)
 
-## Phase 10: Blog Route Strategy Decision
-> This is a decision point — choose before starting Phase 4.4
+### Phase 6 — Post-merge smoke (this is the "is it actually live" check)
+- [ ] **6.1** After Nick merges to main and Cloud Build runs, run the standard `verify_live_publish.py ai-market-sentiment` (and the other 9). Each must exit 0. The skill says these are conditional on exit 0, not on GCS upload success.
+- [ ] **6.2** Manually verify one of the 10 old URLs with a HEAD probe (per the ivmanto.com post-merge pattern from the memory entry on GCS =/= live): `curl -I https://ivmanto.com/blog/TechnicalDebtAsset` must return 301 with `Location: /blog/technical-debt-asset`. Repeat for one more (DataMeshGovernance) for sanity.
+- [ ] **6.3** Tell Nick in the main session: "CamelCase → kebab migration merged + live. 10/10 slugs return exit 0 from `verify_live_publish.py`, 2/10 old URLs 301 to new URLs on the live site. Old bookmarks preserved. PR review close the loop on the next turn."
 
-### Option A: Pure Client-Side Blog (Simpler, matches current behavior)
-- Blog pages use `ssr: false` in `routeRules`
-- Articles are fetched client-side exactly like today
-- **Pro**: Simplest migration, no behavior change
-- **Con**: Blog pages still serve empty HTML to crawlers (same SEO limitation as SPA)
-- **Mitigation**: Blog content is behind a dynamic API, so search engines may not index individual articles regardless
+## Risks & Mitigations
 
-### Option B: Nuxt Server Mode for Blog (Better SEO, more complex)
-- Switch from `nuxt generate` (pure SSG) to `nuxt build` (server mode) for the whole site
-- Blog pages use ISR: `'/blog/**': { isr: 3600 }` (regenerate every hour)
-- Requires changing Dockerfile to run `node .output/server/index.mjs` instead of `serve`
-- **Pro**: Blog articles get full server-rendered HTML with schema markup
-- **Con**: Requires a running Node.js server (not just static files), more complex deployment
+1. **Race with the Go backend's in-memory cache.** The backend reads articles from GCS and caches them by slug (`backend/internal/blog/cache.go:24`). When we rename, the cache will still hold the old slugs until the next Pub/Sub refresh (a few seconds). The backend's `/api/articles` will return both old + new slugs during that window. Mitigation: the Nuxt `prerender:routes` hook waits 0s; we add a 60s sleep between Phase 3.3 and Phase 4.1 to let the cache settle.
+2. **Cloud Run's static serving doesn't honor `routeRules` redirects for the prerendered output.** Updated after live probe: Cloud Run uses `serve` (the static-file server), which honors `public/serve.json`'s `redirects` array, NOT Nuxt `routeRules`. The right place for the redirects is `public/serve.json` (the established pattern, per PR #96). Phase 4.5 verifies the entries survive the Nuxt build.
+3. **Google Search Console indexing the old slugs.** After the rename + 301s ship, Google's crawler will see the 301s and re-index under the new URLs. This takes days to weeks; during that window, search results may still show the old URLs and the 301 will pass PageRank correctly. Not a correctness issue, just a slow burn. Documented in the PR body.
+4. **Old CamelCase URLs in the SEO audit HTMLs (`docs/SEO-reports/SEO Audit Ivmanto_2.html`, `…RankClaw.html`).** These are historical artifacts, not linked from anywhere live. They reference the old slugs because the audit was run when the slugs were still CamelCase. We will NOT touch these in this PR (they're the audit's evidence of the prior state); a follow-up chore PR can update them or annotate them as historical.
 
-### Recommendation
-Start with **Option A** (pure client-side blog). This achieves the primary goal — making all marketing pages (home, about, services) crawlable with full HTML and schema. The blog is secondary for SEO since its content is dynamic. Option B can be pursued later as an enhancement.
+## Out of scope (explicit)
 
----
-
-## Summary of New Files Created
-
-| File | Purpose |
-|---|---|
-| `nuxt.config.ts` | Nuxt configuration (replaces vite.config.ts) |
-| `app.vue` | Nuxt entry point |
-| `layouts/default.vue` | Global layout (header, footer, schema, cookie banner) |
-| `pages/index.vue` | Home page |
-| `pages/about.vue` | About page |
-| `pages/services/index.vue` | Services landing |
-| `pages/services/[id].vue` | Service detail |
-| `pages/blog/index.vue` | Blog article list |
-| `pages/blog/[slug].vue` | Blog article detail |
-| `pages/booking/index.vue` | Booking calendar |
-| `pages/booking/cancel.vue` | Booking cancellation |
-| `pages/booking-demo.vue` | Google Calendar embed demo |
-| `pages/login.vue` | Client login placeholder |
-| `pages/privacy-policy.vue` | Privacy policy |
-| `pages/[...slug].vue` | Catch-all 404 |
-| `plugins/analytics.client.ts` | GTM/GA4 initialization |
-| `app/router.options.ts` | Scroll behavior |
-| `assets/css/main.css` | Tailwind + custom styles |
-
-## Files to Delete After Migration
-
-| File | Replaced By |
-|---|---|
-| `src/main.ts` | Nuxt auto-initialization + `plugins/analytics.client.ts` |
-| `src/App.vue` | `app.vue` + `layouts/default.vue` |
-| `src/router/index.ts` | File-based routing in `pages/` |
-| `vite.config.ts` | `nuxt.config.ts` |
-| `env.d.ts` | Nuxt auto-generated types |
-| All `src/views/*.vue` | `pages/*.vue` |
-| All `src/components/` | `components/` (moved, not deleted) |
-| All `src/composables/` | `composables/` (moved, not deleted) |
-| All `src/services/` | `services/` (moved, not deleted) |
-| All `src/data/` | `data/` (moved, not deleted) |
-| All `src/types/` | `types/` (moved, not deleted) |
-
----
-
-## Task: 2026-06-04 — Add muchakova.com to site footer Friends section
-
-**Branch:** `dev-v0.1.5` (off `main`, current HEAD `ede9113`)
-**Scope:** Frontend — one file, one new `<a>` element in the Friends block.
-**Owner-asked:** Yes (2026-06-04).
-
-### Plan
-
-- [x] Read `AGENTS.md` and `.agents/rules.md` (rule book)
-- [x] Locate footer component (`components/layout/TheFooter.vue`) and confirm Friends block
-- [x] Match existing pattern from Vivily.de entry (trailing slash, `hover:text-amber`, `target="_blank" rel="noopener noreferrer"`)
-- [x] Cut branch `dev-v0.1.5` from `main`
-- [x] Add entry to `tasks/todo.md`
-- [ ] Add `<a href="https://muchakova.com/" ...>Muchakova.com</a>` directly below Vivily.de line
-- [ ] Commit: `feat(footer): add muchakova.com to Friends section`
-- [ ] Push branch to `origin`
-- [ ] Open PR against `main` using `.github/pull_request_template.md`
-- [ ] **Pre-PR frontend gates deferred to CI for this PR only** (local npm env not yet configured on this box — see Note A below)
-
-### Verification
-
-- [ ] Diff review against the existing Vivily.de line for pattern consistency
-- [ ] CI `npm run lint` and `npm run generate` pass on the PR
-- [ ] Manual footer check on the preview environment post-merge
-
-### Note A — Local verification deferred
-
-Per owner direction (2026-06-04), local `npm install` / `lint` / `generate` are intentionally not run for this PR. Reason: local node/npm environment is not yet bootstrapped on the workstation. This is acceptable for a 1-line content change in a Vue template (no logic, no env vars, no build-config touch). A separate setup task will bootstrap the local frontend dev environment so future PRs can be verified locally before reaching PROD CI/CD.
-
-### Note B — Out of scope (do not touch in this PR)
-
-- `cloudbuild.yaml`
-- `nuxt.config.ts`
-- `plugins/analytics.client.ts`
-- `dist` symlink
-- Anything in `backend/`
-- Any secret / env var
-
-### Out-of-scope issues flagged (NOT to be fixed in this PR)
-
-None observed in the Friends block.
-
-### Lessons
-
-(none yet — will fill in after review)
-
----
-
-## Active task pointer (2026-06-09)
-
-**Next priority (awaiting Clauco spec):** Clauco will brief ivmo on a higher-priority feature to develop on ivmanto.com. Pending that spec, no work has started.
-
-**Backlog — deferred:** **GCP CI/CD watcher** — see [`2026-06-09-gcp-cicd-watcher.md`](2026-06-09-gcp-cicd-watcher.md). Plan covers gcloud SDK install, SA auth on `ivmanto-com-prod` (four roles: cloudbuild.builds.viewer, run.developer, artifactregistry.reader, logging.viewer), and four devops skills (cicd-monitor, cicd-rollback, cicd-redeploy, cicd-smoke). Owner has approved adding to backlog; work to start only after the higher-priority Clauco task is complete.
-
-**Recently completed (2026-06-09):** **Booking confirmation renders in visitor's timezone** — see [`2026-06-09-booking-confirmation-tz.md`](2026-06-09-booking-confirmation-tz.md) for the full plan. Branch `dev-v0.1.6` merged into `main` as PR #93 (merge commit `2668fda`). Local branch deleted, working tree clean. Visitor confirmation + cancellation emails now render in the visitor's local timezone with DST-correct abbreviation; .ics attachment gets an `X-WR-TIMEZONE` header for the visitor. Reviewer: Clauco (redma thread `pr-review-ivmanto-v0.1.6`).
+- Historical doc updates (`docs/SEO-reports/*`, `docs/features/dev-v0.0.17/*`) — separate chore PR
+- Plagiarism re-check on the 10 articles (no content changed)
+- Any change to the Go backend (slug derivation in `cache.go:116` continues to work for the new filenames)
+- Any change to `cloudbuild.yaml`, the `dist` symlink, or Secret Manager
