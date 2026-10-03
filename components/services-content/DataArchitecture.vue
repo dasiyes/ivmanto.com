@@ -84,7 +84,7 @@ const { cleanTitle } = usePageMetadata()
       <li>
         <strong>The Rise of the Lakehouse:</strong> This hybrid approach combines the massive
         storage capacity of a data lake with the structure and performance of a data warehouse,
-        allowing you to manage all your data—structured and unstructured—in one place.
+        allowing you to manage all your data, structured and unstructured, in one place.
       </li>
       <li>
         <strong>Data Mesh & Data Fabric:</strong> These aren't just buzzwords; they represent a
@@ -113,7 +113,7 @@ const { cleanTitle } = usePageMetadata()
         for training sophisticated machine learning models without buckling under the pressure?
       </li>
       <li>
-        <strong>Context:</strong> Do you have a semantic layer—a common business vocabulary—that
+        <strong>Context:</strong> Do you have a semantic layer (a common business vocabulary) that
         allows both humans and AI to understand what the data actually means?
       </li>
     </ol>

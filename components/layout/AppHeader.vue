@@ -1,5 +1,7 @@
 <template>
-  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-primary/10 header-bar-shadow">
+  <header
+    class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-primary/10 header-bar-shadow"
+  >
     <nav class="container mx-auto px-6 py-3 flex justify-between items-center relative">
       <NuxtLink to="/" class="group">
         <img
@@ -49,14 +51,39 @@
               <div class="grid grid-cols-2 gap-x-10 gap-y-6">
                 <!-- Dynamic Service Items from services.ts -->
                 <NuxtLink
-                  v-for="service in services"
+                  v-for="service in offerServices"
                   :key="service.id"
                   :to="`/services/${service.id}`"
                   class="block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <p class="font-bold text-dark-slate">{{ service.menuTitle }}</p>
+                  <p
+                    v-if="service.eyebrow"
+                    class="text-xs font-bold uppercase tracking-wider text-primary"
+                  >
+                    {{ service.eyebrow }}
+                  </p>
+                  <p class="font-bold text-dark-slate">
+                    {{ service.menuTitle }}
+                    <span v-if="service.price" class="ml-1 text-sm font-semibold text-amber-dark">{{
+                      service.price.label
+                    }}</span>
+                  </p>
                   <p class="text-sm text-gray-600 mt-1">{{ service.summary }}</p>
                 </NuxtLink>
+              </div>
+              <div
+                class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
+              >
+                <span class="font-semibold uppercase tracking-wider text-gray-500 text-xs"
+                  >Expertise</span
+                >
+                <NuxtLink
+                  v-for="service in expertiseServices"
+                  :key="service.id"
+                  :to="`/services/${service.id}`"
+                  class="text-gray-700 hover:text-primary transition-colors"
+                  >{{ service.menuTitle }}</NuxtLink
+                >
               </div>
             </div>
           </div>
@@ -174,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { services } from '~/data/services'
+import { offerServices, expertiseServices } from '~/data/services'
 
 const isMobileMenuOpen = ref(false)
 const route = useRoute()

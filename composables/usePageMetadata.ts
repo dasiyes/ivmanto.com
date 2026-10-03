@@ -15,49 +15,35 @@ const routeMetadata: Record<string, { title: string; description: string }> = {
       'Expert Data & AI consultancy specializing in Google Cloud Platform (GCP). We help businesses with data architecture, governance, and AI-driven solutions to turn data into a strategic asset.',
   },
   '/services': {
-    title: 'Services | ivmanto.com',
+    title: 'Freelance Cloud Data & AI Agent Engineer for SMBs | ivmanto.com',
     description:
-      'Explore our Data & AI services. From data strategy and GCP architecture to custom AI/ML solutions and Go backend development, we empower your business with data.',
+      'Hands-on cloud data engineering, custom AI agents and private RAG knowledge systems for small and medium businesses. Senior independent engineer based in Germany, serving the EU and clients worldwide.',
   },
-  '/services/ai-automation-discovery': {
-    title: 'AI & Automation Strategic Discovery | ivmanto.com',
-    description:
-      'Discover high-impact AI and automation use-cases for your SMB. We audit workflows, pinpoint bottlenecks, and deliver an ROI-prioritized automation roadmap.',
-  },
-  '/services/data-pipeline-engineering': {
-    title: 'Data Pipeline Design & Architecture | ivmanto.com',
-    description:
-      'End-to-end data pipeline engineering — we design scalable, secure pipelines that transform raw data into curated, analytics- and AI-ready datasets.',
-  },
-  '/services/agentic-ai-solutions': {
-    title: 'Agentic AI Solution Design & Team Enablement | ivmanto.com',
-    description:
-      'Design and implement Agentic AI solutions — autonomous, reasoning agents — with architectural guidance, best practices, and team enablement for your staff.',
-  },
+  // Expertise pages render long-form components that read cleanTitle from here
   '/services/data-strategy-and-governance': {
     title: 'Data Strategy & Governance | ivmanto.com',
     description:
-      'Develop a clear data strategy and robust governance framework. We align your data initiatives with business goals for maximum impact and compliance.',
+      'A clear data strategy and practical governance framework that aligns your data initiatives with business goals, compliance and AI readiness.',
   },
   '/services/data-architecture': {
     title: 'Data Architecture on GCP | ivmanto.com',
     description:
-      'Design and build scalable, secure data architectures on Google Cloud Platform (GCP). We leverage BigQuery, Cloud Storage, and modern data engineering practices.',
+      'Design scalable, secure data architectures on Google Cloud Platform with BigQuery, Cloud Storage and modern data engineering practices.',
   },
   '/services/sovereigncloud': {
     title: 'Sovereign Cloud Solutions | ivmanto.com',
     description:
-      'Explore architectural perspectives on Data, Operations, and AI Sovereignty to meet your compliance and security needs in the cloud.',
+      'Architectural perspectives on data, operations and AI sovereignty to meet EU compliance and security needs in the cloud.',
   },
   '/services/ml-engineering': {
-    title: 'AI & ML Solutions | ivmanto.com',
+    title: 'ML Engineering on Vertex AI | ivmanto.com',
     description:
-      'Leverage the power of AI and Machine Learning on GCP. We build custom solutions, from predictive analytics to generative AI, to solve your toughest challenges.',
+      'Operationalize machine learning on Google Cloud. Automated training, deployment and monitoring pipelines on Vertex AI.',
   },
   '/services/principles': {
     title: 'Guiding Principles | ivmanto.com',
     description:
-      'Our DAMA-aligned principles for data strategy, governance, and architecture ensure your data becomes a reliable, valuable asset for decision-making and AI.',
+      'DAMA-aligned principles for data strategy, governance and architecture that make your data a reliable, valuable asset for decision-making and AI.',
   },
   '/blog': {
     title: 'Insights & Articles | ivmanto.com',

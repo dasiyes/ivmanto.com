@@ -43,7 +43,7 @@ const { cleanTitle } = usePageMetadata()
       </li>
       <li>
         <strong>Flawed Decision-Making:</strong> A lack of trust in data leads to decisions being
-        made on gut feeling, intuition, or politics—a risky proposition in today's market.
+        made on gut feeling, intuition, or politics, a risky proposition in today's market.
       </li>
       <li>
         <strong>Stifled Innovation:</strong> Your most ambitious projects, particularly in AI and
@@ -95,7 +95,7 @@ const { cleanTitle } = usePageMetadata()
         <ul>
           <li>
             <strong>Establishing Clear Ownership:</strong> We help you define roles like Data Owners
-            and Data Stewards—the people accountable for the quality and security of specific data
+            and Data Stewards: the people accountable for the quality and security of specific data
             assets.
           </li>
           <li>
@@ -118,7 +118,7 @@ const { cleanTitle } = usePageMetadata()
     </ol>
     <p>
       Think of governance not as a restrictive police force, but as the system that ensures a
-      high-quality, reliable supply chain for your data—from its source to the final decision-maker.
+      high-quality, reliable supply chain for your data, from its source to the final decision-maker.
     </p>
     <h3>What to Expect: From Assessment to Advantage</h3>
     <p>
@@ -140,7 +140,7 @@ const { cleanTitle } = usePageMetadata()
       </li>
       <li>
         <strong>Technology Enablement:</strong> We help you select and implement the right
-        tools—often on scalable cloud platforms like GCP—to support your governance framework
+        tools, often on scalable cloud platforms like GCP, to support your governance framework
         effectively.
       </li>
     </ol>
