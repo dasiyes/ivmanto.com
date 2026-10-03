@@ -35,12 +35,32 @@
       "source": "/blog/_FromBigDataTo",
       "destination": "/blog/FromBigDataTo",
       "type": 301
+    },
+    {
+      "source": "/services/ai-automation-discovery",
+      "destination": "/services/ai-readiness-audit",
+      "type": 301
+    },
+    {
+      "source": "/services/data-pipeline-engineering",
+      "destination": "/services/cloud-data-engineering",
+      "type": 301
+    },
+    {
+      "source": "/services/agentic-ai-solutions",
+      "destination": "/services/custom-ai-agents",
+      "type": 301
     }
   ],
   "headers": [
     {
       "source": "_nuxt/**",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     }
   ]
 }

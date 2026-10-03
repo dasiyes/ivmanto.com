@@ -12,8 +12,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint . --fix",
-    "format": "prettier --write ."
+    "lint": "node scripts/check-dashes.mjs && eslint . --fix",
+    "format": "prettier --write .",
+    "lint:dashes": "node scripts/check-dashes.mjs"
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",

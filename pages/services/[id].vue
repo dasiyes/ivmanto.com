@@ -3,10 +3,10 @@
     <div class="flex flex-col md:flex-row gap-12">
       <!-- Left Column: Sidebar Navigation -->
       <aside class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-        <h2 class="text-xl font-bold text-dark-slate mb-4 border-b pb-2">Our Services</h2>
+        <h2 class="text-xl font-bold text-dark-slate mb-4 border-b pb-2">Services</h2>
         <nav class="space-y-2">
           <NuxtLink
-            v-for="s in allServices"
+            v-for="s in offerServices"
             :key="s.id"
             :to="`/services/${s.id}`"
             @click="trackServiceClick(s)"
@@ -16,8 +16,32 @@
               'hover:bg-gray-50': s.id !== id,
             }"
           >
+            <p v-if="s.eyebrow" class="text-xs font-bold uppercase tracking-wider text-primary">
+              {{ s.eyebrow }}
+            </p>
             <p class="font-semibold text-dark-slate">{{ s.menuTitle }}</p>
-            <p class="text-sm text-gray-600 mt-1">{{ s.summary }}</p>
+            <p v-if="s.price" class="text-sm font-semibold text-amber-dark mt-1">
+              {{ s.price.label }}
+            </p>
+          </NuxtLink>
+        </nav>
+
+        <h2 class="text-sm font-bold uppercase tracking-wider text-gray-500 mt-10 mb-3">
+          Expertise
+        </h2>
+        <nav class="space-y-1">
+          <NuxtLink
+            v-for="s in expertiseServices"
+            :key="s.id"
+            :to="`/services/${s.id}`"
+            @click="trackServiceClick(s)"
+            class="block px-3 py-1.5 -mx-3 rounded-lg text-sm transition-colors"
+            :class="{
+              'bg-light-gray text-primary font-semibold': s.id === id,
+              'text-gray-700 hover:bg-gray-50': s.id !== id,
+            }"
+          >
+            {{ s.menuTitle }}
           </NuxtLink>
         </nav>
       </aside>
@@ -41,11 +65,11 @@
 
           <!-- Main content with right sidebar for keywords -->
           <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Core Service Article -->
             <main
               class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
             >
-              <component :is="service.detailsComponent" />
+              <component :is="service.detailsComponent" v-if="service.detailsComponent" />
+              <ServiceOffer v-else :service="service" />
             </main>
 
             <!-- Right Sidebar: Key Concepts & Topics -->
@@ -83,17 +107,19 @@
           </div>
 
           <!-- Bottom Bar: CTA -->
-          <div class="p-6 bg-primary text-white rounded-lg flex justify-between items-center">
+          <div
+            class="p-6 bg-primary text-white rounded-lg flex flex-col sm:flex-row gap-4 justify-between sm:items-center"
+          >
             <div>
-              <h3 class="font-bold text-xl">Ready to build your data foundation?</h3>
-              <p>Let's discuss how these services can be tailored to your business.</p>
+              <h3 class="font-bold text-xl">{{ cta.title }}</h3>
+              <p>{{ cta.text }}</p>
             </div>
             <NuxtLink
               :to="{ name: 'booking' }"
               @click="trackBookConsultationClick"
-              class="bg-white text-primary font-bold py-2 px-5 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+              class="bg-white text-primary font-bold py-2 px-5 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap text-center"
             >
-              Book a Consultation
+              {{ cta.button }}
             </NuxtLink>
           </div>
 
@@ -119,7 +145,9 @@
         <div v-else class="text-center p-12">
           <h1 class="text-2xl font-bold">Service Not Found</h1>
           <p class="mt-4">The service you are looking for does not exist.</p>
-          <NuxtLink to="/" class="text-primary mt-6 inline-block">Go back to Home</NuxtLink>
+          <NuxtLink to="/services" class="text-primary mt-6 inline-block"
+            >See all services</NuxtLink
+          >
         </div>
       </div>
     </div>
@@ -127,7 +155,8 @@
 </template>
 
 <script setup lang="ts">
-import { services as allServices, getServiceById, type Service } from '~/data/services'
+import ServiceOffer from '~/components/services/ServiceOffer.vue'
+import { offerServices, expertiseServices, getServiceById, type Service } from '~/data/services'
 import { trackEvent } from '~/services/analytics'
 
 const route = useRoute()
@@ -145,85 +174,99 @@ const relatedArticles = computed(() => {
     .filter((a): a is NonNullable<typeof a> => a != null)
 })
 
+const cta = computed(() =>
+  service.value?.tier === 'entry'
+    ? {
+        title: 'Book your readiness audit',
+        text: 'From €100, fully credited when we sign the project. Start with a free 30-minute call.',
+        button: 'Book a Scoping Call',
+      }
+    : {
+        title: 'Not sure where to start?',
+        text: 'Book a free 30-minute scoping call. We talk directly about feasibility, timeline and cost.',
+        button: 'Book a Scoping Call',
+      },
+)
+
 // Page-level SEO metadata
-const routeMetadata: Record<string, { title: string; description: string }> = {
-  'ai-automation-discovery': {
-    title: 'AI & Automation Strategic Discovery | ivmanto.com',
-    description:
-      'Discover high-impact AI and automation use-cases for your SMB. We audit workflows, pinpoint bottlenecks, and deliver an ROI-prioritized automation roadmap.',
-  },
-  'data-pipeline-engineering': {
-    title: 'Data Pipeline Design & Architecture | ivmanto.com',
-    description:
-      'End-to-end data pipeline engineering — we design scalable, secure pipelines that transform raw data into curated, analytics- and AI-ready datasets.',
-  },
-  'agentic-ai-solutions': {
-    title: 'Agentic AI Solution Design & Team Enablement | ivmanto.com',
-    description:
-      'Design and implement Agentic AI solutions — autonomous, reasoning agents — with architectural guidance, best practices, and team enablement for your staff.',
-  },
-  'data-strategy-and-governance': {
-    title: 'Data Strategy & Governance | ivmanto.com',
-    description:
-      'Develop a clear data strategy and robust governance framework. We align your data initiatives with business goals for maximum impact and compliance.',
-  },
-  'data-architecture': {
-    title: 'Data Architecture on GCP | ivmanto.com',
-    description:
-      'Design and build scalable, secure data architectures on Google Cloud Platform (GCP). We leverage BigQuery, Cloud Storage, and modern data engineering practices.',
-  },
-  sovereigncloud: {
-    title: 'Sovereign Cloud Solutions | ivmanto.com',
-    description:
-      'Explore architectural perspectives on Data, Operations, and AI Sovereignty to meet your compliance and security needs in the cloud.',
-  },
-  'ml-engineering': {
-    title: 'AI & ML Solutions | ivmanto.com',
-    description:
-      'Leverage the power of AI and Machine Learning on GCP. We build custom solutions, from predictive analytics to generative AI, to solve your toughest challenges.',
-  },
-  principles: {
-    title: 'Guiding Principles | ivmanto.com',
-    description:
-      'Our DAMA-aligned principles for data strategy, governance, and architecture ensure your data becomes a reliable, valuable asset for decision-making and AI.',
-  },
-}
-
-const meta = computed(() => routeMetadata[id.value])
-
 useSeoMeta({
-  title: computed(() => meta.value?.title ?? 'Services | ivmanto.com'),
-  description: computed(() => meta.value?.description ?? ''),
+  title: computed(() => service.value?.seoTitle ?? 'Services | ivmanto.com'),
+  description: computed(() => service.value?.seoDescription ?? ''),
+  ogTitle: computed(() => service.value?.seoTitle ?? 'Services | ivmanto.com'),
+  ogDescription: computed(() => service.value?.seoDescription ?? ''),
 })
 
+const areaServed = [
+  { '@type': 'Place', name: 'European Union' },
+  { '@type': 'Country', name: 'Germany' },
+  { '@type': 'Country', name: 'Austria' },
+  { '@type': 'Country', name: 'Switzerland' },
+  { '@type': 'Place', name: 'Worldwide' },
+]
+
 const serviceSchema = computed(() => {
-  if (!service.value) return null
+  const s = service.value
+  if (!s) return null
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    serviceType: service.value.menuTitle,
-    name: service.value.menuTitle,
-    description: service.value.summary,
-    category: 'Data & AI Consulting',
+    serviceType: s.menuTitle,
+    name: s.menuTitle,
+    description: s.seoDescription,
+    category: 'Data & AI Engineering',
     provider: { '@id': 'https://ivmanto.com/#organization' },
-    areaServed: { '@type': 'Country', name: 'Global' },
+    areaServed,
     url: `https://ivmanto.com${route.path}`,
-    ...(service.value.keywords?.length ? { keywords: service.value.keywords.join(', ') } : {}),
+    ...(s.keywords?.length ? { keywords: s.keywords.join(', ') } : {}),
+    ...(s.price
+      ? {
+          offers: {
+            '@type': 'Offer',
+            description: s.price.note,
+            priceSpecification: {
+              '@type': 'PriceSpecification',
+              minPrice: s.price.amount,
+              priceCurrency: s.price.currency,
+            },
+          },
+        }
+      : {}),
+  }
+})
+
+const faqSchema = computed(() => {
+  const faqs = service.value?.faqs
+  if (!faqs?.length) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
   }
 })
 
 useHead({
-  script: computed(() =>
-    serviceSchema.value
-      ? [
-          {
-            id: 'service-schema',
-            type: 'application/ld+json',
-            innerHTML: JSON.stringify(serviceSchema.value, null, 2),
-          },
-        ]
-      : [],
-  ),
+  script: computed(() => {
+    const scripts = []
+    if (serviceSchema.value) {
+      scripts.push({
+        id: 'service-schema',
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(serviceSchema.value, null, 2),
+      })
+    }
+    if (faqSchema.value) {
+      scripts.push({
+        id: 'service-faq-schema',
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(faqSchema.value, null, 2),
+      })
+    }
+    return scripts
+  }),
 })
 
 function trackServiceClick(service: Service) {

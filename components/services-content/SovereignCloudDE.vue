@@ -27,7 +27,7 @@ const { cleanTitle } = usePageMetadata()
       In an era defined by data, the concept of <strong>digital sovereignty</strong> has become
       paramount for nations and enterprises alike. For Germany, a powerhouse of industry and a key
       player in the European Union, maintaining control over its digital destiny is not just a
-      strategic advantage—it's a necessity. This article explores the architectural and strategic
+      strategic advantage; it's a necessity. This article explores the architectural and strategic
       dimensions of achieving data, operational, and AI sovereignty within the German and broader EU
       context, focusing on the role of modern cloud platforms.
     </p>
